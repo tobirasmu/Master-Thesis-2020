@@ -1,22 +1,87 @@
 %-----------------------
 % Document initialization
 %-----------------------
-\documentclass[11pt,a4paper]{report}
-\usepackage[utf8x]{inputenc}
+\documentclass{article}
+\usepackage[utf8]{inputenc}
 \input{Tex/Preamble}
 
 %-----------------------
 % Begin document
 %-----------------------
 \begin{document}
+\newgeometry{top = 2.5in}
 
-\section{Introduction}
-In the paper \cite[233]{Wang2016}, we see that...
-\lipsum[1-3]
+% FRONTPAGE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{Tex/frontpage}
+\clearpage
 
+\restoregeometry
 
-\subsection*{Subtitle}
-\lipsum[4-5]
+% Starting roman numbering
+\setcounter{secnumdepth}{0}
+\pagenumbering{Roman}
+
+\sectionfont{\color{white}}
+% ABSTRACT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\afterpage{\blankpage}
+\thispagestyle{abstract}
+\input{Tex/0000_Abstract}
+\clearpage
+
+% PREFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\afterpage{\blankpage}
+\thispagestyle{preface}
+\input{Tex/000_Preface}
+\clearpage
+
+% Decreasing top margin
+\newgeometry{top = 2in}
+
+% CONTENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\thispagestyle{contents}
+\tableofcontents
+\clearpage
+
+% List of Tables %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{List of Figures}
+%\thispagestyle{lof}
+%\listoffigures
+%\clearpage
+
+% List of figures %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{List of Tables}
+%\thispagestyle{lot}
+%\listoftables
+%\clearpage
+
+% ABREVIATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\thispagestyle{abbreviations}
+\input{Tex/00_Abreviations}
+\clearpage
+
+% Going back to arabic numbering
+\setcounter{secnumdepth}{4} %Means that 4 levels of sectioning comes into the table of contents
+\pagenumbering{arabic}
+\setcounter{page}{1}
+% Setting section color and top margins
+\newgeometry{top = 1.25in}
+\sectionfont{\color{black}}
+\pagestyle{main}
+
+% Sections %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{Tex/01_Introduction}
+\clearpage
+
+\input{Tex/02_Theory}
+\clearpage
+
+% References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{emptyleft}
 \printbibliography[heading = bibintoc, title={References}]
+\clearpage
+
+% Appendix %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+% \input{Appendix A}
 
 \end{document}
