@@ -3,36 +3,115 @@
 % -------------------
 
 \usepackage[T1]{fontenc}
-\usepackage{gentium}
-\usepackage{mathptmx} % Use Times Font
+\usepackage{amsmath}
 
 \usepackage[pdftex]{graphicx} % Required for including pictures
 \usepackage[english]{babel} % using english
 \usepackage[pdftex,linkcolor=black,pdfborder={0 0 0}]{hyperref} % Format links for pdf
 \usepackage{calc} % To reset the counter in the document after title page
 \usepackage{enumitem} % Includes lists
+\usepackage[table,xcdraw]{xcolor} % colors
+\usepackage{sectsty} % Sectionstyles
+\usepackage{titlesec}
+\usepackage{epstopdf}
+\usepackage[font=small,labelfont=bf]{caption} % Bold label number
+\usepackage{wallpaper}
 
 %%% Spacing and margins
 \frenchspacing % No double spacing between sentences
 \linespread{1.2} % Set linespace
-\usepackage[a4paper, lmargin=0.1666\paperwidth, rmargin=0.1666\paperwidth, tmargin=0.1111\paperheight, bmargin=0.1111\paperheight]{geometry} %margins
-%\usepackage{parskip}
+\usepackage[top=3in, bottom=1.25in, left=1.25in, right=1.25in]{geometry}
+\usepackage{parskip}
+
 
 % References
 \usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
 \addbibresource{MasterThesis.bib}
 
-\usepackage[all]{nowidow} % Tries to remove widows
-\usepackage[protrusion=true,expansion=true]{microtype} % Improves typography, load after fontpackage is selected
+%\usepackage[all]{nowidow} % Tries to remove widows
+%\usepackage[protrusion=true,expansion=true]{microtype} % Improves typography, load after fontpackage is selected
 
 \usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
-
 
 %-----------------------
 % Set pdf information and add title, fill in the fields
 %-----------------------
 \hypersetup{ 	
-pdfsubject = {},
-pdftitle = {},
-pdfauthor = {}
+pdfsubject = {Master Thesis},
+pdftitle = {Awesome Title},
+pdfauthor = {Tobias Engelhardt Rasmussen}
+}
+
+
+%--------------------
+% Setting up different page styles
+% ------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\usepackage{afterpage}
+% Blank-page page style
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{plain}%
+    %\addtocounter{page}{0}%
+    \newpage}
+% Emptyhead
+\fancypagestyle{emptyhead}{
+  \fancyhf{}
+  \fancyhead[L]{}
+  \fancyhead[R]{}
+  \cfoot{\thepage}
+}
+\fancypagestyle{emptyleft}{
+  \fancyhead[L]{}
+  \cfoot{\thepage}
+}
+\fancypagestyle{abstract}{
+  \fancyhead[R]{\huge \textbf{Abstract}}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{preface}{
+  \fancyhead[R]{\huge \textbf{Preface}}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{abbreviations}{
+  \fancyhead[L]{\huge \textbf{List of Abbreviations}}
+  \fancyhead[R]{}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{contents}{
+  \fancyhead[L]{\huge \textbf{Contents}}
+  \fancyhead[R]{}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{lof}{
+  \fancyhead[L]{\huge \textbf{List of Figures}}
+  \fancyhead[R]{}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{lot}{
+  \fancyhead[L]{\huge \textbf{List of Tables}}
+  \fancyhead[R]{}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{references}{
+  \fancyhead[L]{}
+  \fancyhead[R]{\slshape\leftmark}%
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{main}{%
+  \fancyhf{}%
+  \fancyhead[R]{\slshape\leftmark}%
+  \fancyhead[L]{\slshape\rightmark}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+  %\renewcommand{\footrulewidth}{0.4pt}%
 }
