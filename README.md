@@ -10,6 +10,6 @@ The project will implement tensor decompositions, such as TUCKER and/or PARAFAC,
 
 ## Supervisors
 - Andreas Baum, DTU
-- Line Clemmensen, DTU
+- Line Katrine Harder Clemmensen, DTU
 
 ### Period: 31. August 2020 - 31. January 2020
