@@ -1,8 +1,8 @@
 %--------------------
 % Packages
-% -------------------
+% ------------------
 
-\usepackage[T1]{fontenc}
+\usepackage[T2]{fontenc}
 \usepackage{amsmath}
 
 \usepackage[pdftex]{graphicx} % Required for including pictures
@@ -16,12 +16,19 @@
 \usepackage{epstopdf}
 \usepackage[font=small,labelfont=bf]{caption} % Bold label number
 \usepackage{wallpaper}
+\usepackage{hyperref}
+\usepackage{framed}
 
 %%% Spacing and margins
 \frenchspacing % No double spacing between sentences
 \linespread{1.2} % Set linespace
 \usepackage[top=3in, bottom=1.25in, left=1.25in, right=1.25in]{geometry}
 \usepackage{parskip}
+
+\titleformat{\paragraph}
+{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 
 
 % References
@@ -38,16 +45,16 @@
 %-----------------------
 \hypersetup{ 	
 pdfsubject = {Master Thesis},
-pdftitle = {Awesome Title},
+pdftitle = {MasterThesis2020},
 pdfauthor = {Tobias Engelhardt Rasmussen}
 }
-
 
 %--------------------
 % Setting up different page styles
 % ------------------
 \usepackage{fancyhdr}
 \pagestyle{fancy}
+\fancyheadoffset{0 cm}
 
 \usepackage{afterpage}
 % Blank-page page style
