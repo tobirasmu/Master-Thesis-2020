@@ -31,7 +31,7 @@ def showImage(img, label=""):
 
 #%% Preparing data and defining functions
 
-Nnu = 20000
+Nnu = 10000
 small_train = tc.tensor(img_train[0:Nnu]).float()
 small_train_y = np.zeros((Nnu,10))
 small_train_y[np.arange(0,Nnu),labs_train[0:Nnu]] = 1
@@ -51,22 +51,28 @@ def softMax(X):
 
 #%%
 # Initializing the weights and the shape of the network
+    
+import torch.nn as nn
+
 input_shape = 784
 output_shape = 10
 network_shape = (100,100)
-alpha = 0.001
+alpha = 0.000001
 
-w_in = alpha*tc.randn((input_shape,network_shape[0]))
-b_in = alpha*tc.randn((1,network_shape[0]))
+w_in = tc.empty((input_shape,network_shape[0]))
+nn.init.kaiming_normal_(w_in)
+b_in = tc.zeros((1,network_shape[0]))
 
-w_hidden = alpha*tc.randn(network_shape)
-b_hidden = alpha*tc.randn((1,network_shape[1]))
+w_hidden = tc.empty(network_shape)
+nn.init.kaiming_normal_(w_hidden)
+b_hidden = tc.zeros((1,network_shape[1]))
 
-w_out = alpha*tc.randn((network_shape[-1],output_shape))
+w_out = tc.empty((network_shape[-1],output_shape))
+nn.init.kaiming_normal_(w_out)
 b_out = alpha*tc.randn((1,output_shape))
 
 ### Training loop
-learning_rate = 0.1
+learning_rate = 0.001
 for it in range(1500):
     # Allocating space for the individual updates per observation
     w_in_update = tc.zeros((input_shape,network_shape[0]))
@@ -103,6 +109,7 @@ for it in range(1500):
         dC0_dW0 = tc.mm(small_train[i].view(784,1),temp3)
         w_in_update += (1/N)*dC0_dW0
         b_in_update += (1/N)*temp3
+        
     # Updating the weights        
     w_in += -learning_rate*w_in_update
     b_in += -learning_rate*b_in_update
