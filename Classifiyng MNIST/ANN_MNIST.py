@@ -5,7 +5,7 @@ Created on Thu Aug 13 14:59:51 2020
 
 @author: Tobias
 
-In the following an initial ANN and CNN will be made for the MNIST dataset. It
+In the following an initial ANN will be made for the MNIST dataset. It
 will be done using the pytorch-framework.
 
 """
@@ -115,28 +115,17 @@ class Net2(nn.Module):
 
 # %% Testing with some data
         # Using 1000 samples and 500 validation samples
-
-net = Net(784, 200, 10)
+##
+net = Net(784, 512, 10)
 data = Data(x_train[:2000,:],y_train[:2000],x_train[2000:3000,:],y_train[2000:3000])
 
-optimizer = optim.Adam(net.parameters(), lr = 0.001, weight_decay = 0.1)
+optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
 training(net,data, 100, 100, optimizer, every = 2)
-    
-    # %%
 
-output = net(tc.from_numpy(x_train[3000:4000]))
-preds = tc.max(output, 1)[1]
-
-print(y_train[3000:4000]==preds.numpy())
+#%% 2 hidden layers  
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
+net2 = Net2(784, 512, 512, 10)
+optimizer = optim.Adam(net2.parameters(), lr = 0.001, weight_decay=0.1)
+training(net2,data, 100,100,optimizer, every = 5)
     
 
