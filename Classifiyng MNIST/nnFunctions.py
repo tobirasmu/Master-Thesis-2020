@@ -39,18 +39,22 @@ def plotMany(img_L,B=10,H=10):
 # The data-class to hold the different data splits 
 class Data():
     
-    def __init__(self,x_train, y_train, x_val, y_val):
+    def __init__(self,x_train, y_train, x_val, y_val, x_test, y_test):
         self.x_train = x_train
         self.y_train = y_train
         self.x_val = x_val
         self.y_val = y_val
+        self.x_test = x_test
+        self.y_test = y_test
         
     def size(self):
-        return self.x_train.shape[0], self.x_val.shape[0]
+        return self.x_train.shape[0], self.x_val.shape[0], self.x_test.shape[0]
         
     def __str__(self):
-        out = "This is a data set of: \n" + str(self.x_train.shape[0]) + " training samples and \n" 
-        out = out + str(self.x_val.shape[0]) + " validation samples."
+        train, val, test = self.size()
+        out = "This is a data set of: \n" + str(train) + " training samples, \n" 
+        out = out + str(val) + " validation samples, and: \n" + str(test)
+        out = out + " testing samples."
         return out
 
 
@@ -61,7 +65,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every = 1):
 
     criterion = nn.CrossEntropyLoss()
     
-    num_samples_train, num_samples_valid = data.size()
+    num_samples_train, num_samples_valid, num_samples_test = data.size()
     num_batches_train = num_samples_train // batch_size
     num_batches_valid = num_samples_valid // batch_size
     
@@ -133,3 +137,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every = 1):
     plt.legend(['Train accuracy','Validation accuracy'])
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
+    
+    # The testing accuracy
+    test_preds = tc.max(net(Variable(tc.from_numpy(data.x_test))), 1)[1]
+    print("---------------|o|----------------\nTesting accuracy on %3i samples: %f" %(num_samples_test, accuracy_score(test_preds.numpy(),data.y_test)))

@@ -20,6 +20,7 @@ from nnFunctions import *
 import torch.nn as nn
 import torch.nn.functional as Fun
 import torch.nn.init as init
+import torch.optim as optim
 from torch.nn.parameter import Parameter
 from torch.autograd import Variable
 
