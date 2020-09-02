@@ -8,6 +8,7 @@ Created on Fri Aug 21 12:32:27 2020
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as tc
+from mnist import MNIST
 from sklearn.metrics import accuracy_score
 
 # For using pytorch nn framework
@@ -16,13 +17,46 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 
-# For being able to plot the handwritten digits. Either one by one, or a matrix of them
+
+def loadMNIST(p = 1/3, normalize = True):
+    """ For loading the MNIST data set and making an instance of the data-class 
+        p percent of the training data being validation """
+    mndata = MNIST()
+
+    x_train, y_train = mndata.load_training()
+    x_test, y_test = mndata.load_testing()
+    
+    # Making into stack of images
+    x_train, y_train = np.array(x_train).astype('float32'), np.array(y_train).astype('int32')
+    x_test, y_test = np.array(x_test).astype('float32'), np.array(y_test).astype('int32')
+    
+    channels, rows, cols = 1, 28, 28  # 1 channel since BW and 28x28 pics
+    x_train = x_train.reshape((-1,channels,rows,cols))
+    x_test = x_test.reshape((-1,channels,rows,cols))
+    changeInd = int(x_train.shape[0]*(1-p))
+    
+    return Data(x_train[:changeInd], y_train[:changeInd], x_train[changeInd:], y_train[changeInd:], x_test, y_test, normalize)
+
+
 def showImage(img, label=""):
-    plt.imshow(np.reshape(img,newshape=(28,28)),vmin=0,vmax=255,cmap="gray")
+    """ For being able to plot the handwritten digits. 
+        Either one by one, or a matrix of them """
+    plt.figure()
+    plt.imshow(np.reshape(img,newshape=(28,28)),vmin=0,vmax=1,cmap="gray")
     plt.title(label)
     
+
+def showWrong(data, preds, labels):
+    """ Shows wrong prediction images with true and guess labels 
+        from predictions and true labels """
+    wrongs = np.where((preds == labels) == False)[0]
+    print(len(wrongs))
+    for i in range(np.min((24,len(wrongs)))):
+        showImage(data[wrongs[i]], label = "True: " + str(labels[wrongs[i]]) + " Guess: " + str(preds[wrongs[i]]))
+    
+    
 def plotMany(img_L,B=10,H=10):
-    # B is how many pictures on the x-axis, and H is the y-axis
+    """ B is how many pictures on the x-axis, and H is the y-axis """
     nr = 0
     canvas = np.zeros((1,28*B))
     for i in range(H):
@@ -32,20 +66,29 @@ def plotMany(img_L,B=10,H=10):
             temp = np.concatenate((temp,img_L[nr].reshape((28,28))),axis = 1)
             nr+= 1
         canvas = np.concatenate((canvas, temp),axis = 0)
-    plt.imshow(canvas[1:,:],vmin=0,vmax=255,cmap="gray")
+    plt.imshow(canvas[1:,:],vmin=0,vmax=1,cmap="gray")
     plt.axis('off')
     
 
-# The data-class to hold the different data splits 
 class Data():
+    """ The data-class to hold the different data splits """
     
-    def __init__(self,x_train, y_train, x_val, y_val, x_test, y_test):
+    def __init__(self,x_train, y_train, x_val, y_val, x_test, y_test, normalize = True):
         self.x_train = x_train
         self.y_train = y_train
         self.x_val = x_val
         self.y_val = y_val
         self.x_test = x_test
         self.y_test = y_test
+        if (normalize):
+            self.x_train /= 255
+            self.x_val /= 255
+            self.x_test /= 255
+        
+    def subset(self, nTr, nVal, nTe):
+        return Data(self.x_train[:nTr],self.y_train[:nTr],
+                    self.x_val[:nVal], self.y_val[:nVal], 
+                    self.x_test[:nTe], self.y_test[:nTe])
         
     def size(self):
         return self.x_train.shape[0], self.x_val.shape[0], self.x_test.shape[0]
@@ -58,7 +101,7 @@ class Data():
         return out
 
 
-# The training loop
+""" The training loop """
 get_slice = lambda i, size: range(i * size, (i+1)*size)
 
 def training(net, data, batch_size, num_epochs, optimizer, every = 1):
