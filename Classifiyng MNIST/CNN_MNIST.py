@@ -158,7 +158,7 @@ print(out)
 # %%
 data = fullData.subset(10000,5000,10000)
 optimizer = optim.Adam(net.parameters(), lr = 0.001, weight_decay = 0.1)
-training(net, data, batch_size = 1000, num_epochs=30, optimizer = optimizer)
+training(net, data, batch_size = 1000, num_epochs=15, optimizer = optimizer)
 
 # %% Showing wrong images
 net.eval()
