@@ -66,7 +66,7 @@ def plotMany(img_L,B=10,H=10):
             temp = np.concatenate((temp,img_L[nr].reshape((28,28))),axis = 1)
             nr+= 1
         canvas = np.concatenate((canvas, temp),axis = 0)
-    plt.imshow(canvas[1:,:],vmin=0,vmax=1,cmap="gray")
+    plt.imshow(canvas[1:,:],vmin=np.min(img_L),vmax=np.max(img_L),cmap="gray")
     plt.axis('off')
     
 

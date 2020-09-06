@@ -9,7 +9,9 @@ Just playing around getting to know tensorly a little better.
 """
 
 import tensorly as tl
+from tensorly.decomposition import parafac, tucker, non_negative_parafac
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Initial tensor is a "box" with every number equal to the value of the 3 dimensions
 
@@ -47,4 +49,58 @@ Mode 3:
 #%% Folding is the opposite
 print(tl.fold(tl.unfold(A,2),2,A.shape))
 
+# %% Tensor decompositioning
+from mpl_toolkits.mplot3d import Axes3D
+""" 
+I will try to decompose a 3-dimensional function to see if this algorithm can 
+capture the individual tendencies
+"""
 
+def fun(x,y):
+    return 0.5 * y**2 * np.sin(x)
+
+xs = np.arange(0,10,0.1)
+ys = np.arange(0,10,0.1)
+X, Y = np.meshgrid(xs,ys)
+Z = fun(X,Y)
+
+fig = plt.figure(1)
+ax = fig.gca(projection='3d')
+ax.plot_surface(X,Y,Z)
+
+# %% Trying to decompose Z
+
+from numpy.linalg import pinv, inv
+
+def frobenius(X):
+    return(np.sqrt(np.sum(X**2)))
+
+def corcondia(t, G):
+    return 100 * (1 - ((t - G)**2).sum() / (t**2).sum())
+
+dataTensor = tl.tensor(Z)
+numComp = 1
+kruskalTensor = parafac(dataTensor,rank=numComp)
+loadings = kruskalTensor[1]
+
+A = loadings[0]
+B = loadings[1]
+
+plt.figure(2)
+plt.subplot(1,2,1)
+plt.plot(ys,B)
+plt.subplot(1,2,2)
+plt.plot(xs,A)
+
+Z_hat = tl.kruskal_to_tensor(kruskalTensor)
+
+fig = plt.figure(1)
+ax = fig.gca(projection='3d')
+ax.plot_surface(X,Y,Z-Z_hat)
+print(frobenius(Z-Z_hat))
+
+# %% Assessing the performance of the decomposition
+from tensorly.tenalg import multi_mode_dot
+G = multi_mode_dot(Z, [pinv(A), pinv(B)], modes = [0,1])
+
+print(corcondia(np.eye(numComp), G))
