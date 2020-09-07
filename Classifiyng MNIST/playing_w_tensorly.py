@@ -57,7 +57,7 @@ capture the individual tendencies
 """
 
 def fun(x,y):
-    return 0.5 * y**2 * np.sin(x)
+    return 0.5 * y**2 * np.sin(x) + 4*x
 
 xs = np.arange(0,10,0.1)
 ys = np.arange(0,10,0.1)
@@ -79,8 +79,9 @@ def corcondia(t, G):
     return 100 * (1 - ((t - G)**2).sum() / (t**2).sum())
 
 dataTensor = tl.tensor(Z)
-numComp = 1
-kruskalTensor = parafac(dataTensor,rank=numComp)
+numComp = 2
+#kruskalTensor = parafac(dataTensor,rank=numComp)
+kruskalTensor = tucker(dataTensor, ranks = [2,2])
 loadings = kruskalTensor[1]
 
 A = loadings[0]
@@ -92,7 +93,9 @@ plt.plot(ys,B)
 plt.subplot(1,2,2)
 plt.plot(xs,A)
 
-Z_hat = tl.kruskal_to_tensor(kruskalTensor)
+#%%
+#Z_hat = tl.kruskal_to_tensor(kruskalTensor)
+Z_hat = tl.tucker_to_tensor(kruskalTensor)
 
 fig = plt.figure(1)
 ax = fig.gca(projection='3d')
