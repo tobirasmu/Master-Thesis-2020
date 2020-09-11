@@ -27,17 +27,54 @@ from torch.nn import Linear, Conv2d, BatchNorm2d, MaxPool2d, Dropout2d, Dropout,
 
 # Importing the data
 # Here the data should be storred as pictures (matrices) and not vectors.
-fullData = loadMNIST(normalize=False)
+fullData = loadMNIST(normalize=True)
+
 
 # Some of the pictures are hard to recognize even for humans.
 plotMany(fullData.x_train,30,20)
+
+# %% 2 hidden dense layers
+
+num_classes = 10
+channels, height, width = fullData.x_train.shape[1:]
+num_l1 = 512
+num_l2 = 512
+class Net(nn.Module):
+    
+    def __init__(self):
+        super(Net, self).__init__()
+        
+        self.l1 = Linear(in_features=height*width, out_features=num_l1, bias = True)
+        self.l2 = Linear(in_features=num_l1, out_features=num_l2, bias=True)
+        self.l_out = Linear(in_features=num_l2, out_features=num_classes, bias=False)
+        #self.norm = BatchNorm1d(num_l1)
+        
+        self.dropout = Dropout(p = 0.4)
+        
+    def forward(self, x):
+        x = x.view(-1,height*width)
+        x = self.dropout(relu(self.l1(x)))
+        
+        x = self.dropout(relu(self.l2(x)))
+        
+        return softmax(self.l_out(x), dim = 1)
+
+net = Net()
+print(net)
+
+# %% Training the network with two hidden layers
+
+data = fullData.subset(10000,5000,10000)
+
+optimizer = optim.SGD(net.parameters(), lr = 0.01, momentum=0.9)
+training(net, data, batch_size = 100, num_epochs=100, optimizer = optimizer)
 
 # %% Defining the CNN first simple with one convolutional layer
 
 # Hyper parameters
 num_classes = 10
 channels, height, width = fullData.x_train.shape[1:]
-num_filters_conv1 = 16
+num_filters_conv1 = 32
 kernel_size_conv1 = 5 # [height, width]
 stride_conv1 = 1       # [height, width]
 padding_conv1 = 2
@@ -84,6 +121,15 @@ class Net(nn.Module):
     
 net = Net()
 print(net)
+
+# %% Training the network with 1 convolutional layer
+
+data = fullData.subset(10000,5000,10000)
+optimizer = optim.Adam(net.parameters(), lr = 0.0001, weight_decay = 0.1)
+
+#optimizer = optim.SGD(net.parameters(), lr = 0.01, momentum=0.9)
+training(net, data, batch_size = 100, num_epochs=30, optimizer = optimizer)
+
 
 # %% Trying a high-performance one
 # Hyper parameters
@@ -155,9 +201,12 @@ x = np.random.normal(0,1,(5,1,28,28)).astype('float32')
 out = net(Variable(tc.from_numpy(x)))
 print(out)
 
-# %%
+# %% Training the big network
+
 data = fullData.subset(10000,5000,10000)
-optimizer = optim.Adam(net.parameters(), lr = 0.001, weight_decay = 0.1)
+optimizer = optim.Adam(net.parameters(), lr = 0.01, weight_decay = 0.1)
+
+#optimizer = optim.SGD(net.parameters(), lr = 0.01, momentum=0.9)
 training(net, data, batch_size = 1000, num_epochs=15, optimizer = optimizer)
 
 # %% Showing wrong images

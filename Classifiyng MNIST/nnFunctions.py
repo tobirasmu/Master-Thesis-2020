@@ -88,7 +88,7 @@ class Data():
     def subset(self, nTr, nVal, nTe):
         return Data(self.x_train[:nTr],self.y_train[:nTr],
                     self.x_val[:nVal], self.y_val[:nVal], 
-                    self.x_test[:nTe], self.y_test[:nTe])
+                    self.x_test[:nTe], self.y_test[:nTe], normalize = False)
         
     def size(self):
         return self.x_train.shape[0], self.x_val.shape[0], self.x_test.shape[0]

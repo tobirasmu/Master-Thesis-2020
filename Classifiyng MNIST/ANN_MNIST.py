@@ -30,8 +30,8 @@ mndata = MNIST()
 x_train, y_train = mndata.load_training()
 x_test, y_test = mndata.load_testing()
 
-x_train, y_train = np.array(x_train).astype('float32'), np.array(y_train).astype('int32')
-x_test, y_test = np.array(x_test).astype('float32'), np.array(y_test).astype('int32')
+x_train, y_train = np.array(x_train).astype('float32')/255.0, np.array(y_train).astype('int32')
+x_test, y_test = np.array(x_test).astype('float32')/255.0, np.array(y_test).astype('int32')
 
 # Some of the pictures are hard to recognize even for humans.
 plotMany(x_train,30,20)
@@ -118,15 +118,16 @@ class Net2(nn.Module):
         # Using 1000 samples and 500 validation samples
 ##
 net = Net(784, 512, 10)
-data = Data(x_train[:2000,:],y_train[:2000],x_train[2000:3000,:],y_train[2000:3000])
+data = Data(x_train[:2000,:],y_train[:2000],x_train[2000:3000,:],y_train[2000:3000],x_test, y_test)
 
-optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum = 0.9)
+# %%
+optimizer = optim.SGD(net.parameters(), lr = 0.1, momentum = 0.9)
 training(net,data, 100, 100, optimizer, every = 2)
 
 #%% 2 hidden layers  
     
 net2 = Net2(784, 512, 512, 10)
-optimizer = optim.Adam(net2.parameters(), lr = 0.001, weight_decay=0.1)
+optimizer = optim.Adam(net2.parameters(), lr = 0.1, weight_decay=0.1)
 training(net2,data, 100,100,optimizer, every = 5)
     
 
