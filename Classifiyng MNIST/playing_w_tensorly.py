@@ -12,8 +12,23 @@ import tensorly as tl
 from tensorly.decomposition import parafac, tucker, non_negative_parafac
 import numpy as np
 import matplotlib.pyplot as plt
+import torch as tc
+tl.set_backend('pytorch') # using the pytorch backend instead of numpy to check
+                          # if autograd will work.
 
 # Initial tensor is a "box" with every number equal to the value of the 3 dimensions
+a = tc.tensor((((111,121),
+      (211,221),
+      (311,321),
+      (411,321)),
+     ((112,122),
+      (212,222),
+      (312,322),
+      (412,422)),
+     ((113,123),
+      (213,223),
+      (313,323),
+      (413,423))),dtype= tc.double, requires_grad=True)
 
 A = tl.tensor(
     (((111,121),
@@ -31,8 +46,9 @@ A = tl.tensor(
 print(A)
 print("The dimensions are: ",A.shape)
 
+
 #%% Unfolding
-print("Mode 1: \n",tl.unfold(A,1))
+print("Mode 1: \n",tl.unfold(a,1))
 print("Mode 2: \n",tl.unfold(A,2))
 print("Mode 3: \n",tl.unfold(A,0))
 
