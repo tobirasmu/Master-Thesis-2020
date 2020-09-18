@@ -42,7 +42,7 @@ def showImage(img, label=""):
     """ For being able to plot the handwritten digits. 
         Either one by one, or a matrix of them """
     plt.figure()
-    plt.imshow(np.reshape(img,newshape=(28,28)),vmin=0,vmax=1,cmap="gray")
+    plt.imshow(np.reshape(img,newshape=(28,28)),vmin=np.min(img),vmax=np.max(img),cmap="gray")
     plt.title(label)
     
 
@@ -57,6 +57,7 @@ def showWrong(data, preds, labels):
     
 def plotMany(img_L,B=10,H=10):
     """ B is how many pictures on the x-axis, and H is the y-axis """
+    plt.figure()
     nr = 0
     canvas = np.zeros((1,28*B))
     for i in range(H):
