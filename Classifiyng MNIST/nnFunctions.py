@@ -173,7 +173,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every = 1):
         valid_acc.append(valid_acc_cur)
         
         if (epoch % (every) == 0):
-            print("Epoch %2i : Train Loss %f , Train acc %f, Valid acc %f" % (
+            print("Epoch %3i : Train Loss %f , Train acc %f, Valid acc %f" % (
             epoch, losses[-1], train_acc_cur, valid_acc_cur))
     epochs = np.arange(len(train_acc))
     plt.figure()
