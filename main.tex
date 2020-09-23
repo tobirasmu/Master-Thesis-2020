@@ -22,6 +22,10 @@
 \pagenumbering{Roman}
 
 \sectionfont{\color{white}}
+
+% Block commenting starting here !! (ends with \fi)
+\iffalse
+
 % ABSTRACT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \afterpage{\blankpage}
 \thispagestyle{abstract}
@@ -58,7 +62,7 @@
 \thispagestyle{abbreviations}
 \input{Tex/00_Abreviations}
 \clearpage
-
+\fi
 % Going back to arabic numbering
 \setcounter{secnumdepth}{4} %Means that 4 levels of sectioning comes into the table of contents
 \pagenumbering{arabic}
