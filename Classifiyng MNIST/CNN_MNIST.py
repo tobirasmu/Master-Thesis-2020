@@ -33,7 +33,7 @@ fullData = loadMNIST(normalize=True)
 # Some of the pictures are hard to recognize even for humans.
 plotMany(fullData.x_train,30,20)
 
-# %% 2 hidden dense layers
+y# %% 2 hidden dense layers
 
 num_classes = 10
 channels, height, width = fullData.x_train.shape[1:]
@@ -136,16 +136,15 @@ training(net, data, batch_size = 100, num_epochs=30, optimizer = optimizer)
 num_classes = 10
 channels, height, width = fullData.x_train.shape[1:]
 
-num_filters = (32,32)
+num_filters = (4,16)
 kernel_size = (5,5)
 stride_size = (1,1)
-padding_size = (2,2)
+padding_size = (2,0)
 
-num_l1 = 128
+num_l1 = 120
 
 def compute_conv_dim(dim_size, kernel_size, stride_size, padding_size):
     return int((dim_size - kernel_size + 2 * padding_size) / stride_size + 1)
-
 class Net(nn.Module):
     
     def __init__(self):
@@ -181,11 +180,11 @@ class Net(nn.Module):
         # First convolution including dropout and batchnorm
         x = self.normC1(relu(self.conv1(x)))
         # Pooling
-        x = self.dropout2(self.pool(x))
+        x = self.pool(self.dropout2(x))
         # 2nd convolution
         x = self.normC2(relu(self.conv2(x)))
         # Pooling
-        x = self.dropout2(self.pool(x))
+        x = self.pool(self.dropout2(x))
         # Reshaping before dense layer
         x = x.view(-1,self.l1_in_features)
         # Doing the dense layer
@@ -203,11 +202,11 @@ print(out)
 
 # %% Training the big network
 
-data = fullData.subset(10000,5000,10000)
-optimizer = optim.Adam(net.parameters(), lr = 0.01, weight_decay = 0.1)
+data = fullData.subset(40000,20000,10000)
+optimizer = optim.Adam(net.parameters(), lr = 0.001)
 
 #optimizer = optim.SGD(net.parameters(), lr = 0.01, momentum=0.9)
-training(net, data, batch_size = 1000, num_epochs=15, optimizer = optimizer)
+training(net, data, batch_size = 100, num_epochs=30, optimizer = optimizer)
 
 # %% Showing wrong images
 net.eval()
@@ -223,18 +222,18 @@ np_W = names_and_vars['conv1.weight'].data.numpy()
 channels_out, channels_in, filter_size, _ = np_W.shape
 n = int(channels_out**0.5)
 
-np_W_res = np_W.reshape(filter_size, filter_size, channels_in, 4, 8)
-fig, ax = plt.subplots(4,8)
+np_W_res = np_W.reshape(filter_size, filter_size, channels_in, 2, 2)
+fig, ax = plt.subplots(2,2)
 print("learned filter values")
-for i in range(4):
-    for j in range(8):
+for i in range(2):
+    for j in range(2):
         ax[i,j].imshow(np_W_res[:,:,0,i,j], cmap='gray',interpolation='none')
         ax[i,j].xaxis.set_major_formatter(plt.NullFormatter())
         ax[i,j].yaxis.set_major_formatter(plt.NullFormatter())
 
 # %%
         
-idx = 5
+idx = 1
 plt.figure()
 plt.imshow(data.x_train[idx,0],cmap='gray',interpolation='none')
 plt.title('Inut Image')
@@ -242,11 +241,11 @@ plt.show()
 
 #visalize the filters convolved with an input image
 from scipy.signal import convolve2d
-np_W_res = np_W.reshape(filter_size, filter_size, channels_in, 4, 8)
-fig, ax = plt.subplots(4,8,figsize=(9,9))
+np_W_res = np_W.reshape(filter_size, filter_size, channels_in, 2, 2)
+fig, ax = plt.subplots(2,2,figsize=(9,9))
 print("Response from input image convolved with the filters")
-for i in range(4):
-    for j in range(8):
+for i in range(2):
+    for j in range(2):
         ax[i,j].imshow(convolve2d(data.x_train[idx,0],np_W_res[:,:,0,i,j],mode='same'),
                        cmap='gray',interpolation='none')
         ax[i,j].xaxis.set_major_formatter(plt.NullFormatter())
