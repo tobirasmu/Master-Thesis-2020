@@ -42,7 +42,7 @@ Now X is a tensor of only 3s and 4s
 from tensorly.tenalg import multi_mode_dot, mode_dot
 nTrain = 5000
 
-K = tucker(tl.tensor(X34[:nTrain].reshape((-1,28,28))), ranks=[2,10,10])
+K = tucker(tl.tensor(X34[:nTrain].reshape((-1,28,28))), ranks=[2,28,28])
 A, B, C = K[1]
 core = K[0]
 
