@@ -1,6 +1,6 @@
 # Master Thesis 2020
 ## Evaluation of synergistic effects of tensor decomposition methods within (deep) neural network applications
-The master thesis of Tobias Engelhardt Rasmussen, to be performed in the fall of 2020 and handed in on the 29th of January 2021.
+The master thesis of Tobias Engelhardt Rasmussen, to be performed in the fall of 2020 and handed in on the 12th of February 2021.
 
 Convolutional Neural Networks (CNNs) are widely used for image analysis related tasks, e.g. for image classification. A CNN typically involves so called convolutional layers. In brief, a convolutional layer can be understood as an image filter and is essential to extract decisive image features/structures for subsequent image classification and/or prediction. To obtain sufficient prediction accuracy CNNs often contain many layers (= deep learning), resulting in a large number of fitted parameters. The number of fitted parameters also depends on the input size of the data. Hereby, the number of fitted parameters grows exponentially as the image resolution increases. Therefore, training CNNs requires considerable amounts of computational resources and time.  
 
@@ -12,4 +12,4 @@ The project will implement tensor decompositions, such as TUCKER and/or PARAFAC,
 - Andreas Baum, DTU
 - Line Katrine Harder Clemmensen, DTU
 
-### Period: 31. August 2020 - 29. January 2021
+### Period: 31. August 2020 - 12. February 2021
