@@ -29,13 +29,13 @@
 % ABSTRACT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \afterpage{\blankpage}
 \thispagestyle{abstract}
-\input{Tex/0000_Abstract}
+\input{Tex/00000_Abstract}
 \clearpage
 
 % PREFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \afterpage{\blankpage}
 \thispagestyle{preface}
-\input{Tex/000_Preface}
+\input{Tex/0000_Preface}
 \clearpage
 
 % Decreasing top margin
@@ -47,22 +47,29 @@
 \clearpage
 
 % List of Tables %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\section{List of Figures}
-%\thispagestyle{lof}
-%\listoffigures
-%\clearpage
+\section{List of Figures}
+\thispagestyle{lof}
+\listoffigures
+\clearpage
 
 % List of figures %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\section{List of Tables}
-%\thispagestyle{lot}
-%\listoftables
-%\clearpage
+\section{List of Tables}
+\thispagestyle{lot}
+\listoftables
+\clearpage
+
+\fi %finish commenting
 
 % ABREVIATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \thispagestyle{abbreviations}
-\input{Tex/00_Abreviations}
+\input{Tex/000_Abreviations}
 \clearpage
-\fi
+
+% Symbols %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\thispagestyle{symbols}
+\input{Tex/00_Symbols}
+\clearpage
+
 % Going back to arabic numbering
 \setcounter{secnumdepth}{4} %Means that 4 levels of sectioning comes into the table of contents
 \pagenumbering{arabic}
@@ -78,6 +85,9 @@
 \clearpage
 
 \input{Tex/02_Theory}
+\clearpage
+
+\input{Tex/03_Previous_work}
 \clearpage
 
 % References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
