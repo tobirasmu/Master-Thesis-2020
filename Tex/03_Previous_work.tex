@@ -62,8 +62,14 @@ With $R$ being the rank of the decomposition. Now each of the parenthesis can be
 All the methods discussed above only describe how to decompose a single layer in the NN; the dense layer or the convolutional layer respectively. In 2016 two methods was proposed that would be able to decompose an entire network at once. First Kim et al. proposed using Tucker-decomposition \cite{Kim2016} and later Wang et al. proposed using block term decomposition (BTD) \cite{Wang2016}. 
 
 \subsubsection{Using Tucker-decomposition}
-Kim et al. proposed using Tucker-decomposition to decompose, not only the convolutional layers, but also the dense layers \cite{Kim2016}. They would use Tucker-2 decomposition from the second convolution to the first dense layer, and Tucker-1 decomposition\footnote{Equivalent to the SVD} for the remaining. They did not decompose the spatial dimensions, since these already are quite small. They also proposed using the global analytical solutions for variational Bayesian matrix factorization (VBMF) developed by Nakajima et al. in 2013 \cite{Nakajima2013} to find the optimal ranks for the decompositions. In a similar to the derivation in \autoref{tex:convUsingCP}, Kim et al. found that the Tucker-2 decomposed convolutional layer can be described as a sequences of simpler convolutions. This sequence is shown in \autoref{}
+Kim et al. proposed using Tucker-decomposition to decompose, not only the convolutional layers, but also the dense layers \cite{Kim2016}. They would use Tucker-2 decomposition from the second convolution to the first dense layer, and Tucker-1 decomposition\footnote{Equivalent to the SVD} for the remaining. They did not decompose the spatial dimensions, since these already are quite small. They also proposed using the global analytical solutions for variational Bayesian matrix factorization (VBMF) developed by Nakajima et al. in 2013 \cite{Nakajima2013} to find the optimal ranks for the decompositions. In a similar to the derivation in \autoref{tex:convUsingCP}, Kim et al. found that the Tucker-2 decomposed convolutional layer can be described as a sequences of simpler convolutions. This sequence is shown in \autoref{fig:tuckerDecompConv}. 
 
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{Pics/02_Previous_work/tuckerDecomp.png}
+    \caption{Taken from \cite{Kim2016}. }
+    \label{fig:tuckerDecompConv}
+\end{figure}
 % Outline:
 % Speeding up the dense layer
 % Speeding up the convolutional layer
