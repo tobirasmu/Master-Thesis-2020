@@ -11,28 +11,58 @@ Some approaches will be discussed in the following. In the end the methods will 
 \subsection{Decomposing the dense layer}
 In 2015 Nokinov et al. used TT-decomposition to decompose the weights of a dense (fully-connected) layer in an ANN\cite{Novikov2015}. This method exploits the power of the dense layer and allows it to have a big amount of neurons. The dense layer performs a linear transformation on an input vector $\bs{x}$ of dimension $N$:
 \begin{equation}
-    \bs{y} = \bs{W} \bs{x} + \bs{b}
+    \bs{y} = W \bs{x} + \bs{b}
     \label{eq:linearTransform}
 \end{equation}
-Where $\bs{W} \in \R^{M\times N}$ is the weight matrix and $\bs{b} \in \R^{M}$ is the bias vector. $M$ is the dimension of the output $\bs{y}$. Since the weights of the dense layer are given in a matrix, Nokinov et al. folds this matrix into a 3-dimensional tensor in order to decompose it using the TT algorithm. They define the TT-layer to be the same transformation but with the weights stored in the TT-format. Let $\tensor{X}$ be the input tensor of dimension $d$ (formed from $\bs{x}$), and let the decomposition of the weight matrix have cores $\bs{G}_k[i_k, j_k]$. In the TT-layer the transformation corresponding to \eqref{eq:linearTransform} is given as:
+Where $W \in \R^{M\times N}$ is the weight matrix and $\bs{b} \in \R^{M}$ is the bias vector. $M$ is the dimension of the output $\bs{y}$. Since the weights of the dense layer are given in a matrix, Nokinov et al. folds this matrix into a 3-dimensional tensor in order to decompose it using the TT algorithm. They define the TT-layer to be the same transformation but with the weights stored in the TT-format. Let $\tensor{X}$ be the input tensor of dimension $d$ (formed from $\bs{x}$), and let the decomposition of the weight matrix have cores $G_k[i_k, j_k]$. In the TT-layer the transformation corresponding to \eqref{eq:linearTransform} is given as:
 \begin{equation}
-    \tensor{Y}(i_1, i_2, \dots, i_d) = \sum_{j_1, j_2, \dots, j_d} \bs{G}_1[i_1, j_1] \bs{G}_2[i_2, j_2]\dots \bs{G}_d[i_d, j_d] \tensor{X}(j_1, j_2, \dots j_d) + \tensor{B}(i_1, i_2, \dots, i_d)
+    \tensor{Y}(i_1, i_2, \dots, i_d) = \sum_{j_1, j_2, \dots, j_d} G_1[i_1, j_1] G_2[i_2, j_2]\dots G_d[i_d, j_d] \tensor{X}(j_1, j_2, \dots j_d) + \tensor{B}(i_1, i_2, \dots, i_d)
 \end{equation}
 Where $\tensor{B}$ is the bias tensor. The properties of the TT-format allows for computation of back-propagation, which is then used for fine-tuning the network. The authors report a best-case compression of a dense layer of up to 200,000 times and of a whole network of up to 7.
 
 \subsection{Speeding up the evaluation of a convolution}
-In 2013 Rigamonti et al. \cite{Rigamonti2013} found that filters can be computed as a linear combination of smaller separable filters. A filter is called separable when it can be expressed using multiple parts of lower dimension, as for instance using the CP-decomposition as illustrated by \cite{Sironi2015} in \autoref{fig:separable_filters}. Ever since many approaches have been considered using this principle in different ways. For instance Lebedev et al. using CP-decomposition in \cite{Lebedev2015}, while Jaderberg et al. proposed two different schemes for using rank-1 filters to exploit the cross-channel / filter redundancy \cite{Jaderberg2014}. 
+In 2013 Rigamonti et al. \cite{Rigamonti2013} found that filters can be computed as a linear combination of smaller separable filters. A filter is called separable when it can be expressed using multiple parts of lower dimension, as for instance using the CP-decomposition as illustrated by \cite{Sironi2015} in \autoref{fig:separable_filters}. Ever since many approaches have been considered using this principle in different ways. For instance Jaderberg et al. proposed two different schemes for using rank-1 filters to exploit the cross-channel / filter redundancy \cite{Jaderberg2014}. Since these schemes did not built upon any decomposition algorithm per se, the approximation of the separated filters was done by numerically minimizing either the $L_2$ reconstruction error or the reconstruction of the output of the given layer (indirectly). Another approach was proposed by Lebedev et al. in 2015 and used CP-decomposition to decompose the convolutional kernel \cite{Lebedev2015}.
 
-\begin{figure}[]
+\begin{figure}
     \centering
     \includegraphics[width=.8\linewidth]{Pics/02_Previous_work/separable_filters.png}
     \caption{Taken from \cite{Sironi2015}. Left: A bank of two-dimensional filters is stacked together to form a 3-dimensional tensor. Right: The tensor is decomposed in the sum of $K$ rank-one tensors. Thus, the original filters are approximated by the weighted sum of the separable filters $s_k = \boldsymbol{a}_k \circ \boldsymbol{b}_k$}
     \label{fig:separable_filters}
 \end{figure}
 
-\subsubsection{Convolution using CP-decomposition}
+\subsubsection{Convolution using CP-decomposition} \label{tex:convUsingCP}
+Lebedev et al. proposed to decompose the 4-dimensional convolutional kernel using CP\Hyphdash decomposition \cite{Lebedev2015}. The idea is to reduce the computation time of the evaluation of a convolutional layer. After having decomposed the kernel into a set of rank-1 tensors, they re-write the convolution into an expression of nested sums using the loadings of the decomposition. The traditional convolution of an input tensor $\tensor{U}$ of size $W \times H \times S$ into an output tensor $\tensor{T}$ of size $(W-d+1)\times (H-d+1)\times t$ looks like this:
+\begin{equation}
+    \tensor{V}(x, y, t)=\sum_{i=x-\delta}^{x+\delta} \sum_{j=y-\delta}^{y+\delta} \sum_{s=1}^{S} \tensor{K}(i-x+\delta, j-y+\delta, s, t) \ \tensor{U}(i, j, s)
+    \label{eq:tradConvolution}
+\end{equation}
+Where $\tensor{K}$ is the 4-dimensional kernel\footnote{The kernel corresponds to a stack of 3-dimensional filters} of size $d\times d \times s\times t$ and $\delta = \frac{d-1}{2}$ is the half width of the filter in the spatial dimension. Using the decomposition of $\tensor{K}$ with loading matrices $K_w$, $K_h$, $K_s$, and $K_t$, the (approximated) convolution \eqref{eq:tradConvolution} can be written as:
+\begin{equation}
+    \tensor{V}(x, y, t) = \sum_{r=1}^{R} K_{t}(t, r)\left(\sum_{i=x-\delta}^{x+\delta} K_{w}(i-x+\delta, r)\left(\sum_{j=y-\delta}^{y+\delta} K_{h}(j-y+\delta, r)\left(\sum_{s=1}^{S} K_{s}(s, r) \ \tensor{U}(i, j, s)\right)\right)\right)
+\end{equation}
+With $R$ being the rank of the decomposition. Now each of the parenthesis can be expressed as intermediate tensors, which means that the whole convolution can be broken into a sequence of four simple convolutions. \autoref{fig:decompConvDifference} shows the difference between a traditional convolution and the sequence of convolutions using the decomposition. The expression of the convolution using the decomposed kernel allows as a sequence of simpler convolutions allows for the use of standard back-propagation. Furthermore it enables easy fine-tuning of the entire network. The authors report that even though the reconstruction error decreases with the increasing rank, a high accuracy is not needed in order to get good prediction results. They also state that their method works well for smaller architectures, while it has a harder time on more complex ones.
 
+\begin{figure}
+    \centering
+    \begin{subfigure}{\linewidth}
+        \centering
+        \includegraphics[width=0.4\linewidth]{Pics/02_Previous_work/fullConv.png}
+        \caption{Original convolution}
+    \end{subfigure}
+    \begin{subfigure}{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Pics/02_Previous_work/decompConv.png}
+        \caption{Convolution using CP-decomposed kernel}
+    \end{subfigure}
+    \caption{Taken from \cite{Lebedev2015}. The difference between the original convolution and the sequence of convolutions using the loadings vectors of the CP-decomposition. The grey boxes corresponds to the 3-dimensional tensors within the CNN, with the frontal sides corresponding to the spatial dimension. For instance the first box in each line corresponds to the input image where $S$ is the number of input channels. The arrows show linear mappings, or how to calculate a single value using a filter (top) or a decomposed filter (bottom).}
+    \label{fig:decompConvDifference}
+\end{figure}
 
+\subsection{Speeding up the entire network}
+All the methods discussed above only describe how to decompose a single layer in the NN; the dense layer or the convolutional layer respectively. In 2016 two methods was proposed that would be able to decompose an entire network at once. First Kim et al. proposed using Tucker-decomposition \cite{Kim2016} and later Wang et al. proposed using block term decomposition (BTD) \cite{Wang2016}. 
+
+\subsubsection{Using Tucker-decomposition}
+Kim et al. proposed using Tucker-decomposition to decompose, not only the convolutional layers, but also the dense layers \cite{Kim2016}. They would use Tucker-2 decomposition from the second convolution to the first dense layer, and Tucker-1 decomposition\footnote{Equivalent to the SVD} for the remaining. They did not decompose the spatial dimensions, since these already are quite small. They also proposed using the global analytical solutions for variational Bayesian matrix factorization (VBMF) developed by Nakajima et al. in 2013 \cite{Nakajima2013} to find the optimal ranks for the decompositions. In a similar to the derivation in \autoref{tex:convUsingCP}, Kim et al. found that the Tucker-2 decomposed convolutional layer can be described as a sequences of simpler convolutions. This sequence is shown in \autoref{}
 
 % Outline:
 % Speeding up the dense layer

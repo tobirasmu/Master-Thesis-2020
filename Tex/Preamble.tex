@@ -5,6 +5,7 @@
 %\usepackage[T2]{fontenc} - % måske noget med automatisk orddeling...
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{extdash}
 
 \usepackage[pdftex]{graphicx} % Required for including pictures
 \usepackage[english]{babel} % using english
@@ -16,6 +17,8 @@
 \usepackage{titlesec}
 \usepackage{epstopdf}
 \usepackage[font=small,labelfont=bf]{caption} % Bold label number
+\usepackage{subcaption}
+\counterwithin{figure}{section}
 \usepackage{wallpaper}
 \usepackage{hyperref}
 \usepackage{framed}
@@ -23,7 +26,7 @@
 %%% Spacing and margins
 \frenchspacing % No double spacing between sentences
 \linespread{1.2} % Set linespace
-\usepackage[top=3in, bottom=1.25in, left=1.25in, right=1.25in]{geometry}
+\usepackage[top=3in, bottom=1.25in, left=1.25in, right=1.25in, headheight=25.0pt]{geometry}
 \usepackage{parskip}
 \setlength{\parindent}{1em}
 
@@ -36,6 +39,7 @@
 % References
 \usepackage[backend=biber,style=numeric,sorting=nty]{biblatex}
 \addbibresource{MasterThesis.bib}
+\usepackage{csquotes}
 
 %\usepackage[all]{nowidow} % Tries to remove widows
 %\usepackage[protrusion=true,expansion=true]{microtype} % Improves typography, load after fontpackage is selected
