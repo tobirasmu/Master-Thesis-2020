@@ -21,7 +21,7 @@ Where $W \in \R^{M\times N}$ is the weight matrix and $\bs{b} \in \R^{M}$ is the
 Where $\tensor{B}$ is the bias tensor. The properties of the TT-format allows for computation of back-propagation, which is then used for fine-tuning the network. The authors report a best-case compression of a dense layer of up to 200,000 times and of a whole network of up to 7.
 
 \subsection{Speeding up the evaluation of a convolution}
-In 2013 Rigamonti et al. \cite{Rigamonti2013} found that filters can be computed as a linear combination of smaller separable filters. A filter is called separable when it can be expressed using multiple parts of lower dimension, as for instance using the CP-decomposition as illustrated by \cite{Sironi2015} in \autoref{fig:separable_filters}. Ever since many approaches have been considered using this principle in different ways. For instance Jaderberg et al. proposed two different schemes for using rank-1 filters to exploit the cross-channel / filter redundancy \cite{Jaderberg2014}. Since these schemes did not built upon any decomposition algorithm per se, the approximation of the separated filters was done by numerically minimizing either the $L_2$ reconstruction error or the reconstruction of the output of the given layer (indirectly). Another approach was proposed by Lebedev et al. in 2015 and used CP-decomposition to decompose the convolutional kernel \cite{Lebedev2015}.
+In 2013 Rigamonti et al. \cite{Rigamonti2013} found that filters can be computed as a linear combination of smaller separable filters. A filter is called separable when it can be expressed using multiple parts of lower dimension, as for instance using the CP-decomposition as illustrated by \cite{Sironi2015} in \autoref{fig:separable_filters}. Ever since many approaches have been considered using this principle in different ways. For instance Jaderberg et al. proposed two different schemes for using rank-1 filters to exploit the cross-channel / filter redundancy \cite{Jaderberg2014}. Since these schemes did not built upon any decomposition algorithm per se, the approximation of the separated filters was done by numerically minimizing either the $L_2$ reconstruction error or the reconstruction error of the output of the given layer (indirectly). Two other approaches uses standard decomposition algorithms to ease the evaluation time. One was proposed by Lebedev et al. in 2015 and used CP-decomposition to decompose the convolutional kernel \cite{Lebedev2015}, another was proposed by Wang and Cheng in 2016 and used BTD. They will both be discussed in the following.
 
 \begin{figure}
     \centering
@@ -31,6 +31,7 @@ In 2013 Rigamonti et al. \cite{Rigamonti2013} found that filters can be computed
 \end{figure}
 
 \subsubsection{Convolution using CP-decomposition} \label{tex:convUsingCP}
+
 Lebedev et al. proposed to decompose the 4-dimensional convolutional kernel using CP\Hyphdash decomposition \cite{Lebedev2015}. The idea is to reduce the computation time of the evaluation of a convolutional layer. After having decomposed the kernel into a set of rank-1 tensors, they re-write the convolution into an expression of nested sums using the loadings of the decomposition. The traditional convolution of an input tensor $\tensor{U}$ of size $W \times H \times S$ into an output tensor $\tensor{T}$ of size $(W-d+1)\times (H-d+1)\times t$ looks like this:
 \begin{equation}
     \tensor{V}(x, y, t)=\sum_{i=x-\delta}^{x+\delta} \sum_{j=y-\delta}^{y+\delta} \sum_{s=1}^{S} \tensor{K}(i-x+\delta, j-y+\delta, s, t) \ \tensor{U}(i, j, s)
@@ -58,18 +59,43 @@ With $R$ being the rank of the decomposition. Now each of the parenthesis can be
     \label{fig:decompConvDifference}
 \end{figure}
 
-\subsection{Speeding up the entire network}
-All the methods discussed above only describe how to decompose a single layer in the NN; the dense layer or the convolutional layer respectively. In 2016 two methods was proposed that would be able to decompose an entire network at once. First Kim et al. proposed using Tucker-decomposition \cite{Kim2016} and later Wang et al. proposed using block term decomposition (BTD) \cite{Wang2016}. 
+\subsubsection{Convolution using Block Term Decomposition}
+Wang and Cheng proposed speeding up the evaluation of a convolution using BTD, which benefits from both sparsity and low-rank. For simplicity they combine the two spatial dimensions into one which means that the convolutional kernel becomes 3-dimensional ($S\times T \times WH$). Since they will not exploit the spatial dimension due to low rank, their decomposition becomes a tucker-2 decomposition of the kernel $\tensor{K}$:
 
-\subsubsection{Using Tucker-decomposition}
-Kim et al. proposed using Tucker-decomposition to decompose, not only the convolutional layers, but also the dense layers \cite{Kim2016}. They would use Tucker-2 decomposition from the second convolution to the first dense layer, and Tucker-1 decomposition\footnote{Equivalent to the SVD} for the remaining. They did not decompose the spatial dimensions, since these already are quite small. They also proposed using the global analytical solutions for variational Bayesian matrix factorization (VBMF) developed by Nakajima et al. in 2013 \cite{Nakajima2013} to find the optimal ranks for the decompositions. In a similar to the derivation in \autoref{tex:convUsingCP}, Kim et al. found that the Tucker-2 decomposed convolutional layer can be described as a sequences of simpler convolutions. This sequence is shown in \autoref{fig:tuckerDecompConv}. 
+\begin{equation}
+    \tensor{K} \approx \sum_{r=1}^{R} \tensor{G}_r \times_1 \bs{A}_r \times_2 \bs{B}_r
+\end{equation}
+
+Where $R$ is the rank of the BTD, $\bs{A}_r \in \R^{S\times s}$ and $\bs{B}_r \in \R^{T\times t}$ are the factor matrices along input and output channel dimensions respectively. $\tensor{G}_r \in \R^{s\times t \times P}$ is the core of the $r$'th subtensor. Now the authors concatenate all the $R$ matrices into big matrices $\bs{A}$ and $\bs{B}$. And the core tensors into a big group-sparse core matrix $\tensor{G}$. The result is visualized in \autoref{fig:concatBTD}. The convolution can be done faster using this decomposition and the sequence of convolutions shown in \autoref{fig:BTD_conv_decomp}. The authors also propose a new algorithm for doing the decomposition itself. They call the algorithm Principle Component Iteration (PCI) which is a generalisation of higher order orthogonal iteration (HOOI)
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{Pics/02_Previous_work/concatBTD.png}
+    \caption{Taken from \cite{Wang2016}. Illustrates how the $R$ factor matrices and core tensors can be concatenated.} 
+    \label{fig:concatBTD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.8\linewidth]{Pics/02_Previous_work/BTD_conv_decomp.png}
+    \caption{Taken from \cite{Wang2016}. Illustrates how the convolution is done using the BTD. Each of the boxes correspond to an intermediate tensor with the frontal sides corresponding to spatial dimensions. The arrows show a linear mapping using the factors of the filter.}
+    \label{fig:BTD_conv_decomp}
+\end{figure}
+
+\subsection{Speeding up the entire network}
+All the methods discussed above only describe how to decompose a single layer in the NN; the dense layer or the convolutional layer respectively. In 2016 one method was proposed that would be able to decompose an entire network at once.
+
+Kim et al. proposed using Tucker-decomposition to decompose, not only the convolutional layers, but also the dense layers \cite{Kim2016}. They would use Tucker-2 decomposition from the second convolution to the first dense layer, and Tucker-1 decomposition\footnote{Equivalent to the SVD} for the remaining. They did not decompose the spatial dimensions, since these already are quite small. They also proposed using the global analytical solutions for variational Bayesian matrix factorization (VBMF) developed by Nakajima et al. in 2013 \cite{Nakajima2013} to find the optimal ranks for the decompositions. In a similar derivation to the one in \autoref{tex:convUsingCP}, Kim et al. found that the Tucker-2 decomposed convolutional layer can be described as a sequences of simpler convolutions. This sequence is shown in \autoref{fig:tuckerDecompConv}. They use this sequence to do back-propagation on the entire network at once. The authors report promising results, but states that the optimality of the rank selection needs to be investigated further. They also claim that the $1\times 1$ convolution has great potential and will grow in popularity.\footnote{The yellow and blue convolutions seen in \autoref{fig:tuckerDecompConv}. It is already extensively used in for instance GoogLeNet \cite{Szegedy2015}}
 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{Pics/02_Previous_work/tuckerDecomp.png}
-    \caption{Taken from \cite{Kim2016}. }
+    \caption{Taken from \cite{Kim2016}. The boxes correspond to the 3-dimensional tensors in the network with the frontal sides being the spatial dimensions. Each of the arrows show a linear mappings. The two middle tensors are the intermediate tensors with $R_3$ and $R_4$ being the ranks of the decomposition.}
     \label{fig:tuckerDecompConv}
 \end{figure}
+
+
+
 % Outline:
 % Speeding up the dense layer
 % Speeding up the convolutional layer
