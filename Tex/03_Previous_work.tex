@@ -94,7 +94,8 @@ Kim et al. proposed using Tucker-decomposition to decompose, not only the convol
     \label{fig:tuckerDecompConv}
 \end{figure}
 
-
+\subsection{Overall comparison of methods}
+It seems that the biggest compression happens in the dense layers, since these are very heavy in number of parameters, on the other hand the convolution takes longer since there are more evaluations per parameter. In trying to speed up the CNN, the method using BTD proposed in \cite{Wang2016} seems to get the best results. On the VGG-16 network architecture\cite{Simonyan2015} they achieve an acceleration of $6.6 \times$, while the methods of Jaderberg et al. \cite{Jaderberg2014} and Kim et al. \cite{Kim2016} achieve $3.8 \times$ and $3.3\times$ respectively. The authors of the BTD method also discuss and test decomposing the first dense layer since this can be treated as a convolution with large filters. The method using CP-decomposition \cite{Lebedev2015} worked well, but did not seem to be scaleable.
 
 % Outline:
 % Speeding up the dense layer
