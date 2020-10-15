@@ -5,7 +5,7 @@ Created on Tue Sep  8 16:38:38 2020
 
 @author: Tobias
 
-In this file, it is attempted to decompose some 3s and 4s from the MNIST data set.
+In this file, it is attempted to decompose some set of digits from the MNIST data set.
 """
 
 from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
@@ -31,7 +31,7 @@ data = loadMNIST()
 
 # %% Making a tensor of a subset of the digits
 
-digits = (3,4,7)
+digits = (0,1,2,3,4,5,6,7,8,9)
 
 X_all = data.x_train
 Y_all = data.y_train
@@ -60,7 +60,7 @@ nTrain = int(0.7 * N)
 nVal = int(0.8 * N)
 
 # The decomposition
-K = tucker(tl.tensor(X_sub[:nTrain]), ranks=[3,28,28])
+K = tucker(tl.tensor(X_sub[:nTrain]), ranks=[15,28,28])
 A, B, C = K[1]
 core = K[0]
 
@@ -79,7 +79,7 @@ data = Data(X_sub[:nTrain], Y_sub[:nTrain], X_sub[nTrain:nVal], Y_sub[nTrain:nVa
 
 num_classes = len(digits)
 height, width = data.x_train.shape[1:]
-num_l1 = 3
+num_l1 = 10
 
 class Net(nn.Module):
     
@@ -115,7 +115,7 @@ X_new = multi_mode_dot(core, [A_new, B, C], modes = [0,1,2])
 
 num_classes = len(digits)
 num_features = A_new.shape[1]
-num_l1 = 5
+num_l1 = 15
 
 class Net(nn.Module):
     
@@ -135,4 +135,4 @@ print(net)
 
 optimizer = optim.SGD(net.parameters(), lr = 0.2)
 dataDecomp = Data(A, Y_sub[:nTrain], A_new[:(nVal-nTrain)], Y_sub[nTrain:nVal], A_new[(nVal-nTrain):], Y_sub[nVal:], normalize = False)
-training(net, dataDecomp, 100, 500, optimizer, every = 10)
+training(net, dataDecomp, 100, 1000, optimizer, every = 10)
