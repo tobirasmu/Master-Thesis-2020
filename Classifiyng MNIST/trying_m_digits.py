@@ -62,14 +62,13 @@ nVal = int(0.8 * N)
 
 # The decomposition
 t = time()
-K = tucker(tl.tensor(X_sub[:nTrain]), ranks=[500,28,28])
+K = tucker(tl.tensor(X_sub[:nTrain]), ranks=[15,28,28])
 print("Time was: ", time()-t)
 A, B, C = K[1]
 core = K[0]
 
 X_hat = tl.tucker_to_tensor(K)
 
-plt.close('all')
 plotMany(X_sub, 10, 10)
 plotMany(X_hat, 10, 10)
 
@@ -141,5 +140,5 @@ print(net)
 dataDecomp = Data(A, Y_sub[:nTrain], A_new[:(nVal-nTrain)], Y_sub[nTrain:nVal], A_new[(nVal-nTrain):], Y_sub[nVal:], normalize = False)
 
 # %% Training the decomposed network
-optimizer = optim.SGD(net.parameters(), lr = 0.2, momentum = 0.7)
+optimizer = optim.SGD(net.parameters(), lr = 0.1, momentum = 0.7)
 training(net, dataDecomp, 100, 500, optimizer, every = 5)

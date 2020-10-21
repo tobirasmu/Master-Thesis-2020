@@ -291,8 +291,8 @@ netDec = deepcopy(net)
 
 netDec.conv1 = conv_to_tucker1(netDec.conv1, 2)
 netDec.conv2 = conv_to_tucker2(netDec.conv2, [4, 8])
-netDec.l1 = lin_to_tucker2(netDec.l1, [200, 40])
-netDec.l2 = lin_to_tucker1(netDec.l2, 30)
+netDec.l1 = lin_to_tucker2(netDec.l1, [50, 10])
+netDec.l2 = lin_to_tucker1(netDec.l2, 10)
 
 # The change in number of parameters
 print("Before: {}, after: {}, which is {:.3}".format(numParams(net), numParams(netDec), numParams(netDec) / numParams(net)))
