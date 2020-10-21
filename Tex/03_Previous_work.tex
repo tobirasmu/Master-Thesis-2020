@@ -2,9 +2,9 @@
 In this section a recap of some different approaches to speed up or decrease the number of parameters will be given. In 2013 Denil et al. found NNs to be heavily over-parametrized \cite{Denil2013}. They did this by training only a fraction of the weights and using these to predict the rest of the weights. They reported that in some cases more than 95\% of the weights could be predicted, hence would not need to be learned. Ever since, numerous attempts have been proposed to optimise the evaluation time and number of parameters in NNs. One approach have been to decompose the dense layer of a NN, an other have tried speeding up the evaluation of a convolution, and some have had success in decomposing and speeding up an entire network. All the work described below follow approximately the same structure:
 
 \begin{enumerate}
-    \item \textbf{Decompose weights of pre-trained NN} Using some specific algorithm to get a smaller representation of the weights or filters
-    \item \textbf{Changing the evaluation algorithm} In order for it to correspond to original evaluations and in order to do back-propagation
-    \item \textbf{Fine-tuning} Which is training the network using the new algorithm and back-propagation 
+    \item \textbf{Decompose weights of pre-trained NN} using some specific algorithm to get a smaller representation of the weights or filters
+    \item \textbf{Changing the evaluation algorithm} in order for it to correspond to original evaluations and in order to do back-propagation
+    \item \textbf{Fine-tuning} which is training the network using the new algorithm and back-propagation 
 \end{enumerate}
 Some approaches will be discussed in the following. In the end the methods will be compared using a set of different metrics. 
 
