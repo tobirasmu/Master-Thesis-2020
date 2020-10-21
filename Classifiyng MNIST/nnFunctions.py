@@ -94,7 +94,7 @@ class Data():
     def size(self):
         return self.x_train.shape[0], self.x_val.shape[0], self.x_test.shape[0]
         
-    def __str__(self):
+    def __repr__(self):
         train, val, test = self.size()
         out = "This is a data set of: \n" + str(train) + " training samples, \n" 
         out = out + str(val) + " validation samples, and: \n" + str(test)

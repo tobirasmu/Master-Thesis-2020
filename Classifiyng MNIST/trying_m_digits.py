@@ -16,6 +16,7 @@ import torch as tc
 from tensorly.decomposition import parafac, tucker, non_negative_parafac, non_negative_tucker, matrix_product_state
 from tensorly.tenalg import kronecker, multi_mode_dot, mode_dot
 import matplotlib.pyplot as plt
+from time import time
 
 from torch.nn.parameter import Parameter
 from torch.autograd import Variable
@@ -60,7 +61,9 @@ nTrain = int(0.7 * N)
 nVal = int(0.8 * N)
 
 # The decomposition
-K = tucker(tl.tensor(X_sub[:nTrain]), ranks=[15,28,28])
+t = time()
+K = tucker(tl.tensor(X_sub[:nTrain]), ranks=[500,28,28])
+print("Time was: ", time()-t)
 A, B, C = K[1]
 core = K[0]
 
@@ -79,7 +82,7 @@ data = Data(X_sub[:nTrain], Y_sub[:nTrain], X_sub[nTrain:nVal], Y_sub[nTrain:nVa
 
 num_classes = len(digits)
 height, width = data.x_train.shape[1:]
-num_l1 = 10
+num_l1 = 20
 
 class Net(nn.Module):
     
@@ -88,10 +91,10 @@ class Net(nn.Module):
         
         self.l1 = Linear(in_features=height*width, out_features=num_l1, bias = True)
         #self.l2 = Linear(in_features=num_l1, out_features=num_l2, bias=True)
-        self.l_out = Linear(in_features=num_l1, out_features=num_classes, bias=False)
+        self.l_out = Linear(in_features=num_l1, out_features=num_classes, bias=True)
         #self.norm = BatchNorm1d(num_l1)
         
-        self.dropout = Dropout(p = 0.4)
+        self.dropout = Dropout(p = 0.2)
         
     def forward(self, x):
         x = x.view(-1,height*width)
@@ -104,7 +107,7 @@ class Net(nn.Module):
 net = Net()
 print(net)
 
-optimizer = optim.SGD(net.parameters(), lr = 0.01, momentum=0.5)
+optimizer = optim.SGD(net.parameters(), lr = 0.1, momentum=0.5)
 
 training(net, data, 100, 300, optimizer, every = 5)
 
@@ -113,9 +116,12 @@ training(net, data, 100, 300, optimizer, every = 5)
 A_new = tl.unfold(multi_mode_dot(X_sub[nTrain:],[pinv(B), pinv(C)], modes = [1,2]),mode = 0) @ pinv(tl.unfold(core, mode = 0))
 X_new = multi_mode_dot(core, [A_new, B, C], modes = [0,1,2])
 
+plotMany(X_new, 10,10)
+
+# %%
 num_classes = len(digits)
 num_features = A_new.shape[1]
-num_l1 = 15
+num_l1 = 20
 
 class Net(nn.Module):
     
@@ -124,7 +130,7 @@ class Net(nn.Module):
         
         self.l1 = Linear(in_features = num_features, out_features = num_l1, bias = True)
         
-        self.l_out = Linear(in_features = num_l1, out_features=num_classes, bias = False)
+        self.l_out = Linear(in_features = num_l1, out_features=num_classes, bias = True)
         
     def forward(self, x):
         x = relu(self.l1(x))
@@ -132,7 +138,8 @@ class Net(nn.Module):
     
 net = Net()
 print(net)
-
-optimizer = optim.SGD(net.parameters(), lr = 0.2)
 dataDecomp = Data(A, Y_sub[:nTrain], A_new[:(nVal-nTrain)], Y_sub[nTrain:nVal], A_new[(nVal-nTrain):], Y_sub[nVal:], normalize = False)
-training(net, dataDecomp, 100, 1000, optimizer, every = 10)
+
+# %% Training the decomposed network
+optimizer = optim.SGD(net.parameters(), lr = 0.2, momentum = 0.7)
+training(net, dataDecomp, 100, 500, optimizer, every = 5)
