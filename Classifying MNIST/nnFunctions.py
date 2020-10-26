@@ -17,7 +17,6 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 
-
 def loadMNIST(p = 1/3, normalize = True):
     """ For loading the MNIST data set and making an instance of the data-class 
         p percent of the training data being validation """

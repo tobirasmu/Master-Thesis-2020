@@ -8,7 +8,7 @@ Created on Wed Oct 14 16:41:30 2020
 # %% Loading the data and all the libraries
 
 from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany
-from time import time
+from time import time, process_time, process_time_ns
 import numpy as np
 from numpy.linalg import pinv, inv
 import tensorly as tl
@@ -42,10 +42,10 @@ class Net(nn.Module):
         super(Net, self).__init__()
         
         # The convolutions
-        self.conv1 = Conv2d(in_channels = channels, out_channels=16, kernel_size=5, padding=2, stride=1)
+        self.conv1 = Conv2d(in_channels = channels, out_channels=6, kernel_size=5, padding=2, stride=1)
         dim1 = conv_dim(height, kernel = 5, padding = 2, stride= 1)
         dim1P = conv_dim(dim1, kernel = 2, padding = 0, stride = 2)
-        self.conv2 = Conv2d(in_channels = 16, out_channels = 32, kernel_size=5, padding=0, stride=1)
+        self.conv2 = Conv2d(in_channels = 6, out_channels = 16, kernel_size=5, padding=0, stride=1)
         dim2 = conv_dim(dim1P, kernel = 5, padding = 0, stride=1)
         dim2P = conv_dim(dim2, kernel = 2, padding = 0, stride = 2)
         
@@ -56,7 +56,7 @@ class Net(nn.Module):
         self.dropout1 = Dropout(0.2)
         self.dropout2 = Dropout2d(0.2)
         
-        self.lin_in_feats = 32 * (dim2P **2)
+        self.lin_in_feats = 16 * (dim2P **2)
         # The linear layers
         self.l1 = Linear(in_features = self.lin_in_feats, out_features=120, bias = True)
         self.l2 = Linear(in_features = 120, out_features=84, bias = True)
@@ -176,7 +176,7 @@ def train(thisNet, data, lr = 0.1, momentum = 0.5, factor = 1.1):
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
 
-# %%
+# %% Training the full network
 train(net, data)
         
 # %% Making the decomposed version
@@ -233,7 +233,7 @@ def conv_to_tucker1(layer, rank):
     new_layers = [core_layer, last_layer]
     return nn.Sequential(*new_layers)
 
-def lin_to_tucker1(layer, rank):
+def lin_to_tucker1(layer, rank, in_channels= True):
     """
     Takes a linear layer as input, decomposes it using tucker1, and makes it into
     a sequence of two smaller linear layers using the decomposed weights. 
@@ -241,20 +241,36 @@ def lin_to_tucker1(layer, rank):
     # Making the decomposition of the weights
     weights = layer.weight.data
     nOut, nIn = weights.shape
-    core, [A] = partial_tucker(weights, modes = [0], ranks = [rank])
+    if (in_channels):
+        core, [B] = partial_tucker(weights, modes = [1], ranks=[rank])
+        
+        # Now we have W = GB^T, we need Wb which means we can seperate into two layers
+        BTb = Linear(in_features= nIn, out_features=rank, bias= False)
+        coreBtb = Linear(in_features= rank, out_features=nOut, bias= True)
+        
+        # Set up the weights
+        BTb.weight.data = tc.transpose(B, 0, 1)
+        coreBtb.weight.data = core
+        
+        # Bias goes on last layer
+        coreBtb.bias.data = layer.bias.data
+        
+        new_layers = [BTb, coreBtb]
+    else:
+        core, [A] = partial_tucker(weights, modes = [0], ranks = [rank])
     
-    # Now we have W = AG, we need Wb which means we can do Wb = A (Gb) as two linear layers
-    coreb = Linear(in_features=nIn, out_features=rank, bias = False)    
-    Acoreb = Linear(in_features=rank, out_features=nOut, bias = True)
+        # Now we have W = AG, we need Wb which means we can do Wb = A (Gb) as two linear layers
+        coreb = Linear(in_features=nIn, out_features=rank, bias = False)    
+        Acoreb = Linear(in_features=rank, out_features=nOut, bias = True)
     
-    # Let the decomposed weights be the weights of the new
-    coreb.weight.data = core
-    Acoreb.weight.data = A
+        # Let the decomposed weights be the weights of the new
+        coreb.weight.data = core
+        Acoreb.weight.data = A
     
-    # The bias goes on the second one
-    Acoreb.bias.data = layer.bias.data
+        # The bias goes on the second one
+        Acoreb.bias.data = layer.bias.data
     
-    new_layers = [coreb, Acoreb]
+        new_layers = [coreb, Acoreb]
     return nn.Sequential(*new_layers)
 
 def lin_to_tucker2(layer, ranks):
@@ -289,10 +305,10 @@ def numParams(net):
 # Making a copy
 netDec = deepcopy(net)
 
-netDec.conv1 = conv_to_tucker1(netDec.conv1, 2)
-netDec.conv2 = conv_to_tucker2(netDec.conv2, [4, 8])
-netDec.l1 = lin_to_tucker2(netDec.l1, [50, 10])
-netDec.l2 = lin_to_tucker1(netDec.l2, 10)
+#netDec.conv1 = conv_to_tucker1(netDec.conv1, 3)
+#netDec.conv2 = conv_to_tucker2(netDec.conv2, [3, 8])
+netDec.l1 = lin_to_tucker1(netDec.l1, 10, in_channels=True)
+#netDec.l2 = lin_to_tucker1(netDec.l2, 10)
 
 # The change in number of parameters
 print("Before: {}, after: {}, which is {:.3}".format(numParams(net), numParams(netDec), numParams(netDec) / numParams(net)))
@@ -307,56 +323,36 @@ print("\nAccuracy before: ",acc1)
 print("\nAccuracy after: ",acc2)
 # So the accuracy have decreased by a bit. Maybe it can be finetuned?
 
+# %% Timing just one forward pass
+x = Variable(tc.from_numpy(data.x_train[10]).unsqueeze(0), volatile=True)
+allTimeNet = 0
+allTimeDec = 0
+for i in range(1000):
+    t = process_time_ns()
+    net(x)
+    allTimeNet += process_time_ns()-t
+    t = process_time_ns()
+    netDec(x)
+    allTimeDec += process_time_ns()-t
+print(allTimeNet/1000, " ", allTimeDec/1000, "  ", (allTimeDec/1000)/(allTimeNet/1000))
 # %% Fine-tuning the decomposed network
 train(netDec, data, lr = 0.01, factor= 2)
 
 # %% 
 print("Before: {}, after: {}, which is {:.3}".format(numParams(net), numParams(netDec), numParams(netDec) / numParams(net)))
 # Not the biggest decomp... How about accuracy?
-t = time()
+times1 = []
 for i in range(10):
+    t = process_time()
     acc1 = eval_epoch(netDec, data.x_test, data.y_test)
-print((time()-t)/10)
-t = time()
+    times1.append(process_time()-t)
+print(np.mean(times1[1:]))
+times2 = []
 for i in range(10):
+    t = process_time()
     acc2 = eval_epoch(net, data.x_test, data.y_test)
-print((time()-t)/10)
-print("\nAccuracy before: ",acc1)
-print("\nAccuracy after: ",acc2)
+    times2.append(process_time()-t)
+print(np.mean(times2[1:]))
+print("\nAccuracy before: ",acc2)
+print("\nAccuracy after: ",acc1)
 
-# %% Printing the filters that still look random to me
-names_and_vars = {x[0]: x[1] for x in net.named_parameters()}
-print(names_and_vars.keys())
-
-np_W = names_and_vars['conv1.weight'].data.numpy()
-
-channels_out, channels_in, filter_size, _ = np_W.shape
-n = int(channels_out**0.5)
-
-np_W_res = np_W.reshape(filter_size, filter_size, channels_in, 3, 2)
-fig, ax = plt.subplots(3,2)
-print("learned filter values")
-for i in range(3):
-    for j in range(2):
-        ax[i,j].imshow(np_W_res[:,:,0,i,j], cmap='gray',interpolation='none')
-        ax[i,j].xaxis.set_major_formatter(plt.NullFormatter())
-        ax[i,j].yaxis.set_major_formatter(plt.NullFormatter())
-        
-# %% Showing a convolved image
-from scipy.signal import convolve2d, convolve
-
-idx = 1    # the image you want to convolve
-img = fullData.x_train[idx].reshape(28,28)
-
-firstConv = net.conv1.weight.data.numpy()
-filters1 = firstConv.reshape(5, 5, 1, 3, 2)
-
-plt.figure()
-plt.imshow(img, cmap = 'gray', interpolation = 'none')
-
-fig, ax = plt.subplots(3,2)
-for i in range(3):
-    for j in range(2):
-        ax[i,j].imshow(convolve2d(img, filters1[:,:,0,i,j]), cmap = 'gray', interpolation = 'none')
-        ax[i,j].xaxis.set_major_formatter(plt.NullFormatter())
-        ax[i,j].yaxis.set_major_formatter(plt.NullFormatter())
