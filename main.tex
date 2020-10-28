@@ -9,6 +9,10 @@
 % Begin document
 %-----------------------
 \begin{document}
+
+% Block commenting starting here !! (ends with \fi)
+\iffalse
+
 \newgeometry{top = 2in}
 
 % FRONTPAGE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -23,19 +27,17 @@
 
 \sectionfont{\color{white}}
 
-% Block commenting starting here !! (ends with \fi)
-%\iffalse
 
 % ABSTRACT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \afterpage{\blankpage}
 \thispagestyle{abstract}
-\input{Tex/00000_Abstract}
+\input{Tex/0000_Abstract}
 \clearpage
 
 % PREFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \afterpage{\blankpage}
 \thispagestyle{preface}
-\input{Tex/0000_Preface}
+\input{Tex/000_Preface}
 \clearpage
 
 % Decreasing top margin
@@ -58,17 +60,17 @@
 \listoftables
 \clearpage
 
-%\fi %finish commenting
-
 % ABREVIATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \thispagestyle{abbreviations}
-\input{Tex/000_Abreviations}
+\input{Tex/00_Abreviations}
 \clearpage
 
 % Symbols %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \thispagestyle{symbols}
-\input{Tex/00_Symbols}
+\input{Tex/0_Symbols}
 \clearpage
+
+\fi %finish commenting
 
 % Going back to arabic numbering
 \setcounter{secnumdepth}{4} %Means that 4 levels of sectioning comes into the table of contents
@@ -81,19 +83,19 @@
 
 
 % Sections %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{Tex/01_Introduction}
+%\input{Tex/1_Introduction}
+%\clearpage
+
+%\input{Tex/2_Theory}
+%\clearpage
+
+%\input{Tex/3_Previous_work}
+%\clearpage
+
+\input{Tex/4_Data}
 \clearpage
 
-\input{Tex/02_Theory}
-\clearpage
-
-\input{Tex/03_Previous_work}
-\clearpage
-
-\input{Tex/04_Data}
-\clearpage
-
-\input{Tex/05_Methodology}
+\input{Tex/5_Methods}
 \clearpage
 
 
