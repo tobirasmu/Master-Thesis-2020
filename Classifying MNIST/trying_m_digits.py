@@ -12,11 +12,12 @@ from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMan
 import numpy as np
 from numpy.linalg import pinv, inv
 import tensorly as tl
+tl.set_backend('tensorly')
 import torch as tc
-from tensorly.decomposition import parafac, tucker, non_negative_parafac, non_negative_tucker, matrix_product_state
+from tensorly.decomposition import parafac, tucker, non_negative_parafac, non_negative_tucker, matrix_product_state, partial_tucker
 from tensorly.tenalg import kronecker, multi_mode_dot, mode_dot
 import matplotlib.pyplot as plt
-from time import time
+from time import time, process_time_ns
 
 from torch.nn.parameter import Parameter
 from torch.autograd import Variable
@@ -73,7 +74,15 @@ plotMany(X_sub, 10, 10)
 plotMany(X_hat, 10, 10)
 
 plt.figure()
-plt.hist(A)
+plt.hist(A.numpy())
+
+#%% Partial Tucker decomposition
+K2 = partial_tucker(tl.tensor(X_sub[:nTrain]), modes = [0], ranks=[100])
+core2, [A2] = K2
+A2 = A2.numpy()
+A2_new = tl.unfold(tl.tensor(X_sub[nTrain:]), mode = 0) @ pinv(tl.unfold(core2, mode = 0))
+X2_new = mode_dot(core2, A2_new, mode = 0)
+A2_new = A2_new.numpy()
 
 # %% Trying just a dense neural network
 
@@ -119,7 +128,7 @@ plotMany(X_new, 10,10)
 
 # %%
 num_classes = len(digits)
-num_features = A_new.shape[1]
+num_features = A2_new.shape[1]
 num_l1 = 20
 
 class Net(nn.Module):
@@ -137,8 +146,8 @@ class Net(nn.Module):
     
 net = Net()
 print(net)
-dataDecomp = Data(A, Y_sub[:nTrain], A_new[:(nVal-nTrain)], Y_sub[nTrain:nVal], A_new[(nVal-nTrain):], Y_sub[nVal:], normalize = False)
+dataDecomp = Data(A2, Y_sub[:nTrain], A2_new[:(nVal-nTrain)], Y_sub[nTrain:nVal], A2_new[(nVal-nTrain):], Y_sub[nVal:], normalize = False)
 
 # %% Training the decomposed network
 optimizer = optim.SGD(net.parameters(), lr = 0.1, momentum = 0.7)
-training(net, dataDecomp, 100, 500, optimizer, every = 5)
+training(net, dataDecomp, 100, 1000, optimizer, every = 5)

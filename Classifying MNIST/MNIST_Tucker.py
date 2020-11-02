@@ -28,6 +28,7 @@ import torch.optim as optim
 import torch.nn.functional as Fun
 from torch.nn.functional import relu, elu, relu6, sigmoid, tanh, softmax
 from torch.nn import Linear, Conv2d, BatchNorm2d, AvgPool2d, MaxPool2d, Dropout2d, Dropout, BatchNorm1d
+from VBMF import EVBMF
 
 fullData = loadMNIST()
 
@@ -180,13 +181,16 @@ def train(thisNet, data, lr = 0.1, momentum = 0.5, factor = 1.1):
 train(net, data)
         
 # %% Making the decomposed version
-def conv_to_tucker2(layer, ranks):
+def conv_to_tucker2(layer, ranks= None):
     """
     Takes a pretrained convolutional layer and decomposes is using partial
     tucker with the given ranks.
     """
     # Making the decomposition of the weights
     weights =  layer.weight.data
+    # (Estimating the ranks using VBMF)
+    ranks = estimate_ranks(weights, [0,1]) if (ranks == None) else ranks
+    # Decomposing
     core, [last, first] = partial_tucker(weights, modes = [0,1], ranks = ranks)
     
     # Making the layer into 3 sequential layers using the decomposition
@@ -211,19 +215,21 @@ def conv_to_tucker2(layer, ranks):
     new_layers = [first_layer, core_layer, last_layer]
     return nn.Sequential(*new_layers)
 
-def conv_to_tucker1(layer, rank):
+def conv_to_tucker1(layer, rank= None):
     """
     Takes a pretrained convolutional layer and decomposes it using partial tucker with the given rank.
     """
     # Making the decomposition of the weights
     weights =  layer.weight.data
     out_ch, in_ch, kernel_size, _ = weights.shape
-    core, [last] = partial_tucker(weights, modes = [0], ranks=[rank])
+    # (Estimating the rank)
+    rank = estimate_ranks(weights, [0]) if (rank == None) else [rank]
+    core, [last] = partial_tucker(weights, modes = [0], ranks= rank)
     
     # Turning the convolutional layer into a sequence of two smaller convolutions
-    core_layer = Conv2d(in_channels=in_ch, out_channels=rank, kernel_size=kernel_size, padding=layer.padding, 
+    core_layer = Conv2d(in_channels=in_ch, out_channels=rank[0], kernel_size=kernel_size, padding=layer.padding, 
                         stride= layer.stride, bias = False)
-    last_layer = Conv2d(in_channels=rank, out_channels=out_ch, kernel_size= 1, padding=0, stride= 1, bias = True)
+    last_layer = Conv2d(in_channels=rank[0], out_channels=out_ch, kernel_size= 1, padding=0, stride= 1, bias = True)
     
     # Setting the weights:
     core_layer.weight.data = core
@@ -233,7 +239,7 @@ def conv_to_tucker1(layer, rank):
     new_layers = [core_layer, last_layer]
     return nn.Sequential(*new_layers)
 
-def lin_to_tucker1(layer, rank, in_channels= True):
+def lin_to_tucker1(layer, rank= None, in_channels= True):
     """
     Takes a linear layer as input, decomposes it using tucker1, and makes it into
     a sequence of two smaller linear layers using the decomposed weights. 
@@ -242,11 +248,12 @@ def lin_to_tucker1(layer, rank, in_channels= True):
     weights = layer.weight.data
     nOut, nIn = weights.shape
     if (in_channels):
-        core, [B] = partial_tucker(weights, modes = [1], ranks=[rank])
+        rank = estimate_ranks(weights, [1]) if (rank == None) else [rank]
+        core, [B] = partial_tucker(weights, modes = [1], ranks= rank)
         
         # Now we have W = GB^T, we need Wb which means we can seperate into two layers
-        BTb = Linear(in_features= nIn, out_features=rank, bias= False)
-        coreBtb = Linear(in_features= rank, out_features=nOut, bias= True)
+        BTb = Linear(in_features= nIn, out_features=rank[0], bias= False)
+        coreBtb = Linear(in_features= rank[0], out_features=nOut, bias= True)
         
         # Set up the weights
         BTb.weight.data = tc.transpose(B, 0, 1)
@@ -257,11 +264,12 @@ def lin_to_tucker1(layer, rank, in_channels= True):
         
         new_layers = [BTb, coreBtb]
     else:
-        core, [A] = partial_tucker(weights, modes = [0], ranks = [rank])
+        rank = estimate_ranks(weights, [0]) if (rank == None) else [rank]
+        core, [A] = partial_tucker(weights, modes = [0], ranks= rank)
     
         # Now we have W = AG, we need Wb which means we can do Wb = A (Gb) as two linear layers
-        coreb = Linear(in_features=nIn, out_features=rank, bias = False)    
-        Acoreb = Linear(in_features=rank, out_features=nOut, bias = True)
+        coreb = Linear(in_features=nIn, out_features=rank[0], bias = False)    
+        Acoreb = Linear(in_features=rank[0], out_features=nOut, bias = True)
     
         # Let the decomposed weights be the weights of the new
         coreb.weight.data = core
@@ -273,14 +281,16 @@ def lin_to_tucker1(layer, rank, in_channels= True):
         new_layers = [coreb, Acoreb]
     return nn.Sequential(*new_layers)
 
-def lin_to_tucker2(layer, ranks):
+def lin_to_tucker2(layer, ranks=None):
     """
     Takes in a linear layer and decomposes it by tucker-2. Then splits the linear
     map into a sequence of smaller linear maps. 
     """
-    # Decomposes the weights
+    # Pulling out the weights
     weights = layer.weight.data
     nOut, nIn = weights.shape
+    # Estimate (ranks and) weights
+    ranks = estimate_ranks(weights, [0,1]) if (ranks == None) else ranks
     core, [A, B] = partial_tucker(weights, modes = [0,1], ranks = ranks)
     
     # Making the sequence of 3 smaller layers
@@ -301,14 +311,21 @@ def lin_to_tucker2(layer, ranks):
 def numParams(net):
     return(sum(np.prod(p.size()) for p in net.parameters()))
 
+def estimate_ranks(weight_tensor, dimensions):
+    ranks = []
+    for dim in dimensions:
+        _, diag, _, _ = EVBMF(tl.unfold(weight_tensor, dim))
+        ranks.append(diag.shape[dim])
+    return ranks
+
 # %% Trying to decompose the learned network
 # Making a copy
 netDec = deepcopy(net)
 
-#netDec.conv1 = conv_to_tucker1(netDec.conv1, 3)
-#netDec.conv2 = conv_to_tucker2(netDec.conv2, [3, 8])
-netDec.l1 = lin_to_tucker1(netDec.l1, 10, in_channels=True)
-#netDec.l2 = lin_to_tucker1(netDec.l2, 10)
+netDec.conv1 = conv_to_tucker1(netDec.conv1)
+netDec.conv2 = conv_to_tucker2(netDec.conv2)
+netDec.l1 = lin_to_tucker2(netDec.l1)
+netDec.l2 = lin_to_tucker1(netDec.l2)
 
 # The change in number of parameters
 print("Before: {}, after: {}, which is {:.3}".format(numParams(net), numParams(netDec), numParams(netDec) / numParams(net)))

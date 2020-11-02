@@ -56,6 +56,7 @@ def showWrong(data, preds, labels):
     
 def plotMany(img_L,B=10,H=10):
     """ B is how many pictures on the x-axis, and H is the y-axis """
+    if (type(img_L) == tc.Tensor): img_L = img_L.numpy()
     plt.figure()
     nr = 0
     canvas = np.zeros((1,28*B))

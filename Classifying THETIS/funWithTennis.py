@@ -15,17 +15,21 @@ from tensorly.decomposition import partial_tucker, tucker
 from tensorly.tenalg import multi_mode_dot
 import tensorly as tl
 tl.set_backend('pytorch')
+import matplotlib.pyplot as plt
 
         
 # %% Getting just one video out
 
 path = "/Users/Tobias/Desktop/"
+fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
 os.chdir(path)
 if (not os.path.exists('Test')):
     os.makedirs('Test')
 
-videoFile = "/Users/Tobias/Desktop/Data/VIDEO_RGB/forehand_flat/p6_foreflat_s3.avi"
+videoFile = "/Users/Tobias/Desktop/Data/VIDEO_Mask/forehand_flat/p6_foreflat_mask_s3.avi"
 cap = cv2.VideoCapture(videoFile)   # capturing the video from the given path
+
+out = cv2.VideoWriter('BWMask.avi',fourcc, 18, (640, 480),0)
 
 frames = []
 while(cap.isOpened()):
@@ -33,10 +37,21 @@ while(cap.isOpened()):
     ret, frame = cap.read()
     if (not ret):
         break
-    name = 'Test/frame%d_skelet3D.jpg' % frameId
-    frames.append(tc.tensor(frame, dtype=tc.float32))
-p6 = tc.stack(frames)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frames.append(frame)
+    out.write(frame)
+out.release()
+#%%
 
+for i in range(new.shape[0]):
+    frame = errors[i]
+    print(i, frame.shape)
+    out.write(np.array(frame, dtype= np.uint8))
+out.release()
+
+
+
+# %%
 # decomposing the frame to separate the dynamical information
 core, [frames, W, H, ch] = partial_tucker(p6, modes = [0,1,2,3], ranks = [1, 480, 640, 3])
 
