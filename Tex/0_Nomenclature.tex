@@ -1,0 +1,15 @@
+\section{Nomenclature}
+
+In this thesis vectors will be denoted as bold lower case letters $\boldsymbol{x}$, while bold upper case letters denote matrices $\bs{X}$. Tensors of dimension at least 3 are written in calligraphic letters, hence $\mathcal{X}^{d_1\times d_2 \times \dots \times d_N}$ is a tensor of order $N$ with elements $x_{i_1, i_2, \dots, i_N}$. A list of symbols used throughout the thesis is given below. 
+
+\vspace{1cm}
+
+\begin{tabular}{cll}
+    \textbf{Symbol} & \textbf{Description} & \textbf{Operation}  \\ \hline
+    & & \\
+    $\langle \mathcal{A}, \mathcal{B}\rangle$ & Inner product & $\langle \mathcal{A}, \mathcal{B}\rangle = \sum_{i,j,k} a_{i,j,k}\cdot b_{i,j,k}$ \\
+    $\circ$ &  Outer product & $\boldsymbol{a} \circ \boldsymbol{b} = \boldsymbol{C}$ where $c_{i,j} = a_i \cdot b_j$ \\
+    $\| \mathcal{A} \|_F$ & Frobenius norm & $\sqrt{\langle \mathcal{A}, \mathcal{A}\rangle}$ \\
+    $\bs{X}_{(n)}$ & Matricizing & $\tensor{X}^{I_1 \times I_2 \times \dots I_N} \longrightarrow \bs{X}_{(n)}^{I_n \times I_1 \cdot I_2 \cdots I_{n-1} \cdot I_{n+1} \cdots I_N}$ \\
+    $\times_n$ & $n$-mode product & $\tensor{X}\times_n \bs{M} = \tensor{Z}$ where $\bs{Z}_{(n)} = \bs{M}\bs{X}_{(n)}$
+\end{tabular}

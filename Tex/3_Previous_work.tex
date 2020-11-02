@@ -6,17 +6,17 @@ In this section a recap of some different approaches to speed up or decrease the
     \item \textbf{Changing the evaluation algorithm} in order for it to correspond to original evaluations and in order to do back-propagation
     \item \textbf{Fine-tuning} which is training the network using the new algorithm and back-propagation 
 \end{enumerate}
-Some approaches will be discussed in the following. In the end the methods will be compared using a set of different metrics. 
+Some approaches will be discussed in the following. In the end the methods will be compared in terms of performance in relation to the number of parameters and the computation time.
 
 \subsection{Decomposing the dense layer}
 In 2015 Nokinov et al. used TT-decomposition to decompose the weights of a dense (fully-connected) layer in an ANN\cite{Novikov2015}. This method exploits the power of the dense layer and allows it to have a big amount of neurons. The dense layer performs a linear transformation on an input vector $\bs{x}$ of dimension $N$:
 \begin{equation}
-    \bs{y} = W \bs{x} + \bs{b}
+    \bs{y} = \bs{W} \bs{x} + \bs{b}
     \label{eq:linearTransform}
 \end{equation}
-Where $W \in \R^{M\times N}$ is the weight matrix and $\bs{b} \in \R^{M}$ is the bias vector. $M$ is the dimension of the output $\bs{y}$. Since the weights of the dense layer are given in a matrix, Nokinov et al. folds this matrix into a 3-dimensional tensor in order to decompose it using the TT algorithm. They define the TT-layer to be the same transformation but with the weights stored in the TT-format. Let $\tensor{X}$ be the input tensor of dimension $d$ (formed from $\bs{x}$), and let the decomposition of the weight matrix have cores $G_k[i_k, j_k]$. In the TT-layer the transformation corresponding to \eqref{eq:linearTransform} is given as:
+Where $\bs{W} \in \R^{M\times N}$ is the weight matrix and $\bs{b} \in \R^{M}$ is the bias vector. $M$ is the dimension of the output $\bs{y}$. Since the weights of the dense layer are given in a matrix, Nokinov et al. folds this matrix into a 3-dimensional tensor in order to decompose it using the TT algorithm. They define the TT-layer to be the same transformation but with the weights stored in the TT-format. Let $\tensor{X}$ be the input tensor of dimension $d$ (formed from $\bs{x}$), and let the decomposition of the weight matrix have cores $\bs{G}_k[i_k, j_k]$. In the TT-layer the transformation corresponding to \eqref{eq:linearTransform} is given as:
 \begin{equation}
-    \tensor{Y}(i_1, i_2, \dots, i_d) = \sum_{j_1, j_2, \dots, j_d} G_1[i_1, j_1] G_2[i_2, j_2]\dots G_d[i_d, j_d] \tensor{X}(j_1, j_2, \dots j_d) + \tensor{B}(i_1, i_2, \dots, i_d)
+    \tensor{Y}(i_1, i_2, \dots, i_d) = \sum_{j_1, j_2, \dots, j_d} \bs{G}_1[i_1, j_1] \bs{G}_2[i_2, j_2]\dots \bs{G}_d[i_d, j_d] \tensor{X}(j_1, j_2, \dots j_d) + \tensor{B}(i_1, i_2, \dots, i_d)
 \end{equation}
 Where $\tensor{B}$ is the bias tensor. The properties of the TT-format allows for computation of back-propagation, which is then used for fine-tuning the network. The authors report a best-case compression of a dense layer of up to 200,000 times and of a whole network of up to 7.
 
@@ -37,9 +37,9 @@ Lebedev et al. proposed to decompose the 4-dimensional convolutional kernel usin
     \tensor{V}(x, y, t)=\sum_{i=x-\delta}^{x+\delta} \sum_{j=y-\delta}^{y+\delta} \sum_{s=1}^{S} \tensor{K}(i-x+\delta, j-y+\delta, s, t) \ \tensor{U}(i, j, s)
     \label{eq:tradConvolution}
 \end{equation}
-Where $\tensor{K}$ is the 4-dimensional kernel\footnote{The kernel corresponds to a stack of 3-dimensional filters} of size $d\times d \times s\times t$ and $\delta = \frac{d-1}{2}$ is the half width of the filter in the spatial dimension. Using the decomposition of $\tensor{K}$ with loading matrices $K_w$, $K_h$, $K_s$, and $K_t$, the (approximated) convolution \eqref{eq:tradConvolution} can be written as:
+Where $\tensor{K}$ is the 4-dimensional kernel\footnote{The kernel corresponds to a stack of 3-dimensional filters} of size $d\times d \times s\times t$ and $\delta = \frac{d-1}{2}$ is the half width of the filter in the spatial dimension. Using the decomposition of $\tensor{K}$ with loading matrices $\bs{K}_w$, $\bs{K}_h$, $\bs{K}_s$, and $\bs{K}_t$, the (approximated) convolution \eqref{eq:tradConvolution} can be written as:
 \begin{equation}
-    \tensor{V}(x, y, t) = \sum_{r=1}^{R} K_{t}(t, r)\left(\sum_{i=x-\delta}^{x+\delta} K_{w}(i-x+\delta, r)\left(\sum_{j=y-\delta}^{y+\delta} K_{h}(j-y+\delta, r)\left(\sum_{s=1}^{S} K_{s}(s, r) \ \tensor{U}(i, j, s)\right)\right)\right)
+    \tensor{V}(x, y, t) = \sum_{r=1}^{R} \bs{K}_{t}(t, r)\left(\sum_{i=x-\delta}^{x+\delta} \bs{K}_{w}(i-x+\delta, r)\left(\sum_{j=y-\delta}^{y+\delta} \bs{K}_{h}(j-y+\delta, r)\left(\sum_{s=1}^{S} \bs{K}_{s}(s, r) \ \tensor{U}(i, j, s)\right)\right)\right)
 \end{equation}
 With $R$ being the rank of the decomposition. Now each of the parenthesis can be expressed as intermediate tensors, which means that the whole convolution can be broken into a sequence of four simple convolutions. \autoref{fig:decompConvDifference} shows the difference between a traditional convolution and the sequence of convolutions using the decomposition. The expression of the convolution using the decomposed kernel allows as a sequence of simpler convolutions allows for the use of standard back-propagation. Furthermore it enables easy fine-tuning of the entire network. The authors report that even though the reconstruction error decreases with the increasing rank, a high accuracy is not needed in order to get good prediction results. They also state that their method works well for smaller architectures, while it has a harder time on more complex ones.
 
@@ -61,11 +61,9 @@ With $R$ being the rank of the decomposition. Now each of the parenthesis can be
 
 \subsubsection{Convolution using Block Term Decomposition}
 Wang and Cheng proposed speeding up the evaluation of a convolution using BTD, which benefits from both sparsity and low-rank. For simplicity they combine the two spatial dimensions into one which means that the convolutional kernel becomes 3-dimensional ($S\times T \times WH$). Since they will not exploit the spatial dimension due to low rank, their decomposition becomes a tucker-2 decomposition of the kernel $\tensor{K}$:
-
 \begin{equation}
     \tensor{K} \approx \sum_{r=1}^{R} \tensor{G}_r \times_1 \bs{A}_r \times_2 \bs{B}_r
 \end{equation}
-
 Where $R$ is the rank of the BTD, $\bs{A}_r \in \R^{S\times s}$ and $\bs{B}_r \in \R^{T\times t}$ are the factor matrices along input and output channel dimensions respectively. $\tensor{G}_r \in \R^{s\times t \times P}$ is the core of the $r$'th subtensor. Now the authors concatenate all the $R$ matrices into big matrices $\bs{A}$ and $\bs{B}$. And the core tensors into a big group-sparse core matrix $\tensor{G}$. The result is visualized in \autoref{fig:concatBTD}. The convolution can be done faster using this decomposition and the sequence of convolutions shown in \autoref{fig:BTD_conv_decomp}. The authors also propose a new algorithm for doing the decomposition itself. They call the algorithm Principle Component Iteration (PCI) which is a generalisation of higher order orthogonal iteration (HOOI)
 
 \begin{figure}
