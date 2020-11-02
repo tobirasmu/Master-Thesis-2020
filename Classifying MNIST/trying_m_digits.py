@@ -12,7 +12,7 @@ from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMan
 import numpy as np
 from numpy.linalg import pinv, inv
 import tensorly as tl
-tl.set_backend('tensorly')
+tl.set_backend('pytorch')
 import torch as tc
 from tensorly.decomposition import parafac, tucker, non_negative_parafac, non_negative_tucker, matrix_product_state, partial_tucker
 from tensorly.tenalg import kronecker, multi_mode_dot, mode_dot
@@ -33,7 +33,7 @@ data = loadMNIST()
 
 # %% Making a tensor of a subset of the digits
 
-digits = (0,1,2,3,4,5,6,7,8,9)
+digits = (3,4)
 
 X_all = data.x_train
 Y_all = data.y_train
@@ -47,7 +47,7 @@ X_sub = X_all[indicesAll].reshape((-1,28,28))
 
 # Making sure Ys are classes 0...k and not the original ones
 Y_subIni = Y_all[indicesAll]
-Y_sub = np.zeros(Y_subIni.shape[0])
+Y_sub = tc.zeros(Y_subIni.shape[0])
 for i in range(1,len(digits)):
     Y_sub += (Y_subIni == digits[i])*i
 
@@ -62,11 +62,8 @@ nTrain = int(0.7 * N)
 nVal = int(0.8 * N)
 
 # The decomposition
-t = time()
-K = tucker(tl.tensor(X_sub[:nTrain]), ranks=[15,28,28])
-print("Time was: ", time()-t)
-A, B, C = K[1]
-core = K[0]
+K = partial_tucker(tl.tensor(X_sub[:nTrain]), modes = [0], ranks=[2])
+core, [A] = K
 
 X_hat = tl.tucker_to_tensor(K)
 
@@ -74,11 +71,22 @@ plotMany(X_sub, 10, 10)
 plotMany(X_hat, 10, 10)
 
 plt.figure()
-plt.hist(A.numpy())
+A3s = A[tc.where(Y_sub[:nTrain] == 0)[0]]
+A4s = A[tc.where(Y_sub[:nTrain] == 1)[0]]
+plt.scatter(A4s[:,0], A4s[:,1], facecolor = 'Blue', edgecolor='blue', marker = "x",s = 10)   
+plt.scatter(A3s[:,0], A3s[:,1], facecolor = 'None', edgecolor='red', s = 10)
+plt.legend(labels = ('4','3'))
+plt.xlabel('1. loading in A')         
+plt.ylabel('2. loading in A')
+plt.title('Loadings of A for all the training examples')
 
+# %%
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+x, y = A[:,0].numpy(), A[:,1].numpy()
+hist, xedges, yedges = np.histogram2d(x, y, bins=4, range=[[0, 4], [0, 4]])
 #%% Partial Tucker decomposition
-K2 = partial_tucker(tl.tensor(X_sub[:nTrain]), modes = [0], ranks=[100])
-core2, [A2] = K2
+
 A2 = A2.numpy()
 A2_new = tl.unfold(tl.tensor(X_sub[nTrain:]), mode = 0) @ pinv(tl.unfold(core2, mode = 0))
 X2_new = mode_dot(core2, A2_new, mode = 0)
