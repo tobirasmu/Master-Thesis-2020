@@ -13,5 +13,8 @@ Since the observations in each the given data sets can be stacked to form a 4 (M
 Where $L, J$ and $K$ corresponds to the ranks in each of the dimensions. Here $\tensor{G}$ is the core of the decomposition, $\bs{A}$ corresponds to the loading matrix along the dimension holding the different observations, while $\bs{B}$ and $\bs{C}$ correspond to the loading matrices in the spatial dimensions.
 
 \subsubsection{Example with MNIST 3s and 4s}
-Only the observations depicting either a 3 or a 4 will be considered in this example. These digits are chosen due to their distinct shapes, hence ease of classification. Since the purpose is to make the algorithm find the differences between the two different digits, the spatial dimensions will not be decomposed. This means that a so-called partial Tucker-decomposition will be conducted, hence $\bs{B}$ and $\bs{C}$ will be identity matrices. 
-
+Only the observations depicting either a 3 or a 4 will be considered in this example. These digits are chosen due to their distinct shapes, hence ease of classification. Since the purpose is to make the algorithm find the differences between the two different digits, the spatial dimensions will not be decomposed. This means that a so-called partial Tucker-decomposition will be conducted, hence $\bs{B}$ and $\bs{C}$ will be identity matrices. Now experimentally setting the rank to 2, the decomposition of $N$ stacked 3s and 4s becomes:
+\begin{equation}
+    \tensor{X}^{N\times 28\times 28} \approx \tensor{G}^{2 \times 28 \times 28} \times_1 \bs{A}^{N\times 2} \qquad \Leftrightarrow \qquad \bs{X}_{(1)} \approx \bs{A}^{N\times 2} \ \bs{G}^{2 \times 28\cdot 28}_{(1)}
+\end{equation}
+Where $\bs{A}$ is the loading matrix in the dimension corresponding to different pictures. With the rank equal to 2, $\bs{A}$ holds 2 values per picture that should ideally be separating the two digits that is to be trained. 
