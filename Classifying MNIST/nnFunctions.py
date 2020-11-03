@@ -41,7 +41,8 @@ def showImage(img, label=""):
     """ For being able to plot the handwritten digits. 
         Either one by one, or a matrix of them """
     plt.figure()
-    plt.imshow(np.reshape(img,newshape=(28,28)),vmin=np.min(img),vmax=np.max(img),cmap="gray")
+    plt.imshow(np.reshape(img,newshape=(28,28)),vmin=tc.min(img),vmax=tc.max(img),cmap="gray")
+    plt.axis('off')
     plt.title(label)
     
 
