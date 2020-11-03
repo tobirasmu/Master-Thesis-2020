@@ -17,7 +17,7 @@ Only the observations depicting either a 3 or a 4 will be considered in this exa
 \begin{equation}
     \tensor{X}^{N\times 28\times 28} \approx \tensor{G}^{2 \times 28 \times 28} \times_1 \bs{A}^{N\times 2} \qquad \Leftrightarrow \qquad \bs{X}_{(1)} \approx \bs{A}^{N\times 2} \ \bs{G}^{2 \times 28\cdot 28}_{(1)}
 \end{equation}
-Where $\bs{A}$ is the loading matrix in the dimension corresponding to different pictures. With the rank equal to 2, $\bs{A}$ holds 2 values per picture that should ideally be separating the two digits that is to be trained. \autoref{fig:decompExample3_4} shows how the decomposition of the first 100 training examples turns out. It seems the decomposition is able how to find the \textit{general 3} and the \textit{general 4}, and then simply use the loadings of $\bs{A}$ to specify how much of each it is. XX shows a scatter-plot of the values of $\bs{A}$ colored to show the 3s and 4s respectively. It is clear that some separating is possible. 
+Where $\bs{A}$ is the loading matrix in the dimension corresponding to different pictures. With the rank equal to 2, $\bs{A}$ holds 2 values per picture that should ideally be separating the two digits that is to be trained. \autoref{fig:decompExample3_4} shows how the decomposition of the first 100 training examples turns out. It seems the decomposition is able how to find the "general 3" and the "general 4", and then simply use the loadings of $\bs{A}$ to specify how much of each it an observation is. XX shows a scatter-plot of the values of $\bs{A}$ colored to show the loadings corresponding to 3s and 4s respectively. It is clear that the clusters can be distinguished even though there is still some overlap. 
 
 \begin{figure}
     \centering
@@ -41,6 +41,6 @@ Where $\bs{A}$ is the loading matrix in the dimension corresponding to different
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{Pics/05_methodology/LoadingsOfAScatterMNIST.png}
-    \caption{Scatter plot of the loadings of the loading matrix $\bs{A}$.}
+    \caption{Scatter plot of the 2 loadings of the loading matrix $\bs{A}$ for the MNIST 3s and 4s respectively.}
     \label{fig:my_label}
 \end{figure}
