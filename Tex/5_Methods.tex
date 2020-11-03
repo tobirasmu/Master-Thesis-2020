@@ -17,19 +17,30 @@ Only the observations depicting either a 3 or a 4 will be considered in this exa
 \begin{equation}
     \tensor{X}^{N\times 28\times 28} \approx \tensor{G}^{2 \times 28 \times 28} \times_1 \bs{A}^{N\times 2} \qquad \Leftrightarrow \qquad \bs{X}_{(1)} \approx \bs{A}^{N\times 2} \ \bs{G}^{2 \times 28\cdot 28}_{(1)}
 \end{equation}
-Where $\bs{A}$ is the loading matrix in the dimension corresponding to different pictures. With the rank equal to 2, $\bs{A}$ holds 2 values per picture that should ideally be separating the two digits that is to be trained. \autoref{} shows 
+Where $\bs{A}$ is the loading matrix in the dimension corresponding to different pictures. With the rank equal to 2, $\bs{A}$ holds 2 values per picture that should ideally be separating the two digits that is to be trained. \autoref{fig:decompExample3_4} shows how the decomposition of the first 100 training examples turns out. It seems the decomposition is able how to find the \textit{general 3} and the \textit{general 4}, and then simply use the loadings of $\bs{A}$ to specify how much of each it is. XX shows a scatter-plot of the values of $\bs{A}$ colored to show the 3s and 4s respectively. It is clear that some separating is possible. 
 
 \begin{figure}
     \centering
-    \begin{subfigure}{0.49\linewidth}
+    \begin{subfigure}{0.45\linewidth}
+        \centering
         \includegraphics[width=\linewidth]{Pics/05_methodology/3_4_original.png}
+        \captionsetup{width=.8\linewidth}
+        \caption{Original MNIST training examples including only 3s and 4s.}
     \end{subfigure}
-    \begin{subfigure}{0.49\linewidth}
+    \begin{subfigure}{0.45\linewidth}
+        \centering
         \includegraphics[width=\linewidth]{Pics/05_methodology/3_4_decomp.png}
+        \captionsetup{width=.8\linewidth}
+        \caption{Decomposed versions of the training examples on the left.}
     \end{subfigure}
-    \begin{subfigure}{\linewidth}
-        \includegraphics[width=\linewidth]{Pics/05_methodology/LoadingsOfAScatterMNIST.png}
-    \end{subfigure}
-    \caption{Caption}
+    \captionsetup{width=.95\linewidth}
+    \caption{MNIST training examples before and after decomposing with only rank 2 in the input dimension. Notice how the decomposed 3s and 4s look more standardized. It seems that every picture is a part standardized 3 and a part standardized 4. }
+    \label{fig:decompExample3_4}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{Pics/05_methodology/LoadingsOfAScatterMNIST.png}
+    \caption{Scatter plot of the loadings of the loading matrix $\bs{A}$.}
     \label{fig:my_label}
 \end{figure}

@@ -25,6 +25,7 @@ In 2013 Rigamonti et al. \cite{Rigamonti2013} found that filters can be computed
 
 \begin{figure}
     \centering
+    \captionsetup{width=.9\linewidth}
     \includegraphics[width=.8\linewidth]{Pics/03_Previous_work/separable_filters.png}
     \caption{Taken from \cite{Sironi2015}. Left: A bank of two-dimensional filters is stacked together to form a 3-dimensional tensor. Right: The tensor is decomposed in the sum of $K$ rank-one tensors. Thus, the original filters are approximated by the weighted sum of the separable filters $s_k = \boldsymbol{a}_k \circ \boldsymbol{b}_k$}
     \label{fig:separable_filters}
@@ -55,6 +56,7 @@ With $R$ being the rank of the decomposition. Now each of the parenthesis can be
         \includegraphics[width=\linewidth]{Pics/03_Previous_work/decompConv.png}
         \caption{Convolution using CP-decomposed kernel}
     \end{subfigure}
+    \captionsetup{width=.95\linewidth}
     \caption{Taken from \cite{Lebedev2015}. The difference between the original convolution and the sequence of convolutions using the loadings vectors of the CP-decomposition. The grey boxes corresponds to the 3-dimensional tensors within the CNN, with the frontal sides corresponding to the spatial dimension. For instance the first box in each line corresponds to the input image where $S$ is the number of input channels. The arrows show linear mappings, or how to calculate a single value using a filter (top) or a decomposed filter (bottom).}
     \label{fig:decompConvDifference}
 \end{figure}
@@ -69,6 +71,7 @@ Where $R$ is the rank of the BTD, $\bs{A}_r \in \R^{S\times s}$ and $\bs{B}_r \i
 \begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{Pics/03_Previous_work/concatBTD.png}
+    \captionsetup{width=.85\linewidth}
     \caption{Taken from \cite{Wang2016}. Illustrates how the $R$ factor matrices and core tensors can be concatenated.} 
     \label{fig:concatBTD}
 \end{figure}
@@ -76,6 +79,7 @@ Where $R$ is the rank of the BTD, $\bs{A}_r \in \R^{S\times s}$ and $\bs{B}_r \i
 \begin{figure}
     \centering
     \includegraphics[width=.8\linewidth]{Pics/03_Previous_work/BTD_conv_decomp.png}
+    \captionsetup{width=.85\linewidth}
     \caption{Taken from \cite{Wang2016}. Illustrates how the convolution is done using the BTD. Each of the boxes correspond to an intermediate tensor with the frontal sides corresponding to spatial dimensions. The arrows show a linear mapping using the factors of the filter.}
     \label{fig:BTD_conv_decomp}
 \end{figure}
@@ -88,6 +92,7 @@ Kim et al. proposed using Tucker-decomposition to decompose, not only the convol
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{Pics/03_Previous_work/tuckerDecomp.png}
+    \captionsetup{width=.95\linewidth}
     \caption{Taken from \cite{Kim2016}. The boxes correspond to the 3-dimensional tensors in the network with the frontal sides being the spatial dimensions. Each of the arrows show a linear mappings. The two middle tensors are the intermediate tensors with $R_3$ and $R_4$ being the ranks of the decomposition.}
     \label{fig:tuckerDecompConv}
 \end{figure}
