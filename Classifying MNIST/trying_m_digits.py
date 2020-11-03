@@ -75,7 +75,11 @@ A3s = A[tc.where(Y_sub[:nTrain] == 0)[0]]
 A4s = A[tc.where(Y_sub[:nTrain] == 1)[0]]
 plt.scatter(A4s[:,0], A4s[:,1], facecolor = 'Blue', edgecolor='blue', marker = "x",s = 10)   
 plt.scatter(A3s[:,0], A3s[:,1], facecolor = 'None', edgecolor='red', s = 10)
-plt.legend(labels = ('4','3'))
+m4s = tc.mean(A4s, 0)
+m3s = tc.mean(A3s, 0)
+plt.scatter(m4s[0],m4s[1], facecolor="Black", s = 50)
+plt.scatter(m3s[0],m3s[1], facecolor="Purple", s = 50)
+plt.legend(labels = ('4','3','Mean 4','Mean 3'))
 plt.xlabel('1. loading in A')         
 plt.ylabel('2. loading in A')
 plt.title('Loadings of A for all the training examples')
