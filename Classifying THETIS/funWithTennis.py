@@ -26,7 +26,7 @@ os.chdir(path)
 if (not os.path.exists('Test')):
     os.makedirs('Test')
 
-videoFile = "/Users/Tobias/Desktop/Data/VIDEO_Mask/forehand_flat/p6_foreflat_mask_s3.avi"
+videoFile = "/Users/Tobias/Desktop/Data/VIDEO_Mask/forehand_flat/p6_foreflat_Mask_s3.avi"
 cap = cv2.VideoCapture(videoFile)   # capturing the video from the given path
 
 out = cv2.VideoWriter('BWMask.avi',fourcc, 18, (640, 480),0)
@@ -52,6 +52,7 @@ out.release()
 
 
 # %%
+p6 = tl.tensor(np.stack(frames))
 # decomposing the frame to separate the dynamical information
 core, [frames, W, H, ch] = partial_tucker(p6, modes = [0,1,2,3], ranks = [1, 480, 640, 3])
 
@@ -63,7 +64,6 @@ out = cv2.VideoWriter('ErrorsVideo.avi',cv2.VideoWriter_fourcc('M','J','P','G'),
 
 for i in range(new.shape[0]):
     frame = errors[i]
-    print(i, frame.shape)
     out.write(np.array(frame, dtype= np.uint8))
 out.release()
 

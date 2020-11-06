@@ -327,6 +327,7 @@ netDec.conv2 = conv_to_tucker2(netDec.conv2)
 netDec.l1 = lin_to_tucker2(netDec.l1)
 netDec.l2 = lin_to_tucker1(netDec.l2)
 
+# %%
 # The change in number of parameters
 print("Before: {}, after: {}, which is {:.3}".format(numParams(net), numParams(netDec), numParams(netDec) / numParams(net)))
 # Not the biggest decomp... How about accuracy?
@@ -341,7 +342,7 @@ print("\nAccuracy after: ",acc2)
 # So the accuracy have decreased by a bit. Maybe it can be finetuned?
 
 # %% Timing just one forward pass
-x = Variable(tc.from_numpy(data.x_train[10]).unsqueeze(0), volatile=True)
+x = Variable(tc.from_numpy(data.x_train[100]).unsqueeze(0))
 allTimeNet = 0
 allTimeDec = 0
 for i in range(1000):
@@ -352,6 +353,7 @@ for i in range(1000):
     netDec(x)
     allTimeDec += process_time_ns()-t
 print(allTimeNet/1000, " ", allTimeDec/1000, "  ", (allTimeDec/1000)/(allTimeNet/1000))
+
 # %% Fine-tuning the decomposed network
 train(netDec, data, lr = 0.01, factor= 2)
 
