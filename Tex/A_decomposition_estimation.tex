@@ -1,0 +1,51 @@
+\section{Decomposition Estimation} \label{app:DecompEstimation}
+
+In the following the methods for estimating the decompositions will be reviewed. The decomposition methods that will be covered are Tucker, BTD, CP / PARAFAC, TT-decomposition. The algorithms will be described assuming a 3rd order tensor, but generalizes to both lower and higher orders. It is worth mentioning that none of the algorithms have closed form solutions, hence will need to be fit in order to minimize the error. Additionally the methods are not guaranteed to converge to the global optimum. 
+
+\subsection{Tucker Decomposition}
+Traditionally, Alternating Least Squares (ALS) have been used to estimate the Tucker decomposition\cite[27]{Mørup2011}, however the algorithm that is used today in \textit{TensorLy}\cite{tensorly} is called Higher-Order Orthogonal Iteration (HOOI). The ALS algorithm simply updates each of the loading matrices using the estimates of the others, and keep doing this until convergence. The updates uses the Moore-Penrose pseudo-inverse in the following way:
+\begin{align}
+\bs{A} &\leftarrow \bs{X}_{(1)}\left(\bs{G}_{(1)}(\bs{C} \otimes \bs{B})^{\top}\right)^{\dagger} \\
+\bs{B} &\leftarrow \bs{X}_{(2)}\left(\bs{G}_{(2)}(\bs{C} \otimes \bs{A})^{\top}\right)^{\dagger} \\
+\bs{C} &\leftarrow \bs{X}_{(3)}\left(\bs{G}_{(3)}(\bs{B} \otimes \bs{A})^{\top}\right)^{\dagger} \\
+\tensor{G} &\leftarrow \tensor{X} \times_{1} \bs{A}^{\dagger} \times_{2} \bs{B}^{\dagger} \times_{3} \bs{C}^{\dagger}
+\end{align}
+Imposing orthogonality simplifies this such that the estimation of the core can be omitted. This is achieved by using SVD to estimate the loading matrices at each step, i.e. as the first number of left singular vectors corresponding to the rank of the given dimension. In the end the HOOI algorithm comes down to iteratively solving the right hand sides of:
+\begin{align}
+    \bs{A} \bs{S}_1\bs{V}_1^{\top} &= \bs{X}_{(1)} \left( \bs{C} \otimes \bs{B} \right) \\
+    \bs{B} \bs{S}_2\bs{V}_2^{\top} &= \bs{X}_{(2)} \left( \bs{C} \otimes \bs{A} \right) \\
+    \bs{C} \bs{S}_3\bs{V}_3^{\top} &= \bs{X}_{(3)} \left( \bs{B} \otimes \bs{A} \right)
+\end{align}
+Upon convergence the core can be estimated by the pseudo-inverse in the same way as for the ALS algorithm:
+\begin{equation}
+    \tensor{G} \leftarrow \tensor{X} \times_1 \bs{A}^{\dagger} \times_2 \bs{B}^{\dagger} \times_3 \bs{C}^{\dagger}
+\end{equation}
+The loading matrices can be initialized either by guessing randomly or by Higher-Order SVD (HOSVD) which is simply given by the SVD of the matricized arrays:
+\begin{align}
+    \bs{A} \bs{S}_1\bs{V}_1^{\top} &= \bs{X}_{(1)} \\
+    \bs{B} \bs{S}_2\bs{V}_2^{\top} &= \bs{X}_{(2)} \\
+    \bs{C} \bs{S}_3\bs{V}_3^{\top} &= \bs{X}_{(3)}
+\end{align}
+
+\subsection{CP decomposition}
+The CP decomposition is estimated using ALS in \textit{TensorLy}, since this method have proven superior to other method\cite[29]{Mørup2011}. Due to the CP decomposition being a special case of the Tucker model with a super-diagonal or identity core, we have:
+\begin{equation}
+    \tensor{X} \approx \sum_{r=1}^R \bs{a}_r \circ \bs{b}_r \circ \bs{c}_r
+\end{equation}
+Where $R$ is the rank of the decomposition. This can also be expressed using the matricized $\tensor{X}$ and the Khatri-Rao product:
+\begin{align}
+    \bs{X}_{(1)} &\approx \bs{A}\left( \bs{C} \odot \bs{B}\right)^\top \\
+    \bs{X}_{(2)} &\approx \bs{B}\left( \bs{C} \odot \bs{A}\right)^\top \\
+    \bs{X}_{(3)} &\approx \bs{C}\left( \bs{B} \odot \bs{A}\right)^\top
+\end{align}
+From these the objective, which is minimizing the error $\| \tensor{X} - \hat{\tensor{X}}\|_F$, can be achieved by iteratively updating:
+\begin{align}
+    \bs{A} \leftarrow \bs{X}_{(1)}\left( \bs{C} \odot \bs{B} \right)\left(
+    \bs{C}^\top \bs{C} \bullet \bs{B}^\top \bs{B}\right)^{-1} \\
+    \bs{B} \leftarrow \bs{X}_{(2)}\left( \bs{C} \odot \bs{A} \right)\left(
+    \bs{C}^\top \bs{C} \bullet \bs{A}^\top \bs{A}\right)^{-1} \\
+    \bs{C} \leftarrow \bs{X}_{(3)}\left( \bs{B} \odot \bs{A} \right)\left(
+    \bs{B}^\top \bs{B} \bullet \bs{A}^\top \bs{A}\right)^{-1}
+\end{align}
+until convergence\cite[28]{Kolda2007}. The matrices $\bs{A}, \bs{B}$ and $\bs{C}$ will all have $R$ columns which correspond to the vector loadings for each rank. Like for Tucker Decomposition these can be initialized either randomly or by HOSVD.
+
