@@ -41,6 +41,8 @@ while(cap.isOpened()):
     frames.append(frame)
     out.write(frame)
 out.release()
+
+p6 = np.stack(frames)
 #%%
 
 for i in range(new.shape[0]):
@@ -49,12 +51,13 @@ for i in range(new.shape[0]):
     out.write(np.array(frame, dtype= np.uint8))
 out.release()
 
-
+# %%
+coreHmm, [A, B, C] = tucker(tl.tensor(p6), rank = 2, ranks=(20,200,200))
 
 # %%
 p6 = tl.tensor(np.stack(frames))
 # decomposing the frame to separate the dynamical information
-core, [frames, W, H, ch] = partial_tucker(p6, modes = [0,1,2,3], ranks = [1, 480, 640, 3])
+core, [frames, W, H, ch] = partial_tucker(p6, modes = [0,1,2], ranks = [20,480, 640])
 
 # %% New video
 new = tl.tucker_to_tensor((core,[frames, W, H, ch]))
