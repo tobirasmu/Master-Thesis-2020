@@ -13,7 +13,7 @@ The MNIST (Modified National Institute of Standards and Technology) data set \ci
 \end{figure}
 
 \subsection{THETIS - Tennis shot videos}
-The THETIS (Three dimEnsional TennIs Shots) data set consists of videos of 1980 tennis shots performed by both beginners and more experienced individuals. Each of the 12 types of shots types have been performed multiple times by each of the 55 individuals (31 beginners and 24 experts). Each shot consists of an RGB video, a depth video, a silhouette video, and both 2D and 3D skeleton videos. Since the skeleton extraction is not always successful, only 1217 of the shots have this feature. This means that the total number of videos in the data set is 8,374 resulting in a total playtime of 7 hours and 15 minutes. An overview of the 12 types of shots is given in \autoref{tab:typeOverviewTHETIS}, while an example of each of the five features is given in \autoref{fig:exampleVideosTennis}.
+The THETIS (Three dimEnsional TennIs Shots) data set consists of videos of 1980 tennis shots performed by both beginners and more experienced individuals \cite{Gourgari2013}. Each of the 12 types of shots types have been performed multiple times by each of the 55 individuals (31 beginners and 24 experts). Each shot consists of an RGB video, a depth video, a silhouette video, and both 2D and 3D skeleton videos. Since the skeleton extraction is not always successful, only 1217 of the shots have this feature. This means that the total number of videos in the data set is 8,374 resulting in a total playtime of 7 hours and 15 minutes. An overview of the 12 types of shots is given in \autoref{tab:typeOverviewTHETIS}, while an example of each of the five features is given in \autoref{fig:exampleVideosTennis}.
 
 \begin{table}
 \centering
@@ -30,7 +30,7 @@ Open stands & Backhand     &         &
 
 \begin{figure}
     \centering
-    \begin{subfigure}{.52\linewidth}
+    \begin{subfigure}{.49\linewidth}
         \includegraphics[width=\linewidth]{Pics/04_Data/frame53.jpg}
         \caption{Normal RGB video}
     \end{subfigure}
@@ -38,15 +38,15 @@ Open stands & Backhand     &         &
         \includegraphics[width=\linewidth]{Pics/04_Data/frame53_depth.jpg}
         \caption{Depth video}
     \end{subfigure}
-    \begin{subfigure}{.49\linewidth}
+    \begin{subfigure}{.32\linewidth}
         \includegraphics[width=\linewidth]{Pics/04_Data/frame53_mask.jpg}
         \caption{Silhouette}
     \end{subfigure}
-    \begin{subfigure}{.49\linewidth}
+    \begin{subfigure}{.32\linewidth}
         \includegraphics[width=\linewidth]{Pics/04_Data/frame53_skelet2D.jpg}
         \caption{2D Skeleton}
     \end{subfigure}
-    \begin{subfigure}{.49\linewidth}
+    \begin{subfigure}{.32\linewidth}
         \includegraphics[width=\linewidth]{Pics/04_Data/frame53_skelet3D.jpg}
         \caption{3D skeleton}
     \end{subfigure}
