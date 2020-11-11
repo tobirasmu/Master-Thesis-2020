@@ -1,4 +1,4 @@
-\section{Data}
+\section{Data} \label{tex:data}
 
 In this thesis two different data sets will be used; the well-studied MNIST data set \cite{MNIST} of handwritten digits, and the relatively new THETIS data set \cite{Gourgari2013} of videos of tennis shots. The idea is to first apply the methods discussed later to the simpler MNIST data set, to make sure that it is working properly, followed by an application to the more complicated THETIS data set. Each of the data set will be described in the following. 
 
@@ -15,7 +15,7 @@ The MNIST (Modified National Institute of Standards and Technology) data set \ci
 \subsection{THETIS - Tennis shot videos}
 The THETIS (Three dimEnsional TennIs Shots) data set consists of videos of 1980 tennis shots performed by both beginners and more experienced individuals. Each of the 12 types of shots types have been performed multiple times by each of the 55 individuals (31 beginners and 24 experts). Each shot consists of an RGB video, a depth video, a silhouette video, and both 2D and 3D skeleton videos. Since the skeleton extraction is not always successful, only 1217 of the shots have this feature. This means that the total number of videos in the data set is 8,374 resulting in a total playtime of 7 hours and 15 minutes. An overview of the 12 types of shots is given in \autoref{tab:typeOverviewTHETIS}, while an example of each of the five features is given in \autoref{fig:exampleVideosTennis}.
 
-\begin{table}[]
+\begin{table}
 \centering
 \caption{Overview of the 12 different types of tennis shots present in the THETIS data set.}
 \label{tab:typeOverviewTHETIS}

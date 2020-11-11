@@ -1,4 +1,4 @@
-\section{Methodology}
+\section{Methodology} \label{tex:methodology}
 Overall the methods examined in this thesis can be divided into two parts; namely those trying to decompose the input into a NN, and those decomposing the weights of a pre-trained NN with subsequent fine-tuning. In the following the methods used within each of these parts will be discussed in detail. All decomposition estimation will be executed using the Python library \textit{TensorLy}\cite{tensorly}, which provides an API for tensor methods using different back-ends\footnote{The back-end is the Python library that is responsible for the low-level calculation and specification of the tensors. Typically \textit{NumPy}\cite{numpy} or \textit{PyTorch}\cite{pytorch}} for calculations. The algorithms for estimating the decompositions will be given in \autoref{app:DecompEstimation}. 
 
 \subsection{Decomposing the Input}
@@ -80,3 +80,42 @@ The two matrices $\bs{A}$ and $\bs{A}_{test}$ will be given as the input to a ve
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Decomposing a Pre-Trained Network}
+All the methods discussed in \autoref{tex:previous_work} use this approach, but especially the methods using Tucker-decomposition and BTD seamed to be performing well and relatively straight-forward to implement and fine-tune. In this section the algorithms and implementation, used in this thesis, will be discussed. 
+
+\subsubsection{Compressing entire CNN using Tucker decomposition}
+This method builds on the work done by Kim et al. in \cite{Kim2016}, which is briefly discussed in \autoref{tex:sub_entire_network}.  Similar to the work done by Kim et al., Tucker-1 or Tucker-2 will be used for specific layers through the network. Due to the dissimilarities of the linear layer and the convolutional layer, each of these decompositions will be implemented individually for each type of layer. 
+
+\paragraph{The linear layer}
+As explained in XX the linear layer with $N_{in}$ input neurons and $N_{out}$ output neurons in simply a matrix-vector product:
+\begin{equation}
+    \bs{y}^{N_{out}} = \bs{W}^{N_{out}\times N_{in}}\bs{x}^{N_in} + \bs{b}^{N_{out}}
+    \label{eq:linearLayerTransformWOdecomp}
+\end{equation}
+Where $\bs{x}$ is the input, $\bs{y}$ is the input, $\bs{b}$ is the bias vector, and $\bs{W}$ is the weight matrix. The weight matrix is potentially big resulting in many parameters and high calculation time. The idea of the decomposed linear layer is to decompose the weight tensor into a set of smaller matrices that can be multiplied sequentially resulting in higher efficiency. The Tucker-1 and Tucker-2 decompositions of the weight matrix are given as:
+\begin{align}
+\texttt{Tucker-1}&: \quad \bs{W} \approx \bs{G} \times_1 \bs{A} \times_2 \bs{I} = \bs{A}\bs{G} \qquad \text{OR} \qquad \bs{W} \approx \bs{G} \times_1 \bs{I} \times_2 \bs{B} = \bs{G}\bs{B}^\top \\
+\texttt{Tucker-2}&: \quad \bs{W} \approx \bs{G} \times_1 \bs{A} \times_2 \bs{B} = \bs{A}\bs{G}\bs{B}^\top 
+\end{align}
+Here $\bs{I}$ is the identity matrix and the core tensor $\bs{G}$ is a matrix due to the weight matrix $\bs{W}$ only having 2 dimensions. The type of Tucker-1 decomposition is chosen based on which dimension is to be decomposed.\footnote{Dense layers often go from many inputs to a fewer outputs why the input dimension might be more desirable to compress} Inserting the decomposition in the linear transform \eqref{eq:linearLayerTransformWOdecomp} yields:
+\begin{align*}
+     \bs{y}^{N_{out}} &\approx \bs{A}^{N_{out}\times R_A} \bs{G}^{R_A\times N_{in}} \bs{x}^{N_{in}} + \bs{b}^{N_{out}} \\
+    \texttt{Tucker-1}: \qquad \quad \ \ &\text{OR} \\
+    \bs{y}^{N_{out}} &\approx \bs{G}^{N_{out}\times R_B} \bs{B}^{\top \  R_B\times N_{in}}\bs{x}^{N_{in}} + \bs{b}^{N_{out}} \\
+    &\quad \\
+    \texttt{Tucker-2}: \quad \bs{y}^{N_{out}} &\approx \bs{A}^{N_{out}\times R_A} \bs{G}^{R_A\times N_{in}} \bs{B}^{\top  R_B\times N_{in}}\bs{x}^{N_{in}} + \bs{b}^{N_{out}}
+\end{align*}
+Now looking at the number of multiplications needed to do each of the products from right to left gives the values in \autoref{tab:numberOfMultiplicationsLinearLayer}. For instance using the Tucker-1 compression uses $N_{in}R + RN_{out}=R(N_{out}+N_{in})$ multiplications to do the matrix-product. The table also shows the restrictions on the ranks to have less multiplications than the uncompressed version, hence to be more efficient.
+\begin{table}
+    \centering
+    \captionsetup{width=.8\linewidth}
+    \caption{The number of multiplications needed to do the matrix-vector product in the linear layer \eqref{eq:linearLayerTransformWOdecomp} with the weight matrix decomposed using Tucker-1 and Tucker-2. The multiplications are when doing the product from right to left.}
+    \begin{tabular}{l|c|c}
+        \textbf{Method} & \textbf{\# Multiplications} & \textbf{Faster when:} \\ \hline
+        Uncrompressed & $N_{out} N_{in}$ & - \\
+        Tucker-1 & $R(N_{in} + N_{out})$ & $R < \frac{N_{out}N_{in}}{N_{out} + N_{in}}$\\
+        Tucker-2 & $N_{in}R_B + R_BR_A + R_AN_{out}$ & $(N_{in}+R_A)(N_{out}+R_B) < 2 N_{in}N_{out}$
+    \end{tabular}
+    \label{tab:numberOfMultiplicationsLinearLayer}
+\end{table}
+
+What also makes this decomposition smart is that the sequence of matrix multiplications can be achieved by a sequence of 2 or 3 linear layers, where the loadings from the decomposition can be directly used as weights. This makes it straight-forward to adapt the layer into a decomposed version and to fine-tune. 
