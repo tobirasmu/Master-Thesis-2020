@@ -12,13 +12,11 @@ from time import time, process_time, process_time_ns
 import numpy as np
 from numpy.linalg import pinv, inv
 import tensorly as tl
-tl.set_backend('pytorch')
 from copy import deepcopy
 import torch as tc
 from tensorly.decomposition import parafac, tucker, partial_tucker, matrix_product_state
 from tensorly.tenalg import kronecker, multi_mode_dot, mode_dot
 import matplotlib.pyplot as plt
-
 from torch.nn.parameter import Parameter
 from torch.autograd import Variable
 from sklearn.metrics import accuracy_score
@@ -29,7 +27,7 @@ import torch.nn.functional as Fun
 from torch.nn.functional import relu, elu, relu6, sigmoid, tanh, softmax
 from torch.nn import Linear, Conv2d, BatchNorm2d, AvgPool2d, MaxPool2d, Dropout2d, Dropout, BatchNorm1d
 from VBMF import EVBMF
-
+tl.set_backend('pytorch')
 fullData = loadMNIST()
 
 # %% Defining the full network from the LeNet-5 architecture.

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../Classifying MNIST/.idea/Classifying MNIST.iml" filepath="$PROJECT_DIR$/../Classifying MNIST/.idea/Classifying MNIST.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Classifying THETIS.iml" filepath="$PROJECT_DIR$/.idea/Classifying THETIS.iml" />
+    </modules>
+  </component>
+</project>
