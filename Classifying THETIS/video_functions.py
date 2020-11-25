@@ -128,15 +128,19 @@ def write_names2file(directory, out_directory=None):
 
 
 # %% Writes a tensor to a video
-def write_tensor2video(X, name, out_directory=None):
+def write_tensor2video(x, name, out_directory=None):
+    """
+    Writes a tensor of shape (ch, num_frames, height, width) to a video at the given out_directory. If no directory is
+    given, it will just be placed in the given directory with the name.
+    """
     if out_directory is None:
         out_directory = os.getcwd() + '/'
     name = name + '.avi'
-    ch, num_frames, height, width = X.shape
-    writer = cv2.VideoWriter(out_directory + name, cv2.VideoWriter_fourcc('M','J','P','G'), FRAME_RATE, (width,height))
+    ch, num_frames, height, width = x.shape
+    writer = cv2.VideoWriter(out_directory + name, cv2.VideoWriter_fourcc('M','J','P','G'), 18, (width,height))
     for i in range(num_frames):
-        frame = np.moveaxis(X[:,i,:,:].type(dtype=tc.uint8).numpy(),0,-1)
-        if (ch is 1):
+        frame = np.moveaxis(x[:, i, :, :].type(dtype=tc.uint8).numpy(), 0, -1)
+        if ch == 1:
             frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
         writer.write(frame)
     writer.release()
