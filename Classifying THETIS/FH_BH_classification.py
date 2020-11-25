@@ -23,7 +23,7 @@ import tensorly as tl
 from tensorly.decomposition import partial_tucker
 from tensorly.tenalg import multi_mode_dot, mode_dot
 
-from video_functions import loadShotType, writeNames2file, writeTensor2video, showFrame, showFrame2
+from video_functions import loadShotType, writeNames2file, writeTensor2video, showFrame, dinMor
 
 tl.set_backend('pytorch')
 

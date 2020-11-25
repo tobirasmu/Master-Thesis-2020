@@ -171,19 +171,5 @@ def showFrame(x, title=None):
     plt.axis('off')
     plt.show()
 
-
-def showFrame2(x, title=None):
-    """
-    Takes in a tensor of shape (ch, height, width) or (height, width) (for B/W) and plots the image using
-    matplotlib.pyplot
-    """
-    if x.type() != "torch.ByteTensor":
-        x = x.type(dtype=tc.uint8)
-    if len(x.shape) == 2:
-        plt.imshow(x.numpy(), cmap="gray")
-    else:
-        plt.imshow(np.moveaxis(x.numpy(), 0, -1))
-    if title is not None:
-        plt.title(title)
-    plt.axis('off')
-    plt.show()
+def dinMor():
+    print("Din mor")
