@@ -18,12 +18,15 @@ import matplotlib.pyplot as plt
 import torch as tc
 
 import torch.nn as nn
-from torch.nn import Linear, Conv2d, BatchNorm2d, AvgPool2d, MaxPool2d, Dropout2d, Dropout, BatchNorm1d
+from torch.nn.functional import relu, elu, relu6, sigmoid, tanh, softmax
+from torch.nn import Linear, Conv2d, Conv3d, BatchNorm2d, AvgPool2d, MaxPool2d, MaxPool3d, Dropout2d, Dropout, BatchNorm1d
+from torch.autograd import Variable
+from sklearn.metrics import accuracy_score
 import tensorly as tl
 from tensorly.decomposition import partial_tucker
 from tensorly.tenalg import multi_mode_dot, mode_dot
 
-from video_functions import loadShotType, writeNames2file, writeTensor2video, showFrame, dinMor
+from video_functions import loadShotType, writeNames2file, writeTensor2video, showFrame
 
 tl.set_backend('pytorch')
 
@@ -76,6 +79,83 @@ permutation = tc.randperm(N)
 X = X[permutation]
 Y = Y[permutation]
 
+print("X is a tensor of shape: ",*X.shape, " (num_obs ch frames height width)")
+
+# %% Trying with a CNN to classify the tennis shots in the two groups
+_, channels, frames, height, width = X.shape
+
+def conv_dims(dims, kernels, strides, paddings):
+    dimensions = len(dims)
+    out = tc.empty(dimensions)
+    for i in range(dimensions):
+        out[i] = int((dims[i] - kernels[i] + 2 * paddings[i]) / strides[i] + 1)
+    return out
+
+c1_kernel = (5, 21, 21)
+c1_stride = (1, 1, 1)
+c1_padding = (2, 10, 10)
+
+c2_kernel = (5, 21, 21)
+c2_stride = (1, 1, 1)
+c2_padding = (0, 0, 0)
+
+pool_kernel = (2, 8, 8)
+pool_stride = (2, 8, 8)
+pool_padding = (0, 0, 0)
+
+class Net(nn.Module):
+
+    def __init__(self):
+        super(Net, self).__init__()
+
+        # Adding the convolutional layers
+        self.c1 = Conv3d(in_channels=channels, out_channels=16, kernel_size=c1_kernel, stride=c1_stride, padding=c1_padding)
+        dim1s = conv_dims((frames, height, width), kernels=c1_kernel, strides=c1_stride, paddings=c1_padding)
+        dim1sP = conv_dims(dim1s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
+
+        self.c2 = Conv3d(in_channels=16, out_channels=64, kernel_size=(5, 21, 21), stride=1, padding=0)
+        dim2s = conv_dims(dim1sP, kernels=c2_kernel, strides=c2_stride, paddings=c2_padding)
+        dim2sP = conv_dims(dim2s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
+
+        # The pooling layer
+        self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
+
+        # Features into the linear layers
+        self.lin_feats_in = int(64 * tc.prod(dim2sP))
+        # Adding the linear layers
+        self.l1 = Linear(in_features=self.lin_feats_in, out_features=1000)
+        self.l2 = Linear(in_features=1000, out_features=100)
+        self.l_out = Linear(in_features=100, out_features=2)
+
+    def forward(self, x):
+        x = relu(self.c1(x))
+        x = self.pool3d(x)
+
+        x = relu(self.c2(x))
+        x = self.pool3d(x)
+
+        x = tc.flatten(x, 0)
+
+        x = relu(self.l1(x))
+        x = relu(self.l2(x))
+        return softmax(self.l_out(x))
+
+
+net = Net()
+
+# %% Testing one forward push
+test = X[0:2]
+out = net(Variable(test))
+# %% The approximation
+wh = 50
+plt.figure()
+plt.subplot(1, 2, 1)
+plt.imshow(X[wh, 0, 20, :, :], cmap='gray')
+approximation = multi_mode_dot(core, [A[wh], C, D], modes=[0, 2, 3])
+plt.subplot(1, 2, 2)
+plt.imshow(approximation[20], cmap='gray')
+plt.show()
+
 # %% Trying to decompose the training tensor via Tucker
 """
 Rank estimation does not work on a tensor that big since the required memory is 538 TiB (tebibyte), hence the ranks will
@@ -87,37 +167,4 @@ modes = [0, 2, 3]
 ranks = [10, 120, 160]
 core, [A, C, D] = partial_tucker(X[:nTrain, 0, :, :, :], modes=modes, ranks=ranks)
 
-
 # Takes a significant amount of time
-
-# %% Trying with a simple network to classify the tennis shots
-
-class simpleNet(nn.Module):
-
-    def __init__(self):
-        super(simpleNet, self).__init__()
-
-        # Adding the layers
-        self.l1 = Linear(in_features=10, out_features=10, bias=True)
-        self.l_out = Linear(in_features=10, out_features=2, bias=True)
-
-    def forward(self, x):
-        x = relu(self.l1(x))
-        return softmax(self.l_out(x))
-
-
-sNet = simpleNet()
-
-# %% The approximation
-wh = 50
-plt.figure()
-plt.subplot(1, 2, 1)
-plt.imshow(X[wh, 0, 20, :, :], cmap='gray')
-approximation = multi_mode_dot(core, [A[wh], C, D], modes=[0, 2, 3])
-plt.subplot(1, 2, 2)
-plt.imshow(approximation[20], cmap='gray')
-plt.show()
-
-
-# %% Showing a frame
-import numpy as np

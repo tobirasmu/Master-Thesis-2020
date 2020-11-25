@@ -170,6 +170,3 @@ def showFrame(x, title=None):
         plt.title(title)
     plt.axis('off')
     plt.show()
-
-def dinMor():
-    print("Din mor")
