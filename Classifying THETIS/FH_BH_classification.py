@@ -9,13 +9,13 @@ Trying to classify the flat forehands and the backhands only using the depth
 videos.
 """
 import os
+
 path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS"
 os.chdir(path)
 import cv2
 from time import process_time
 import matplotlib.pyplot as plt
 import torch as tc
-
 
 import torch.nn as nn
 from torch.nn import Linear, Conv2d, BatchNorm2d, AvgPool2d, MaxPool2d, Dropout2d, Dropout, BatchNorm1d
@@ -26,7 +26,6 @@ from tensorly.tenalg import multi_mode_dot, mode_dot
 from video_functions import loadShotType, write_names2file, write_tensor2video
 
 tl.set_backend('pytorch')
-
 
 # %%
 
@@ -51,18 +50,16 @@ The very first seems to be wrong.
 """
 
 # %% The loading functions
-FRAME_RATE = 18
 LENGTH = 1.5
 
-# %% Loading the videos
 t = process_time()
 directory = "/Users/Tobias/Desktop/Data/"
 # Forehands
 inputForehand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/forehand_filenames_adapted.csv"
-forehands = loadShotType(0, directory, input_file=inputForehand, length=1.5)
+forehands = loadShotType(0, directory, input_file=inputForehand, length=LENGTH)
 # Backhand
 inputBackhand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/backhand_filenames_adapted.csv"
-backhands = loadShotType(1, directory, input_file=inputBackhand, length=1.5)
+backhands = loadShotType(1, directory, input_file=inputBackhand, length=LENGTH)
 print("Time to load: ", process_time() - t)
 
 # %% Compile into one large dataset.
@@ -121,15 +118,6 @@ plt.subplot(1, 2, 2)
 plt.imshow(approximation[20], cmap='gray')
 plt.show()
 
-# %% Making into a big video with multiple tennis shots
-out = cv2.VideoWriter('All_forehands.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 18, (640, 480))
 
-for i in range(forehands.shape[0]):
-    video = forehands[i]
-    for j in range(video.shape[0]):
-        frame = video[j][0]
-        frame = cv2.cvtColor(frame.numpy(), cv2.COLOR_GRAY2RGB)
-        out.write(frame)
-out.release()
+# %% Showing a frame
 import numpy as np
-
