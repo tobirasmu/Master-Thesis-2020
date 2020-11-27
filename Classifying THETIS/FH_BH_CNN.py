@@ -9,7 +9,7 @@ Trying to classify the flat forehands and the backhands only using the depth
 videos.
 """
 import os
-path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS"
+path = "/zhome/2a/c/108156/Data_MSc/Classifying THETIS/"
 os.chdir(path)
 from time import process_time
 import matplotlib.pyplot as plt
@@ -30,8 +30,6 @@ from video_functions import loadShotType, get_variable, get_data, writeNames2fil
                             plotAccs, train_epoch, eval_epoch
 
 tl.set_backend('pytorch')
-
-# %%
 
 """ 
 FOREHANDS
@@ -57,16 +55,14 @@ LENGTH = 1.5
 RESOLUTION = 0.25
 
 t = process_time()
-directory = "/Users/Tobias/Desktop/Data/"
+directory = "/zhome/2a/c/108156/Data_MSc/"
 # Forehands
-inputForehand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying " \
-                "THETIS/forehand_filenames_adapted.csv "
-forehands = loadShotType(0, directory, input_file=inputForehand, length=LENGTH, resolution=RESOLUTION)
+inputForehand = "/zhome/2a/c/108156/Data_MSc/Classifying THETIS/forehand_filenames_adapted.csv"
+forehands = loadShotType(0, directory, input_file=inputForehand, length=LENGTH, resolution=RESOLUTION, ignore_inds=[10, 45])
 # Backhand
-inputBackhand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying " \
-                "THETIS/backhand_filenames_adapted.csv "
-backhands = loadShotType(1, directory, input_file=inputBackhand, length=LENGTH, resolution=RESOLUTION)
-print("Time to load: ", process_time() - t)
+inputBackhand = "/zhome/2a/c/108156/Data_MSc/Classifying THETIS/backhand_filenames_adapted.csv"
+backhands = loadShotType(1, directory, input_file=inputBackhand, length=LENGTH, resolution=RESOLUTION, ignore_inds=[0])
+print("Time to load all the data was {:.2f} seconds\n".format(process_time()-t))
 
 # %% Compile into one large dataset.
 t = process_time()
@@ -74,7 +70,7 @@ tc.manual_seed(42)
 numForehands = forehands.shape[0]
 numBackhands = backhands.shape[0]
 N = numForehands + numBackhands
-nTrain = int(0.8 * N)
+nTrain = int(0.85 * N)
 
 X = tc.cat((forehands, backhands), dim=0)
 del forehands, backhands
@@ -83,8 +79,8 @@ permutation = tc.randperm(N)
 X = X[permutation]
 Y = Y[permutation]
 
-print("Time to concatenate: ", process_time() - t)
-print("X is a tensor of shape: ", *X.shape, " (num_obs ch frames height width)")
+print("Time to concatenate the shots was {:.2f} seconds\n".format(process_time() - t))
+print("X is a tensor of shape: ", *X.shape, " (num_obs ch frames height width)\n")
 
 # %% Trying with a CNN to classify the tennis shots in the two groups
 _, channels, frames, height, width = X.shape
@@ -169,16 +165,16 @@ if tc.cuda.is_available():
 # %% Testing one forward push
 test = X[0:2]
 t = process_time()
-out = net(Variable(test))
-print("It took: ", process_time() - t, " seconds to complete a 2 forward push")
-print(out)
+out = net(get_variable(Variable(test)))
+print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n".format(process_time()-t, out))
 
 # %% Training functions using cross-validation since the amount of data is low
-BATCH_SIZE = 1
-NUM_FOLDS = 2
-NUM_EPOCHS = 2
+BATCH_SIZE = 10
+NUM_FOLDS = 5
+NUM_EPOCHS = 200
+LEARNING_RATE = 0.01
 
-optimizer = optim.Adam(net.parameters(), lr=0.001)
+optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
 
 
 def train(this_net, X_train, y_train, X_test, y_test):
@@ -187,7 +183,7 @@ def train(this_net, X_train, y_train, X_test, y_test):
     epoch, interrupted = 0, False
     while epoch < NUM_EPOCHS:
         epoch += 1
-        print("{:->28} {:3d} {:-<22}".format(' EPOCH', epoch, ''))
+        print("{:-^60s}".format(" EPOCH {:3d} ".format(epoch)))
         fold_loss = tc.empty(NUM_FOLDS)
         fold_train_accs = tc.empty(NUM_FOLDS)
         fold_val_accs = tc.empty(NUM_FOLDS)
@@ -206,10 +202,14 @@ def train(this_net, X_train, y_train, X_test, y_test):
         train_accs[epoch - 1], val_accs[epoch - 1] = this_train_acc, this_val_acc
         # Doing the testing evaluation
         test_accs[epoch - 1] = eval_epoch(this_net, X_test, y_test)
-        print("{: >7}{: >16}{: >14}{: >15}".format("Loss:", "Train acc.:", "Val acc.:", "Test acc.:"))
-        print("{0: 8.4f}{1: 13.4f}{2: 14.4f}{3: 15.4f}".format(this_loss, this_train_acc, this_val_acc,
+        print("{: ^15}{: ^15}{: ^15}{: ^15}".format("Loss:", "Train acc.:", "Val acc.:", "Test acc.:"))
+        print("{: ^15.4f}{: ^15.4f}{: ^15.4f}{: ^15.4f}".format(this_loss, this_train_acc, this_val_acc,
                                                                test_accs[epoch - 1]))
-    plotAccs(train_accs, val_accs)
+    plotAccs(train_accs, val_accs, saveName="/zhome/2a/c/108156/Outputs/accuracies.png")
+    print("{:-^60}\nFinished".format(""))
 
+print("{:-^60s}".format(" Training details "))
+print("{: ^20}{: ^20}{: ^20}".format("Learning rate:","Batch size:", "Number of folds"))
+print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS,''))
 
-train(net, X[:4], Y[:4], X[4:], Y[4:])
+train(net, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
