@@ -9,10 +9,10 @@ Trying to classify the flat forehands and the backhands only using the depth
 videos.
 """
 # True if using the
-HPC = False
+HPC = True
 
 import os
-path = "/zhome/2a/c/108156/Data_MSc/Classifying THETIS/" if HPC else \
+path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
        "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/"
 os.chdir(path)
 from time import process_time
@@ -60,16 +60,22 @@ RESOLUTION = 0.25
 
 t = process_time()
 
-directory = "/zhome/2a/c/108156/Master-Thesis-Fall-2020/Classifying THETIS/" if HPC else \
-            "/Users/Tobias/Desktop/Data/"
-# Forehands
-inputForehand = "/zhome/2a/c/108156/Master-Thesis-Fall-2020/Classifying THETIS/forehand_filenames_adapted.csv" if HPC \
-    else "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/forehand_filenames_adapted.csv"
-forehands = loadShotType(0, directory, input_file=inputForehand, length=LENGTH, resolution=RESOLUTION)
-# Backhand
-inputBackhand = "/zhome/2a/c/108156/Master-Thesis-Fall-2020/Classifying THETIS/backhand_filenames_adapted.csv" if HPC \
-    else "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/backhand_filenames_adapted.csv"
-backhands = loadShotType(1, directory, input_file=inputBackhand, length=LENGTH, resolution=RESOLUTION)
+if HPC:
+    directory = "/zhome/2a/c/108156/Data_MSc/"
+    # Forehands
+    inputForehand = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/forehand_filenames_adapted.csv"
+    forehands = loadShotType(0, directory, input_file=inputForehand, length=LENGTH, resolution=RESOLUTION, ignore_inds = [10,45])
+    # Backhand
+    inputBackhand = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/backhand_filenames_adapted.csv"
+    backhands = loadShotType(1, directory, input_file=inputBackhand, length=LENGTH, resolution=RESOLUTION, ignore_inds = [0])
+else:
+    directory = "/Users/Tobias/Desktop/Data/"
+    # Forehands
+    inputForehand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/forehand_filenames_adapted.csv"
+    forehands = loadShotType(0, directory, input_file=inputForehand, length=LENGTH, resolution=RESOLUTION)
+    # Backhands
+    inputBackhand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/backhand_filenames_adapted.csv"
+    backhands = loadShotType(1, directory, input_file=inputBackhand, length=LENGTH, resolution=RESOLUTION)
 print("Time to load all the data was {:.2f} seconds\n".format(process_time()-t))
 
 # %% Compile into one large dataset.
@@ -177,8 +183,8 @@ out = net(get_variable(Variable(test)))
 print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n".format(process_time()-t, out))
 
 # %% Training functions using cross-validation since the amount of data is low
-BATCH_SIZE = 1
-NUM_FOLDS = 2
+BATCH_SIZE = 10
+NUM_FOLDS = 5
 NUM_EPOCHS = 200
 LEARNING_RATE = 0.01
 
