@@ -188,7 +188,7 @@ NUM_FOLDS = 5
 NUM_EPOCHS = 200
 LEARNING_RATE = 0.001
 
-optimizer = optim.SDG(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
+optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
 
 
 def train(this_net, X_train, y_train, X_test, y_test):
