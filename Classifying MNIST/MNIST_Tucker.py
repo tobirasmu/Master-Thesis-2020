@@ -93,6 +93,7 @@ criterion = nn.CrossEntropyLoss()
 
 get_slice = lambda i, size: range(i * size, (i+1)*size)
 
+
 def train_epoch(thisNet, X, y, optimizer, ):
     
     num_samples = X.shape[0]
@@ -121,6 +122,7 @@ def train_epoch(thisNet, X, y, optimizer, ):
         targs += list(y[slce])
         preds += list(predictions.data.numpy())
     return np.mean(losses), accuracy_score(targs, preds)
+
 
 def eval_epoch(thisNet, X, y):
     num_samples = X.shape[0]

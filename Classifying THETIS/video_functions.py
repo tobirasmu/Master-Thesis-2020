@@ -1,5 +1,10 @@
 import numpy as np
 import torch as tc
+import torch.nn as nn
+from torch.nn.functional import interpolate
+from torch.autograd import Variable
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
 import cv2
 import csv
 import os
@@ -8,7 +13,7 @@ FRAME_RATE = 18
 
 
 # %% Function for loading a single video
-def loadVideo(filename, middle=None, length=None, b_w=True):
+def loadVideo(filename, middle=None, length=None, b_w=True, resolution=1):
     """
     Loads a video using the full path and returns a 4D tensor (channels, frames, height, width).
     INPUT:
@@ -46,17 +51,20 @@ def loadVideo(filename, middle=None, length=None, b_w=True):
             frames[:, framesLoaded, :, :] = tc.tensor(frame)
             framesLoaded += 1
     cap.release()
+    if resolution != 1:
+        factor = int(1 // resolution)
+        frames = interpolate(frames, size=(height // factor, width // factor))
     return frames
 
 
 # %% Function for loading an entire directory
-def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds=None):
+def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds=None, resolution=1):
     """
     Loads all the videos of a directory and makes them into a big tensor. If the inputfile is given, the output will be
     a big tensor of shape (numVideos, channels, numFrames, height, width), otherwise the output will be a list of 4D
     tensors with different number of Frames.
     Inputfile contains the middle of the shot (time), dontLoadsInds are the videos that will not be loaded, due to
-    potential problems.
+    potential problems. The resolution is for getting a lower resolution if needed (< 1).
     Shot types :
      - 0  Forehand flat
      - 1  Backhand
@@ -82,8 +90,8 @@ def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds
                 filenames_dep.pop(ind)
         all_videos = []
         for i in range(len(filenames_rgb)):
-            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], b_w=False)
-            thisDep = loadVideo(directory_dep + filenames_dep[i], b_w=True)
+            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], b_w=False, resolution=resolution)
+            thisDep = loadVideo(directory_dep + filenames_dep[i], b_w=True, resolution=resolution)
             all_videos.append(tc.cat((thisRGB, thisDep), 0))
         return all_videos
     else:
@@ -98,15 +106,19 @@ def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds
                 filenames_rgb.pop(ind)
                 filenames_dep.pop(ind)
         numVideos = len(filenames_rgb)
-        thisRGB = loadVideo(directory_rgb + filenames_rgb[0], float(files[0][1]), length=length, b_w=False)
-        thisDep = loadVideo(directory_dep + filenames_dep[0], float(files[0][1]), length=length, b_w=True)
+        thisRGB = loadVideo(directory_rgb + filenames_rgb[0], float(files[0][1]), length=length, b_w=False,
+                            resolution=resolution)
+        thisDep = loadVideo(directory_dep + filenames_dep[0], float(files[0][1]), length=length, b_w=True,
+                            resolution=resolution)
         thisVideo = tc.cat((thisRGB, thisDep), 0)
         all_videos = tc.empty((numVideos, *thisVideo.shape))
         all_videos[0] = thisVideo
         for i in range(1, numVideos):
             middle = float(files[i][1])
-            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], middle=middle, length=length, b_w=False)
-            thisDep = loadVideo(directory_dep + filenames_dep[i], middle=middle, length=length, b_w=True)
+            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], middle=middle, length=length, b_w=False,
+                                resolution=resolution)
+            thisDep = loadVideo(directory_dep + filenames_dep[i], middle=middle, length=length, b_w=True,
+                                resolution=resolution)
             all_videos[i] = tc.cat((thisRGB, thisDep), 0)
         return all_videos
 
@@ -143,7 +155,8 @@ def writeTensor2video(x, name, out_directory=None):
         ch = 1
     else:
         ch, num_frames, height, width = x.shape
-    writer = cv2.VideoWriter(out_directory + name, cv2.VideoWriter_fourcc('M','J','P','G'), FRAME_RATE, (width,height))
+    writer = cv2.VideoWriter(out_directory + name, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), FRAME_RATE,
+                             (width, height))
     for i in range(num_frames):
         frame = np.moveaxis(x[:, i, :, :].type(dtype=tc.uint8).numpy(), 0, -1)
         if ch == 1:
@@ -154,8 +167,8 @@ def writeTensor2video(x, name, out_directory=None):
     writer.release()
 
 
-# %% Showing a frame
-def showFrame(x, title=None):
+# %% Plotting functions
+def showFrame(x, title=None, saveName=None):
     """
     Takes in a tensor of shape (ch, height, width) or (height, width) (for B/W) and plots the image using
     matplotlib.pyplot
@@ -169,4 +182,89 @@ def showFrame(x, title=None):
     if title is not None:
         plt.title(title)
     plt.axis('off')
-    plt.show()
+    if saveName is not None:
+        plt.savefig(saveName)
+    else:
+        plt.show()
+
+
+def plotAccs(train_accs, val_accs, title=None, saveName=None):
+    """
+    Plots the training and validation accuracies vs. the epoch. Use saveName to save it to a file.
+    """
+    epochs = np.arange(len(train_accs))
+    plt.figure()
+    plt.plot(epochs, train_accs, 'r', epochs, val_accs, 'b')
+    title = title if title is not None else "Training and Validation Accuracies vs. Epoch"
+    plt.title(title)
+    plt.legend(['Train accuracy', 'Validation accuracy'])
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    if saveName is not None:
+        plt.savefig(saveName)
+    else:
+        plt.show()
+
+
+# %% CUDA functions
+def get_variable(x):
+    """
+    Converts a tensor to tensor.cuda if cuda is available
+    """
+    if tc.cuda.is_available():
+        return x.cuda()
+    return x
+
+
+def get_data(x):
+    """
+    Fetch the tensor from the GPU if cuda is available, or simply converting to tensor if not
+    """
+    if tc.cuda.is_available():
+        return x.cpu().data
+    return x.data
+
+
+# %% Training functions
+criterion = nn.CrossEntropyLoss()
+
+
+def get_slice(i, size): return range(i * size, (i + 1) * size)
+
+
+def train_epoch(this_net, X, y, optimizer, batch_size):
+    num_samples = X.shape[0]
+    num_batches = num_samples // batch_size
+    losses = []
+    targs, preds = [], []
+
+    this_net.train()
+    for i in range(num_batches):
+        # Sending the batch through the network
+        slce = get_slice(i, batch_size)
+        X_batch = get_variable(Variable(X[slce]))
+        output = this_net(X_batch)
+        # The targets
+        y_batch = get_variable(Variable(y[slce].long()))
+        # Computing the error and doing the step
+        optimizer.zero_grad()
+        batch_loss = criterion(output, y_batch)
+        batch_loss.backward()
+        optimizer.step()
+
+        losses.append(get_data(batch_loss))
+        predictions = tc.max(get_data(output), 1)[1]
+        targs += list(y[slce])
+        preds += list(predictions)
+    return tc.mean(tc.tensor(losses)), accuracy_score(targs, preds)
+
+
+def eval_epoch(this_net, X, y):
+    # Sending the validation samples through the network
+    this_net.eval()
+    X_batch = get_variable(Variable(X))
+    output = this_net(X_batch)
+    preds = tc.max(get_data(output), 1)[1]
+    # The targets
+    targs = y.long()
+    return accuracy_score(targs, preds)
