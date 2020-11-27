@@ -13,7 +13,7 @@ FRAME_RATE = 18
 
 
 # %% Function for loading a single video
-def loadVideo(filename, middle=None, length=None, b_w=True, resolution=1):
+def loadVideo(filename, middle=None, length=None, b_w=True, resolution=1, normalize=True):
     """
     Loads a video using the full path and returns a 4D tensor (channels, frames, height, width).
     INPUT:
@@ -46,8 +46,10 @@ def loadVideo(filename, middle=None, length=None, b_w=True, resolution=1):
         if framesRead >= firstFrame:
             if b_w:
                 frame = np.expand_dims(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), 0)
+                frame = frame/255 if normalize else frame
             else:
                 frame = np.moveaxis(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), -1, 0)
+                frame = frame/255 if normalize else frame
             frames[:, framesLoaded, :, :] = tc.tensor(frame)
             framesLoaded += 1
     cap.release()
@@ -58,7 +60,7 @@ def loadVideo(filename, middle=None, length=None, b_w=True, resolution=1):
 
 
 # %% Function for loading an entire directory
-def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds=None, resolution=1):
+def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds=None, resolution=1, normalize=True):
     """
     Loads all the videos of a directory and makes them into a big tensor. If the inputfile is given, the output will be
     a big tensor of shape (numVideos, channels, numFrames, height, width), otherwise the output will be a list of 4D
@@ -90,8 +92,8 @@ def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds
                 filenames_dep.pop(ind)
         all_videos = []
         for i in range(len(filenames_rgb)):
-            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], b_w=False, resolution=resolution)
-            thisDep = loadVideo(directory_dep + filenames_dep[i], b_w=True, resolution=resolution)
+            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], b_w=False, resolution=resolution, normalize=normalize)
+            thisDep = loadVideo(directory_dep + filenames_dep[i], b_w=True, resolution=resolution, normalize=normalize)
             all_videos.append(tc.cat((thisRGB, thisDep), 0))
         return all_videos
     else:
@@ -107,9 +109,9 @@ def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds
                 filenames_dep.pop(ind)
         numVideos = len(filenames_rgb)
         thisRGB = loadVideo(directory_rgb + filenames_rgb[0], float(files[0][1]), length=length, b_w=False,
-                            resolution=resolution)
+                            resolution=resolution, normalize=normalize)
         thisDep = loadVideo(directory_dep + filenames_dep[0], float(files[0][1]), length=length, b_w=True,
-                            resolution=resolution)
+                            resolution=resolution, normalize=normalize)
         thisVideo = tc.cat((thisRGB, thisDep), 0)
         all_videos = tc.empty((numVideos, *thisVideo.shape))
         all_videos[0] = thisVideo

@@ -8,8 +8,12 @@ Created on Wed Nov 11 11:49:55 2020
 Trying to classify the flat forehands and the backhands only using the depth 
 videos.
 """
+# True if using the
+HPC = False
+
 import os
-path = "/zhome/2a/c/108156/Data_MSc/Classifying THETIS/"
+path = "/zhome/2a/c/108156/Data_MSc/Classifying THETIS/" if HPC else \
+       "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/"
 os.chdir(path)
 from time import process_time
 import matplotlib.pyplot as plt
@@ -55,13 +59,17 @@ LENGTH = 1.5
 RESOLUTION = 0.25
 
 t = process_time()
-directory = "/zhome/2a/c/108156/Data_MSc/"
+
+directory = "/zhome/2a/c/108156/Master-Thesis-Fall-2020/Classifying THETIS/" if HPC else \
+            "/Users/Tobias/Desktop/Data/"
 # Forehands
-inputForehand = "/zhome/2a/c/108156/Data_MSc/Classifying THETIS/forehand_filenames_adapted.csv"
-forehands = loadShotType(0, directory, input_file=inputForehand, length=LENGTH, resolution=RESOLUTION, ignore_inds=[10, 45])
+inputForehand = "/zhome/2a/c/108156/Master-Thesis-Fall-2020/Classifying THETIS/forehand_filenames_adapted.csv" if HPC \
+    else "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/forehand_filenames_adapted.csv"
+forehands = loadShotType(0, directory, input_file=inputForehand, length=LENGTH, resolution=RESOLUTION)
 # Backhand
-inputBackhand = "/zhome/2a/c/108156/Data_MSc/Classifying THETIS/backhand_filenames_adapted.csv"
-backhands = loadShotType(1, directory, input_file=inputBackhand, length=LENGTH, resolution=RESOLUTION, ignore_inds=[0])
+inputBackhand = "/zhome/2a/c/108156/Master-Thesis-Fall-2020/Classifying THETIS/backhand_filenames_adapted.csv" if HPC \
+    else "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/backhand_filenames_adapted.csv"
+backhands = loadShotType(1, directory, input_file=inputBackhand, length=LENGTH, resolution=RESOLUTION)
 print("Time to load all the data was {:.2f} seconds\n".format(process_time()-t))
 
 # %% Compile into one large dataset.
@@ -169,8 +177,8 @@ out = net(get_variable(Variable(test)))
 print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n".format(process_time()-t, out))
 
 # %% Training functions using cross-validation since the amount of data is low
-BATCH_SIZE = 10
-NUM_FOLDS = 5
+BATCH_SIZE = 1
+NUM_FOLDS = 2
 NUM_EPOCHS = 200
 LEARNING_RATE = 0.01
 
@@ -205,7 +213,8 @@ def train(this_net, X_train, y_train, X_test, y_test):
         print("{: ^15}{: ^15}{: ^15}{: ^15}".format("Loss:", "Train acc.:", "Val acc.:", "Test acc.:"))
         print("{: ^15.4f}{: ^15.4f}{: ^15.4f}{: ^15.4f}".format(this_loss, this_train_acc, this_val_acc,
                                                                test_accs[epoch - 1]))
-    plotAccs(train_accs, val_accs, saveName="/zhome/2a/c/108156/Outputs/accuracies.png")
+    saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else "/Users/Tobias/Desktop/accuracies.png"
+    plotAccs(train_accs, val_accs, saveName=saveAt)
     print("{:-^60}\nFinished".format(""))
 
 print("{:-^60s}".format(" Training details "))
