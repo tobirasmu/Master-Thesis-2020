@@ -186,9 +186,9 @@ print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n"
 BATCH_SIZE = 10
 NUM_FOLDS = 5
 NUM_EPOCHS = 200
-LEARNING_RATE = 0.01
+LEARNING_RATE = 0.001
 
-optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
+optimizer = optim.SDG(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
 
 
 def train(this_net, X_train, y_train, X_test, y_test):
