@@ -228,3 +228,4 @@ print("{: ^20}{: ^20}{: ^20}".format("Learning rate:","Batch size:", "Number of 
 print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS,''))
 
 train(net, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
+tc.save(net.state_dict(), "/zhome/2a/c/108156/Outputs/trained_network.pt")
