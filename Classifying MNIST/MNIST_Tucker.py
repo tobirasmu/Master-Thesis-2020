@@ -6,6 +6,9 @@ Created on Wed Oct 14 16:41:30 2020
 @author: Tobias
 """
 # %% Loading the data and all the libraries
+import os
+path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
+os.chdir(path)
 
 from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany
 from time import time, process_time, process_time_ns
@@ -83,7 +86,7 @@ out = net(Variable(tc.from_numpy(x)))
 print(out)
 
 # %% Training the network
-data = fullData.subset(40000, 20000, 10000)
+data = fullData.subset(10000, 10000, 10000)
 
 # %% Training functions
 BATCH_SIZE = 128
@@ -189,9 +192,9 @@ def conv_to_tucker2(layer, ranks= None):
     # Making the decomposition of the weights
     weights =  layer.weight.data
     # (Estimating the ranks using VBMF)
-    ranks = estimate_ranks(weights, [0,1]) if (ranks == None) else ranks
+    ranks = estimate_ranks(weights, [0, 1]) if ranks == None else ranks
     # Decomposing
-    core, [last, first] = partial_tucker(weights, modes = [0,1], ranks = ranks)
+    core, [last, first] = partial_tucker(weights, modes=[0, 1], ranks=ranks)
     
     # Making the layer into 3 sequential layers using the decomposition
     first_layer = Conv2d(in_channels=first.shape[0], out_channels=first.shape[1], 
