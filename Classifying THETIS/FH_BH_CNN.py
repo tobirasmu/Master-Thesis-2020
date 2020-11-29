@@ -9,7 +9,7 @@ Trying to classify the flat forehands and the backhands only using the depth
 videos.
 """
 # True if using the
-HPC = True
+HPC = False
 
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
