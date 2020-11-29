@@ -9,11 +9,9 @@ import cv2
 import csv
 import os
 
-FRAME_RATE = 18
-
 
 # %% Function for loading a single video
-def loadVideo(filename, middle=None, length=None, b_w=True, resolution=1, normalize=True):
+def loadVideo(filename, middle=None, nFrames=None, b_w=True, resolution=1, normalize=True):
     """
     Loads a video using the full path and returns a 4D tensor (channels, frames, height, width).
     INPUT:
@@ -25,14 +23,15 @@ def loadVideo(filename, middle=None, length=None, b_w=True, resolution=1, normal
         A tensor of dimension (channels, frames, height, width) where the number of frames = length * 18 + 1
     """
     cap = cv2.VideoCapture(filename)
+    frameRate = int(cap.get(cv2.CAP_PROP_FPS))
     if middle is None:
         numFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         firstFrame = 0
         lastFrame = numFrames
     else:
-        numFrames = int(length * FRAME_RATE + 1)
-        firstFrame = int((middle - length / 2) * FRAME_RATE)
-        lastFrame = int(firstFrame + length * FRAME_RATE)
+        numFrames = nFrames
+        firstFrame = int(middle * frameRate) - int((numFrames - 1) / 2)
+        lastFrame = firstFrame + numFrames - 1
     ch = 1 if b_w else 3
     height, width = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frames = tc.empty((ch, numFrames, height, width))
@@ -108,18 +107,19 @@ def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds
                 filenames_rgb.pop(ind)
                 filenames_dep.pop(ind)
         numVideos = len(filenames_rgb)
-        thisRGB = loadVideo(directory_rgb + filenames_rgb[0], float(files[0][1]), length=length, b_w=False,
+        nFrames = int(18*length+1)
+        thisRGB = loadVideo(directory_rgb + filenames_rgb[0], float(files[0][1]), nFrames=nFrames, b_w=False,
                             resolution=resolution, normalize=normalize)
-        thisDep = loadVideo(directory_dep + filenames_dep[0], float(files[0][1]), length=length, b_w=True,
+        thisDep = loadVideo(directory_dep + filenames_dep[0], float(files[0][1]), nFrames=nFrames, b_w=True,
                             resolution=resolution, normalize=normalize)
         thisVideo = tc.cat((thisRGB, thisDep), 0)
         all_videos = tc.empty((numVideos, *thisVideo.shape))
         all_videos[0] = thisVideo
         for i in range(1, numVideos):
             middle = float(files[i][1])
-            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], middle=middle, length=length, b_w=False,
+            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], middle=middle, nFrames=nFrames, b_w=False,
                                 resolution=resolution)
-            thisDep = loadVideo(directory_dep + filenames_dep[i], middle=middle, length=length, b_w=True,
+            thisDep = loadVideo(directory_dep + filenames_dep[i], middle=middle, nFrames=nFrames, b_w=True,
                                 resolution=resolution)
             all_videos[i] = tc.cat((thisRGB, thisDep), 0)
         return all_videos
@@ -142,6 +142,9 @@ def writeNames2file(directory, out_directory=None):
 
 
 # %% Writes a tensor to a video
+FRAME_RATE = 18     # not true for all videos but okay.
+
+
 def writeTensor2video(x, name, out_directory=None):
     """
     Writes a tensor of shape (ch, num_frames, height, width) or (num_frames, height, width) (for B/W) to a video at the
@@ -153,8 +156,8 @@ def writeTensor2video(x, name, out_directory=None):
         out_directory = os.getcwd() + '/'
     name = name + '.avi'
     if len(x.shape) == 3:
-        num_frames, height, width = x.shape
-        ch = 1
+        x = x.unsqueeze(0)
+        ch, num_frames, height, width = x.shape
     else:
         ch, num_frames, height, width = x.shape
     writer = cv2.VideoWriter(out_directory + name, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), FRAME_RATE,
@@ -261,7 +264,7 @@ def train_epoch(this_net, X, y, optimizer, batch_size):
     return tc.mean(tc.tensor(losses)), accuracy_score(targs, preds)
 
 
-def eval_epoch(this_net, X, y):
+def eval_epoch(this_net, X, y, output_lists=False):
     # Sending the validation samples through the network
     this_net.eval()
     X_batch = get_variable(Variable(X))
@@ -269,4 +272,7 @@ def eval_epoch(this_net, X, y):
     preds = tc.max(get_data(output), 1)[1]
     # The targets
     targs = y.long()
-    return accuracy_score(targs, preds)
+    if output_lists:
+        return targs, preds
+    else:
+        return accuracy_score(targs, preds)

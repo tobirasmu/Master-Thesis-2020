@@ -229,3 +229,6 @@ print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NU
 
 train(net, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
 tc.save(net.cpu().state_dict(), "/zhome/2a/c/108156/Outputs/trained_network.pt")
+
+# %% Finding the errors in the test set
+tar, pre = eval_epoch(net, X[nTrain:], Y[nTrain:], output_lists=True)
