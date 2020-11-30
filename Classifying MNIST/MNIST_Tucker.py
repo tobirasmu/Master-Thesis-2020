@@ -24,7 +24,6 @@ from torch.nn.parameter import Parameter
 from torch.autograd import Variable
 from sklearn.metrics import accuracy_score
 import torch.nn as nn
-import torch.nn.init as init
 import torch.optim as optim
 import torch.nn.functional as Fun
 from torch.nn.functional import relu, elu, relu6, sigmoid, tanh, softmax
@@ -294,7 +293,7 @@ def lin_to_tucker2(layer, ranks=None):
     nOut, nIn = weights.shape
     # Estimate (ranks and) weights
     ranks = estimate_ranks(weights, [0,1]) if (ranks == None) else ranks
-    core, [A, B] = partial_tucker(weights, modes = [0,1], ranks = ranks)
+    core, [A, B] = partial_tucker(weights, modes = [0, 1], ranks=ranks)
     
     # Making the sequence of 3 smaller layers
     BTb = Linear(in_features=nIn, out_features=ranks[1], bias = False)

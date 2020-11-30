@@ -2,8 +2,12 @@ import numpy as np
 import torch as tc
 import torch.nn as nn
 from torch.nn.functional import interpolate
+from torch.nn import Linear, Conv3d, MaxPool3d
 from torch.autograd import Variable
 from sklearn.metrics import accuracy_score
+import tensorly as tl
+from tensorly.decomposition import partial_tucker
+from VBMF import EVBMF
 import matplotlib.pyplot as plt
 import cv2
 import csv
@@ -11,7 +15,7 @@ import os
 
 
 # %% Function for loading a single video
-def loadVideo(filename, middle=None, nFrames=None, b_w=True, resolution=1, normalize=True):
+def loadVideo(filename, middle=None, nFrames=None, b_w=True, resolution=1., normalize=True):
     """
     Loads a video using the full path and returns a 4D tensor (channels, frames, height, width).
     INPUT:
@@ -45,10 +49,10 @@ def loadVideo(filename, middle=None, nFrames=None, b_w=True, resolution=1, norma
         if framesRead >= firstFrame:
             if b_w:
                 frame = np.expand_dims(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), 0)
-                frame = frame/255 if normalize else frame
+                frame = frame / 255 if normalize else frame
             else:
                 frame = np.moveaxis(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), -1, 0)
-                frame = frame/255 if normalize else frame
+                frame = frame / 255 if normalize else frame
             frames[:, framesLoaded, :, :] = tc.tensor(frame)
             framesLoaded += 1
     cap.release()
@@ -59,7 +63,7 @@ def loadVideo(filename, middle=None, nFrames=None, b_w=True, resolution=1, norma
 
 
 # %% Function for loading an entire directory
-def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds=None, resolution=1, normalize=True):
+def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds=None, resolution=1., normalize=True):
     """
     Loads all the videos of a directory and makes them into a big tensor. If the inputfile is given, the output will be
     a big tensor of shape (numVideos, channels, numFrames, height, width), otherwise the output will be a list of 4D
@@ -107,7 +111,7 @@ def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds
                 filenames_rgb.pop(ind)
                 filenames_dep.pop(ind)
         numVideos = len(filenames_rgb)
-        nFrames = int(18*length+1)
+        nFrames = int(18 * length + 1)
         thisRGB = loadVideo(directory_rgb + filenames_rgb[0], float(files[0][1]), nFrames=nFrames, b_w=False,
                             resolution=resolution, normalize=normalize)
         thisDep = loadVideo(directory_dep + filenames_dep[0], float(files[0][1]), nFrames=nFrames, b_w=True,
@@ -123,6 +127,24 @@ def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds
                                 resolution=resolution)
             all_videos[i] = tc.cat((thisRGB, thisDep), 0)
         return all_videos
+
+
+# %% Loading the data and saving as a tensor
+def loadTHETIS(shotTypes, input_files, ignore_inds, directory, out_directory, length=1.5, resolution=0.25, seed=43):
+    tc.manual_seed(seed)
+    X = loadShotType(shotTypes[0], directory, input_file=input_files[0], length=length, resolution=resolution,
+                     ignore_inds=ignore_inds[0])
+    Y = tc.zeros(X.shape[0])
+    for i in range(1, len(shotTypes)):
+        this = loadShotType(shotTypes[i], directory, input_file=input_files[i], length=length, resolution=resolution,
+                            ignore_inds=ignore_inds[i])
+        X = tc.cat((X, this), dim=0)
+        Y = tc.cat((Y, tc.ones(this.shape[0]) * i))
+    permutation = tc.randperm(Y.shape[0])
+    X = X[permutation]
+    Y = Y[permutation]
+    tc.save((X, Y), out_directory)
+    return X, Y
 
 
 # %% Writes all names of directory to file
@@ -142,7 +164,7 @@ def writeNames2file(directory, out_directory=None):
 
 
 # %% Writes a tensor to a video
-FRAME_RATE = 18     # not true for all videos but okay.
+FRAME_RATE = 18  # not true for all videos but okay.
 
 
 def writeTensor2video(x, name, out_directory=None):
@@ -178,6 +200,7 @@ def showFrame(x, title=None, saveName=None):
     Takes in a tensor of shape (ch, height, width) or (height, width) (for B/W) and plots the image using
     matplotlib.pyplot
     """
+    x = x * 255 if tc.max(x) <= 1 else x
     if x.type() != "torch.ByteTensor":
         x = x.type(dtype=tc.uint8)
     if len(x.shape) == 2:
@@ -276,3 +299,153 @@ def eval_epoch(this_net, X, y, output_lists=False):
         return targs, preds
     else:
         return accuracy_score(targs, preds)
+
+
+# %% The decomposition functions:
+def conv_to_tucker2_3d(layer, ranks=None):
+    """
+    Takes a pretrained convolutional layer and decomposes is using partial
+    tucker with the given ranks.
+    """
+    # Making the decomposition of the weights
+    weights = layer.weight.data
+    # (Estimating the ranks using VBMF)
+    ranks = estimate_ranks(weights, [0, 1]) if ranks is None else ranks
+    # Decomposing
+    core, [last, first] = partial_tucker(weights, modes=[0, 1], ranks=ranks)
+
+    # Making the layer into 3 sequential layers using the decomposition
+    first_layer = Conv3d(in_channels=first.shape[0], out_channels=first.shape[1],
+                         kernel_size=(1, 1, 1), stride=(1, 1, 1), padding=(0, 0, 0), bias=False)
+
+    core_layer = Conv3d(in_channels=core.shape[1], out_channels=core.shape[0],
+                        kernel_size=layer.kernel_size, stride=layer.stride,
+                        padding=layer.padding, bias=False)
+
+    last_layer = Conv3d(in_channels=last.shape[1], out_channels=last.shape[0],
+                        kernel_size=(1, 1, 1), stride=(1, 1, 1), padding=(0, 0, 0), bias=True)
+
+    # The decomposition is chosen as weights in the network (output, input, height, width)
+    first_layer.weight.data = tc.transpose(first, 1, 0).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+    core_layer.weight.data = core  # no reshaping needed
+    last_layer.weight.data = last.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+
+    # The bias from the original layer is added to the last convolution
+    last_layer.bias.data = layer.bias.data
+
+    new_layers = [first_layer, core_layer, last_layer]
+    return nn.Sequential(*new_layers)
+
+
+def conv_to_tucker1_3d(layer, rank=None):
+    """
+    Takes a pretrained convolutional layer and decomposes it using partial tucker with the given rank.
+    """
+    # Making the decomposition of the weights
+    weights = layer.weight.data
+    out_ch, in_ch = weights.shape[0:2]
+    # (Estimating the rank)
+    rank = estimate_ranks(weights, [0]) if rank is None else [rank]
+    core, [last] = partial_tucker(weights, modes=[0], ranks=rank)
+
+    # Turning the convolutional layer into a sequence of two smaller convolutions
+    core_layer = Conv3d(in_channels=in_ch, out_channels=rank[0], kernel_size=layer.kernel_size, padding=layer.padding,
+                        stride=layer.stride, bias=False)
+    last_layer = Conv3d(in_channels=rank[0], out_channels=out_ch, kernel_size=(1, 1, 1), padding=(0, 0, 0),
+                        stride=(1, 1, 1), bias=True)
+
+    # Setting the weights:
+    core_layer.weight.data = core
+    last_layer.weight.data = last.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+    last_layer.bias.data = layer.bias.data
+
+    new_layers = [core_layer, last_layer]
+    return nn.Sequential(*new_layers)
+
+
+def lin_to_tucker2(layer, ranks=None):
+    """
+    Takes in a linear layer and decomposes it by tucker-2. Then splits the linear
+    map into a sequence of smaller linear maps.
+    """
+    # Pulling out the weights
+    weights = layer.weight.data
+    nOut, nIn = weights.shape
+    # Estimate (ranks and) weights
+    ranks = estimate_ranks(weights, [0, 1]) if ranks is None else ranks
+    core, [A, B] = partial_tucker(weights, modes=[0, 1], ranks=ranks)
+
+    # Making the sequence of 3 smaller layers
+    BTb = Linear(in_features=nIn, out_features=ranks[1], bias=False)
+    coreBTb = Linear(in_features=ranks[1], out_features=ranks[0], bias=False)
+    AcoreBTb = Linear(in_features=ranks[0], out_features=nOut, bias=True)
+
+    # Setting the weights
+    BTb.weight.data = tc.transpose(B, 0, 1)
+    coreBTb.weight.data = core
+    AcoreBTb.weight.data = A
+    AcoreBTb.bias.data = layer.bias.data
+
+    new_layers = [BTb, coreBTb, AcoreBTb]
+    return nn.Sequential(*new_layers)
+
+
+def lin_to_tucker1(layer, rank=None, in_channels=True):
+    """
+    Takes a linear layer as input, decomposes it using tucker1, and makes it into
+    a sequence of two smaller linear layers using the decomposed weights.
+    """
+    # Making the decomposition of the weights
+    weights = layer.weight.data
+    nOut, nIn = weights.shape
+    if in_channels:
+        rank = estimate_ranks(weights, [1]) if rank is None else [rank]
+        core, [B] = partial_tucker(weights, modes=[1], ranks=rank)
+
+        # Now we have W = GB^T, we need Wb which means we can seperate into two layers
+        BTb = Linear(in_features=nIn, out_features=rank[0], bias=False)
+        coreBtb = Linear(in_features=rank[0], out_features=nOut, bias=True)
+
+        # Set up the weights
+        BTb.weight.data = tc.transpose(B, 0, 1)
+        coreBtb.weight.data = core
+
+        # Bias goes on last layer
+        coreBtb.bias.data = layer.bias.data
+
+        new_layers = [BTb, coreBtb]
+    else:
+        rank = estimate_ranks(weights, [0]) if rank is None else [rank]
+        core, [A] = partial_tucker(weights, modes=[0], ranks=rank)
+
+        # Now we have W = AG, we need Wb which means we can do Wb = A (Gb) as two linear layers
+        coreb = Linear(in_features=nIn, out_features=rank[0], bias=False)
+        Acoreb = Linear(in_features=rank[0], out_features=nOut, bias=True)
+
+        # Let the decomposed weights be the weights of the new
+        coreb.weight.data = core
+        Acoreb.weight.data = A
+
+        # The bias goes on the second one
+        Acoreb.bias.data = layer.bias.data
+
+        new_layers = [coreb, Acoreb]
+    return nn.Sequential(*new_layers)
+
+
+def numParams(net):
+    """
+    Returns the number of parameters in the entire network.
+    """
+    return sum(np.prod(p.size()) for p in net.parameters())
+
+
+def estimate_ranks(weight_tensor, dimensions):
+    """
+    Estimates the sufficient ranks for a given tensor
+    """
+    ranks = []
+    for dim in dimensions:
+        _, diag, _, _ = EVBMF(tl.unfold(weight_tensor, dim))
+        ranks.append(diag.shape[dim])
+    return ranks

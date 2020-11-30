@@ -157,7 +157,7 @@ def VBsigma2(sigma2,L,M,cacb,s,residual):
 def EVBMF(Y, sigma2=None, H=None):
     """Implementation of the analytical solution to Empirical Variational Bayes Matrix Factorization.
 
-    This function can be used to calculate the analytical solution to empirical VBMF. 
+    This function can be used to calculate the analytical solution to empirical VBMF.
     This is based on the paper and MatLab code by Nakajima et al.:
     "Global analytic solution of fully-observed variational Bayesian matrix factorization."
 
