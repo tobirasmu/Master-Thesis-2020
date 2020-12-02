@@ -129,7 +129,7 @@ net = Net()
 
 # Loading the parameters of the pretrained network (needs to be after converting the network back to cpu)
 if HPC:
-    net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Results_hpc/trained_network.pt"))
+    net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Results_hpc/trained_network_92.pt"))
 else:
     net.load_state_dict(tc.load("/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Results_hpc/trained_network.pt"))
 
@@ -150,14 +150,13 @@ if tc.cuda.is_available():
 # %% Training the decomposed network
 BATCH_SIZE = 10
 NUM_FOLDS = 5
-NUM_EPOCHS = 50
+NUM_EPOCHS = 100
 LEARNING_RATE = 0.001
 nTrain = int(0.85*X.shape[0])
 
-optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
-
 
 def train(this_net, X_train, y_train, X_test, y_test):
+    optimizer = optim.SGD(this_net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
     train_accs, val_accs, test_accs = tc.empty(NUM_EPOCHS), tc.empty(NUM_EPOCHS), tc.empty(NUM_EPOCHS)
     kf = list(KFold(NUM_FOLDS).split(X_train))
     epoch, interrupted = 0, False
@@ -195,15 +194,15 @@ print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NU
 train(netDec, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
 
 # %% Time to compute ten forward pushes:
-t = process_time()
+t = process_time_ns()
 for i in range(10):
     out = net(Variable(get_variable(X[0:10])))
 timeOrig = process_time_ns() - t
-print("Mean time for 10 forward pushes using original net was {:.3} seconds".format(timeOrig/10))
+print("Mean time for 10 forward pushes using original net was {} seconds".format(timeOrig/10))
 
-t = process_time()
+t = process_time_ns()
 for i in range(10):
     out = netDec(Variable(get_variable(X[0:10])))
 timeNew = process_time_ns() - t
-print("Mean time for 10 forward pushes using decomposed net was {:.3} seconds".format(timeNew/10))
+print("Mean time for 10 forward pushes using decomposed net was {} seconds".format(timeNew/10))
 print("Which is a speed-up ratio of {:.2f}".format(timeNew/timeOrig))
