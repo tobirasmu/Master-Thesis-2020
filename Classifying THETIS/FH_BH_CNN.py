@@ -224,8 +224,8 @@ def train(this_net, X_train, y_train, X_test, y_test):
     print("{:-^60}\nFinished".format(""))
 
 print("{:-^60s}".format(" Training details "))
-print("{: ^20}{: ^20}{: ^20}".format("Learning rate:","Batch size:", "Number of folds"))
-print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS,''))
+print("{: ^20}{: ^20}{: ^20}".format("Learning rate:", "Batch size:", "Number of folds"))
+print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS, ''))
 
 train(net, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
 tc.save(net.cpu().state_dict(), "/zhome/2a/c/108156/Outputs/trained_network.pt")
