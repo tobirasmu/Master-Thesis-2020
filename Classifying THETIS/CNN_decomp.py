@@ -117,18 +117,19 @@ net.load_state_dict(tc.load("/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-20
 netDec = deepcopy(net)
 netDec.c1 = conv_to_tucker1_3d(net.c1)
 netDec.c2 = conv_to_tucker2_3d(net.c2)
-netDec.l1 = lin_to_tucker2(net.l1, ranks=[20, 50])
+netDec.l1 = lin_to_tucker1(net.l1, in_channels=False, rank=2)
 netDec.l2 = lin_to_tucker1(net.l2)
+netDec
 print("Parameters:\nOriginal: {}  Decomposed: {}  Ratio: {:.3f}".format(numParams(net), numParams(netDec), numParams(netDec)/numParams(net)))
 
 # %% Time to compute two forward pushes:
 t = process_time()
 out = net(Variable(X[0:10]))
 timeOrig = process_time() - t
-print("Time for 2 forward pushes using original net was {:.3} seconds".format(timeOrig))
+print("Time for 10 forward pushes using original net was {:.3} seconds".format(timeOrig))
 
 t = process_time()
 out = netDec(Variable(X[0:10]))
 timeNew = process_time() - t
-print("Time for 2 forward pushes using decomposed net was {:.3} seconds".format(timeNew))
+print("Time for 10 forward pushes using decomposed net was {:.3} seconds".format(timeNew))
 print("Which is a speed-up ratio of {:.2f}".format(timeNew/timeOrig))
