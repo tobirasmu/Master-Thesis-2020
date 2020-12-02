@@ -9,7 +9,7 @@ Trying to classify the flat forehands and the backhands only using the depth
 videos.
 """
 # True if using the
-HPC = False
+HPC = True
 
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
@@ -80,7 +80,7 @@ print("Time to load all the data was {:.2f} seconds\n".format(process_time()-t))
 
 # %% Compile into one large dataset.
 t = process_time()
-tc.manual_seed(43)
+tc.manual_seed(42)
 numForehands = forehands.shape[0]
 numBackhands = backhands.shape[0]
 N = numForehands + numBackhands
@@ -123,7 +123,7 @@ pool_kernel = (2, 4, 4)
 pool_stride = (2, 4, 4)
 pool_padding = (0, 0, 0)
 # Linear layers
-l1_features = 120
+l1_features = 128
 l2_features = 84
 l_out_features = 2
 
