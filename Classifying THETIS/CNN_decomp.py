@@ -78,7 +78,7 @@ pool_kernel = (2, 4, 4)
 pool_stride = (2, 4, 4)
 pool_padding = (0, 0, 0)
 # Linear layers
-l1_features = 120
+l1_features = 128
 l2_features = 84
 l_out_features = 2
 
@@ -137,7 +137,7 @@ else:
 netDec = deepcopy(net)
 netDec.c1 = conv_to_tucker1_3d(net.c1)
 netDec.c2 = conv_to_tucker2_3d(net.c2)
-netDec.l1 = lin_to_tucker2(net.l1, ranks=[5, 10])
+netDec.l1 = lin_to_tucker2(net.l1, ranks=[2, 5])
 netDec.l2 = lin_to_tucker1(net.l2)
 print("The decomposed network has the following architecture\n",netDec)
 print("Parameters:\nOriginal: {}  Decomposed: {}  Ratio: {:.3f}\n".format(numParams(net), numParams(netDec), numParams(netDec)/numParams(net)))
@@ -150,7 +150,7 @@ if tc.cuda.is_available():
 # %% Training the decomposed network
 BATCH_SIZE = 10
 NUM_FOLDS = 5
-NUM_EPOCHS = 100
+NUM_EPOCHS = 50
 LEARNING_RATE = 0.001
 nTrain = int(0.85*X.shape[0])
 
@@ -194,15 +194,18 @@ print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NU
 train(netDec, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
 
 # %% Time to compute ten forward pushes:
+net.eval()
+timeTest = Variable(get_variable(X[0:100]))
 t = process_time_ns()
 for i in range(10):
-    out = net(Variable(get_variable(X[0:10])))
+    net(timeTest)
 timeOrig = process_time_ns() - t
-print("Mean time for 10 forward pushes using original net was {} seconds".format(timeOrig/10))
+print("Mean time for 10 forward pushes using original net was {}".format(timeOrig/1000))
 
+netDec.eval()
 t = process_time_ns()
 for i in range(10):
-    out = netDec(Variable(get_variable(X[0:10])))
+    netDec(timeTest)
 timeNew = process_time_ns() - t
-print("Mean time for 10 forward pushes using decomposed net was {} seconds".format(timeNew/10))
+print("Mean time for 10 forward pushes using decomposed net was {}".format(timeNew/(1000)))
 print("Which is a speed-up ratio of {:.2f}".format(timeNew/timeOrig))

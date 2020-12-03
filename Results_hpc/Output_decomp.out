@@ -1,0 +1,187 @@
+Took 2.01 seconds to load the data
+The decomposed network has the following architecture
+ Net(
+  (c1): Sequential(
+    (0): Conv3d(4, 2, kernel_size=(5, 11, 11), stride=(1, 1, 1), padding=(2, 5, 5), bias=False)
+    (1): Conv3d(2, 6, kernel_size=(1, 1, 1), stride=(1, 1, 1))
+  )
+  (c2): Sequential(
+    (0): Conv3d(6, 2, kernel_size=(1, 1, 1), stride=(1, 1, 1), bias=False)
+    (1): Conv3d(2, 3, kernel_size=(5, 11, 11), stride=(1, 1, 1), bias=False)
+    (2): Conv3d(3, 16, kernel_size=(1, 1, 1), stride=(1, 1, 1))
+  )
+  (pool3d): MaxPool3d(kernel_size=(2, 4, 4), stride=(2, 4, 4), padding=(0, 0, 0), dilation=1, ceil_mode=False)
+  (l1): Sequential(
+    (0): Linear(in_features=2800, out_features=5, bias=False)
+    (1): Linear(in_features=5, out_features=2, bias=False)
+    (2): Linear(in_features=2, out_features=128, bias=True)
+  )
+  (l2): Sequential(
+    (0): Linear(in_features=128, out_features=1, bias=False)
+    (1): Linear(in_features=1, out_features=84, bias=True)
+  )
+  (l_out): Linear(in_features=84, out_features=2, bias=True)
+)
+Parameters:
+Original: 442156  Decomposed: 23424  Ratio: 0.053
+
+-- USING GPU --
+--------------------- Training details ---------------------
+   Learning rate:       Batch size:       Number of folds   
+       0.0010                10                  5          
+------------------------------------------------------------
+------------------------ EPOCH   1 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.4581         0.9018         0.8993         0.8400     
+------------------------ EPOCH   2 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.4225         0.9291         0.9244         0.8600     
+------------------------ EPOCH   3 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.4023         0.9427         0.9423         0.9000     
+------------------------ EPOCH   4 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3894         0.9482         0.9567         0.9000     
+------------------------ EPOCH   5 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3803         0.9545         0.9639         0.9000     
+------------------------ EPOCH   6 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3732         0.9573         0.9639         0.9000     
+------------------------ EPOCH   7 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3679         0.9609         0.9639         0.9000     
+------------------------ EPOCH   8 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3636         0.9645         0.9639         0.9000     
+------------------------ EPOCH   9 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3601         0.9682         0.9675         0.9000     
+------------------------ EPOCH  10 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3572         0.9709         0.9711         0.9200     
+------------------------ EPOCH  11 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3550         0.9709         0.9711         0.9200     
+------------------------ EPOCH  12 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3532         0.9709         0.9711         0.9000     
+------------------------ EPOCH  13 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3517         0.9709         0.9711         0.9000     
+------------------------ EPOCH  14 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3505         0.9709         0.9711         0.9000     
+------------------------ EPOCH  15 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3496         0.9709         0.9711         0.9000     
+------------------------ EPOCH  16 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3488         0.9709         0.9711         0.9000     
+------------------------ EPOCH  17 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3482         0.9709         0.9711         0.9000     
+------------------------ EPOCH  18 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3476         0.9709         0.9711         0.9000     
+------------------------ EPOCH  19 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3472         0.9709         0.9711         0.9000     
+------------------------ EPOCH  20 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3469         0.9709         0.9711         0.9000     
+------------------------ EPOCH  21 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3466         0.9709         0.9711         0.9000     
+------------------------ EPOCH  22 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3463         0.9709         0.9711         0.9000     
+------------------------ EPOCH  23 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3461         0.9709         0.9711         0.9000     
+------------------------ EPOCH  24 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3459         0.9709         0.9711         0.9000     
+------------------------ EPOCH  25 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3457         0.9709         0.9711         0.9000     
+------------------------ EPOCH  26 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3456         0.9709         0.9711         0.9000     
+------------------------ EPOCH  27 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3455         0.9709         0.9711         0.9000     
+------------------------ EPOCH  28 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3454         0.9709         0.9711         0.9000     
+------------------------ EPOCH  29 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3453         0.9709         0.9711         0.9000     
+------------------------ EPOCH  30 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3452         0.9709         0.9711         0.9000     
+------------------------ EPOCH  31 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3451         0.9709         0.9711         0.9000     
+------------------------ EPOCH  32 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3451         0.9709         0.9711         0.9000     
+------------------------ EPOCH  33 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3450         0.9709         0.9711         0.9000     
+------------------------ EPOCH  34 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3450         0.9709         0.9711         0.9000     
+------------------------ EPOCH  35 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3449         0.9709         0.9711         0.9000     
+------------------------ EPOCH  36 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3449         0.9709         0.9711         0.9000     
+------------------------ EPOCH  37 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3448         0.9709         0.9711         0.9000     
+------------------------ EPOCH  38 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3448         0.9709         0.9711         0.9000     
+------------------------ EPOCH  39 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3448         0.9709         0.9711         0.9000     
+------------------------ EPOCH  40 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3448         0.9709         0.9711         0.9000     
+------------------------ EPOCH  41 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3447         0.9709         0.9711         0.9000     
+------------------------ EPOCH  42 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3447         0.9709         0.9711         0.9000     
+------------------------ EPOCH  43 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3447         0.9709         0.9711         0.9000     
+------------------------ EPOCH  44 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3447         0.9709         0.9711         0.9000     
+------------------------ EPOCH  45 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3447         0.9709         0.9711         0.9000     
+------------------------ EPOCH  46 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3447         0.9709         0.9711         0.9000     
+------------------------ EPOCH  47 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3447         0.9709         0.9711         0.9000     
+------------------------ EPOCH  48 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3446         0.9709         0.9711         0.9000     
+------------------------ EPOCH  49 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3446         0.9709         0.9711         0.9000     
+------------------------ EPOCH  50 -------------------------
+     Loss:       Train acc.:     Val acc.:     Test acc.:   
+    0.3446         0.9709         0.9711         0.9000     
+------------------------------------------------------------
+Finished
+Mean time for 10 forward pushes using original net was 1950627.9
+Mean time for 10 forward pushes using decomposed net was 13300235.0
+Which is a speed-up ratio of 6.82
