@@ -2,7 +2,7 @@ import numpy as np
 import torch as tc
 import torch.nn as nn
 from torch.nn.functional import interpolate
-from torch.nn import Linear, Conv3d, MaxPool3d
+from torch.nn import Linear, Conv3d, MaxPool3d, Conv2d
 from torch.autograd import Variable
 from sklearn.metrics import accuracy_score
 import tensorly as tl
@@ -363,6 +363,66 @@ def conv_to_tucker1_3d(layer, rank=None):
     return nn.Sequential(*new_layers)
 
 
+def conv_to_tucker2(layer, ranks=None):
+    """
+    Takes a pretrained convolutional layer and decomposes is using partial
+    tucker with the given ranks.
+    """
+    # Making the decomposition of the weights
+    weights = layer.weight.data
+    # (Estimating the ranks using VBMF)
+    ranks = estimate_ranks(weights, [0, 1]) if ranks is None else ranks
+    # Decomposing
+    core, [last, first] = partial_tucker(weights, modes=[0, 1], ranks=ranks)
+
+    # Making the layer into 3 sequential layers using the decomposition
+    first_layer = Conv2d(in_channels=first.shape[0], out_channels=first.shape[1],
+                         kernel_size=1, stride=1, padding=0, bias=False)
+
+    core_layer = Conv2d(in_channels=core.shape[1], out_channels=core.shape[0],
+                        kernel_size=layer.kernel_size, stride=layer.stride,
+                        padding=layer.padding, bias=False)
+
+    last_layer = Conv2d(in_channels=last.shape[1], out_channels=last.shape[0],
+                        kernel_size=1, stride=1, padding=0, bias=True)
+
+    # The decomposition is chosen as weights in the network (output, input, height, width)
+    first_layer.weight.data = tc.transpose(first, 1, 0).unsqueeze(-1).unsqueeze(-1)
+    core_layer.weight.data = core  # no reshaping needed
+    last_layer.weight.data = last.unsqueeze(-1).unsqueeze(-1)
+
+    # The bias from the original layer is added to the last convolution
+    last_layer.bias.data = layer.bias.data
+
+    new_layers = [first_layer, core_layer, last_layer]
+    return nn.Sequential(*new_layers)
+
+
+def conv_to_tucker1(layer, rank=None):
+    """
+    Takes a pretrained convolutional layer and decomposes it using partial tucker with the given rank.
+    """
+    # Making the decomposition of the weights
+    weights = layer.weight.data
+    out_ch, in_ch, kernel_size, _ = weights.shape
+    # (Estimating the rank)
+    rank = estimate_ranks(weights, [0]) if rank is None else [rank]
+    core, [last] = partial_tucker(weights, modes=[0], ranks=rank)
+
+    # Turning the convolutional layer into a sequence of two smaller convolutions
+    core_layer = Conv2d(in_channels=in_ch, out_channels=rank[0], kernel_size=kernel_size, padding=layer.padding,
+                        stride=layer.stride, bias=False)
+    last_layer = Conv2d(in_channels=rank[0], out_channels=out_ch, kernel_size=1, padding=0, stride=1, bias=True)
+
+    # Setting the weights:
+    core_layer.weight.data = core
+    last_layer.weight.data = last.unsqueeze(-1).unsqueeze(-1)
+    last_layer.bias.data = layer.bias.data
+
+    new_layers = [core_layer, last_layer]
+    return nn.Sequential(*new_layers)
+
+
 def lin_to_tucker2(layer, ranks=None):
     """
     Takes in a linear layer and decomposes it by tucker-2. Then splits the linear
@@ -438,6 +498,75 @@ def numParams(net):
     Returns the number of parameters in the entire network.
     """
     return sum(np.prod(p.size()) for p in net.parameters())
+
+
+# Two matrices of size [N1 x N2] and [N2 x N3] respectively excluding N1 x N3 biases
+def matrixFLOPs(N1, N2, N3):
+    """
+    Returns the number of FLOPs needed to perform a matrix-matrix product with shape (N1 x N2) and (N2 x N3).
+    """
+    return 2 * N1 * N2 * N3 - N1 * N3
+
+
+def conv_dims(dims, kernels, strides, paddings):
+    """
+    Computes the resulting output dimensions when performing a convolution with the given kernel, stride and padding.
+    dims is the input dimension
+    """
+    dimensions = len(dims)
+    new_dims = tc.empty(dimensions)
+    for i in range(dimensions):
+        new_dims[i] = int((dims[i] - kernels[i] + 2 * paddings[i]) / strides[i] + 1)
+    return new_dims
+
+
+# Output shape is excluding out_channels which comes from the kernel.
+def convFLOPs(kernel_shape, output_shape):
+    """
+    The number of FLOPs needed to perform a convolution. For each output value (f' x h' x w' x t) the number of
+    multiplications will correspond to the size of the kernel (df x dh x dw x s) and the number of additions will be
+    the same minus 1.
+    """
+    return tc.prod(output_shape.long()) * (2 * tc.prod(kernel_shape.long()) - 1)
+
+
+def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=None):
+    """
+    Returns the number of floating point operations needed to make one forward push of each of the layers,
+    in a given network. Padding is a list of the layer number that has padding in it (assumed full padding), pooling is
+    a list of the layers that have pooling just after them. Pool_kernels are the corresponding pooling kernels for each
+    layer that have pooling in them
+    """
+    FLOPs = []
+    layer = 0
+    paddings = [] if paddings is None else paddings
+    pooling = [] if pooling is None else pooling
+    wasConv = False
+    output_shape = input_shape
+    for weights in list(net.parameters()):
+        kernel_shape = tc.tensor(weights.shape)
+        if len(kernel_shape) == 2:
+            layer += 1
+            FLOPs.append(matrixFLOPs(kernel_shape[0], kernel_shape[1], 1))
+            wasConv = False
+        elif len(kernel_shape) > 2:
+            wasConv = True
+            layer += 1
+            this_padding = kernel_shape[2:] // 2 if layer in paddings else (0, 0, 0)
+            output_shape = conv_dims(input_shape, kernel_shape[2:], strides=(1, 1, 1), paddings=this_padding)
+            FLOPs.append(convFLOPs(kernel_shape, output_shape))
+            if layer in pooling:
+                this_kernel = pool_kernels.pop(0)
+                input_shape = conv_dims(output_shape, this_kernel, strides=this_kernel, paddings=(0, 0, 0))
+            else:
+                input_shape = output_shape
+        else:
+            # Bias term requires number of additions equal to the amount of output values
+            if wasConv:
+                FLOPs[-1] += tc.prod(output_shape.long())
+            else:
+                FLOPs[-1] += kernel_shape[0]
+    return tc.tensor(FLOPs)
 
 
 def estimate_ranks(weight_tensor, dimensions):
