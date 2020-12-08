@@ -13,7 +13,7 @@ The MNIST (Modified National Institute of Standards and Technology) data set \ci
 \end{figure}
 
 \subsection{THETIS - Tennis shot videos}
-The THETIS (Three dimEnsional TennIs Shots) data set consists of videos of 1980 tennis shots performed by both beginners and more experienced individuals \cite{Gourgari2013}. Each of the 12 types of shots types have been performed multiple times by each of the 55 individuals (31 beginners and 24 experts). Each shot consists of an RGB video, a depth video, a silhouette video, and both 2D and 3D skeleton videos. Since the skeleton extraction is not always successful, only 1217 of the shots have this feature. This means that the total number of videos in the data set is 8,374 resulting in a total playtime of 7 hours and 15 minutes. An overview of the 12 types of shots is given in \autoref{tab:typeOverviewTHETIS}, while an example of each of the five features is given in \autoref{fig:exampleVideosTennis}.
+The THETIS (Three dimEnsional TennIs Shots) data set consists of videos of 1980 tennis shots performed by both beginners and more experienced individuals \cite{Gourgari2013}. Each of the 12 types of shots types have been performed multiple times by each of the 55 individuals (31 beginners and 24 experts). Each shot consists of an RGB video, a depth video, a silhouette video, and both 2D and 3D skeleton videos. Since the skeleton extraction is not always successful, only 1217 of the shots have this feature. This means that the total number of videos in the data set is 8,374 resulting in a total playtime of 7 hours and 15 minutes. An overview of the 12 types of shots is given in \autoref{tab:typeOverviewTHETIS}, while an example of each of the five features is given in \autoref{fig:exampleVideosTennis}. 
 
 \begin{table}
 \centering
@@ -53,3 +53,13 @@ Open stands & Backhand     &         &
     \caption{Example of the different videos that are given for each shot in the data set. Each of the pictures show the same frame in each of the videos of the same shot. Note that the 3D skeleton looks different since this is shown from a different angle. The 3D skeleton joint positions are also given numerically for each frame in the whole dataset.}
     \label{fig:exampleVideosTennis}
 \end{figure}
+
+Even though this data set is quite simple in relation to the real world, it is still complicated, especially with respect to the MNIST data set. The videos feature different individuals - both men and women, right handed and left handed, professionals and beginners. Even though the same type of shot is being performed by two individuals, they can look very different from each other. Also some of the videos are recorded in a sports arena with people doing different activities in the background as for instance yoga or basketball, while the others are recorded in a changing room with no noise at all.
+
+\subsubsection{Pre-processing for THETIS}
+As of now:
+\begin{itemize}
+    \item Put the depth video onto the RGB so it is now 4 input channels.
+    \item Standardized length by manually assigning the middle of the shot and taking fixed number of frames on either side
+    \item Decreased the resolution by a factor of 4 in each spatial dimension (factor of 16 overall)
+\end{itemize}
