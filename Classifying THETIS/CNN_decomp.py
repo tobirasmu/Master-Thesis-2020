@@ -1,5 +1,5 @@
 # True if using the
-HPC = False
+HPC = True
 
 import os
 
@@ -33,18 +33,16 @@ LENGTH = 1.5
 RESOLUTION = 0.25
 
 t = process_time()
-
+directory = "/zhome/2a/c/108156/Data_MSc/" if HPC else "/Users/Tobias/Desktop/Data/"
 if data_loaded:
-    X, Y = tc.load("/zhome/2a/c/108156/Data_MSc/data.pt") if HPC else tc.load("/Users/Tobias/Desktop/Data/data.pt")
+    X, Y = tc.load(directory + "data.pt")
 else:
     if HPC:
-        directory = "/zhome/2a/c/108156/Data_MSc/"
         inputForehand = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/forehand_filenames_adapted.csv"
         inputBackhand = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/backhand_filenames_adapted.csv"
         X, Y = loadTHETIS((0, 1), (inputForehand, inputBackhand), ([10, 45], [0]), directory,
                           out_directory=directory + "data.pt", length=LENGTH, resolution=RESOLUTION)
     else:
-        directory = "/Users/Tobias/Desktop/Data/"
         # Forehands
         inputForehand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying " \
                         "THETIS/forehand_filenames_adapted.csv "
@@ -292,6 +290,17 @@ vgg16_dec.features[28] = conv_to_tucker2(vgg16.features[28])
 vgg16_dec.classifier[3] = lin_to_tucker1(vgg16.classifier[3])
 vgg16_dec.classifier[6] = lin_to_tucker1(vgg16.classifier[6])
 
+print("\n{:-^60}\n{:-^60}\n{:-^60}".format('', " The VGG-16 network ", ''))
+# Converting to cuda if possible
+if tc.cuda.is_available():
+    vgg16 = vgg16.cuda()
+    vgg16_dec = vgg16_dec.cuda()
+    print("\n-- Using GPU --\n")
+
+print("Number of parameters:\n{: <30s}{: >12d}\n{: <30s}{: >12d}\n{: <30s}{: >12f}".format("Original:",numParams(vgg16),
+                                                                                           "Decomposed:",
+                                                                                           numParams(vgg16_dec), "Ratio:",
+                                                                                           numParams(vgg16_dec) / numParams(vgg16)))
 # %% Calculating the theoretical and actual speed-ups
 FLOPs_vgg16 = numFLOPsPerPush(vgg16, (224, 224), paddings=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                               pooling=[2, 4, 7, 10, 13], pool_kernels=[(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)])
@@ -304,9 +313,9 @@ print("Overall ratio is {:.4f} hence the speed-up should be of around {:.2f} tim
     sum(FLOPs_vgg16_dcmp) / sum(FLOPs_vgg16), sum(FLOPs_vgg16) / sum(FLOPs_vgg16_dcmp)))
 
 # Actual speed-up
-test_cat = tc.tensor(np.moveaxis(cv2.cvtColor(cv2.imread("/Users/Tobias/Desktop/cat.png"), cv2.COLOR_BGR2RGB), -1, 0),
+test_cat = tc.tensor(np.moveaxis(cv2.cvtColor(cv2.imread(directory + "cat.png"), cv2.COLOR_BGR2RGB), -1, 0),
                      dtype=tc.float).unsqueeze(0) / 255
-test_ball = tc.tensor(np.moveaxis(cv2.cvtColor(cv2.imread("/Users/Tobias/Desktop/ball.png"), cv2.COLOR_BGR2RGB), -1, 0),
+test_ball = tc.tensor(np.moveaxis(cv2.cvtColor(cv2.imread(directory + "ball.png"), cv2.COLOR_BGR2RGB), -1, 0),
                       dtype=tc.float).unsqueeze(0) / 255
 test_vgg16 = Variable(get_variable(tc.cat((test_cat, test_ball), 0)))
 
