@@ -14,6 +14,7 @@ import torch.nn as nn
 from torch.nn import Linear, Conv3d, MaxPool3d
 from torch.nn.functional import relu, softmax
 from torch.autograd import Variable
+import torchvision.models as models
 import tensorly as tl
 from tensorly.decomposition import partial_tucker
 from video_functions import showFrame, loadTHETIS, conv_to_tucker1_3d, conv_to_tucker2_3d, conv_to_tucker1, \
@@ -116,31 +117,31 @@ class Net_timed(nn.Module):
 
     def forward(self, x, timed=False):
         layer_time = []
-        t = process_time_ns()
+        t = process_time()
         x = relu(self.c1(x))
-        layer_time.append(process_time_ns() - t)
+        layer_time.append(process_time() - t)
 
         x = self.pool3d(x)
 
-        t = process_time_ns()
+        t = process_time()
         x = relu(self.c2(x))
-        layer_time.append(process_time_ns() - t)
+        layer_time.append(process_time() - t)
 
         x = self.pool3d(x)
 
         x = tc.flatten(x, 1)
 
-        t = process_time_ns()
+        t = process_time()
         x = relu(self.l1(x))
-        layer_time.append(process_time_ns() - t)
+        layer_time.append(process_time() - t)
 
-        t = process_time_ns()
+        t = process_time()
         x = relu(self.l2(x))
-        layer_time.append(process_time_ns() - t)
+        layer_time.append(process_time() - t)
 
-        t = process_time_ns()
+        t = process_time()
         output = softmax(self.l_out(x), dim=1)
-        layer_time.append(process_time_ns() - t)
+        layer_time.append(process_time() - t)
         if timed:
             return output, tc.tensor(layer_time)
         return output
@@ -219,27 +220,27 @@ print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NU
 train(netDec, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
 
 # %% Observed time both total and layer-wise
-num_samples, num_runs = 2, 10
+num_samples, num_runs = 2, 2
 
 # Original network
 net.eval()
 timeTest = Variable(get_variable(X[0:num_samples]))
-t = process_time_ns()
+t = process_time()
 layer_time_orig = tc.zeros(5)
 for i in range(num_runs):
     _, this_time = net(timeTest, timed=True)
     layer_time_orig += this_time
-timeOrig = (process_time_ns() - t) / (num_runs * num_samples)
+timeOrig = (process_time() - t) / (num_runs * num_samples)
 layer_time_orig /= (num_runs * num_samples)
 
 # Decomposed network
 netDec.eval()
-t = process_time_ns()
+t = process_time()
 layer_time_dcmp = tc.zeros(5)
 for i in range(num_runs):
     _, this_time = netDec(timeTest, timed=True)
     layer_time_dcmp += this_time
-timeNew = (process_time_ns() - t) / (num_runs * num_samples)
+timeNew = (process_time() - t) / (num_runs * num_samples)
 layer_time_dcmp /= (num_runs * num_samples)
 
 # %% Theoretical speed-ups based on the number of FLOPs (floating point operations (+, -, *, %))
@@ -263,13 +264,10 @@ for i in range(len(FLOPs_orig)):
                                                                      observed_SP_layer[i],
                                                                      FLOPs_orig[i] / tc.sum(FLOPs_orig),
                                                                      layer_time_orig[i] / tc.sum(layer_time_orig)))
-print("{:-^60s}\n{: <20s}{: ^20.4f}{: ^20.4f}".format('', "Total", tc.sum(FLOPs_orig) / tc.sum(FLOPs_dcmp),
+print("{:-^60s}\n{: <11s}{: ^16.4f}{: ^16.4f}".format('', "Total", tc.sum(FLOPs_orig) / tc.sum(FLOPs_dcmp),
                                                       timeOrig / timeNew))
 
 # %% How about VGG-16 ? Is that compressable?
-
-import torchvision.models as models
-
 vgg16 = models.vgg16(pretrained=True)
 
 vgg16_dec = deepcopy(vgg16)
@@ -286,7 +284,7 @@ vgg16_dec.features[21] = conv_to_tucker2(vgg16.features[21])
 vgg16_dec.features[24] = conv_to_tucker2(vgg16.features[24])
 vgg16_dec.features[26] = conv_to_tucker2(vgg16.features[26])
 vgg16_dec.features[28] = conv_to_tucker2(vgg16.features[28])
-# vgg16_dec.classifier[0] = lin_to_tucker2(vgg16.classifier[0])   # Takes LONG to decompose
+#vgg16_dec.classifier[0] = lin_to_tucker2(vgg16.classifier[0])   # Takes LONG to decompose
 vgg16_dec.classifier[3] = lin_to_tucker1(vgg16.classifier[3])
 vgg16_dec.classifier[6] = lin_to_tucker1(vgg16.classifier[6])
 
@@ -319,13 +317,13 @@ test_ball = tc.tensor(np.moveaxis(cv2.cvtColor(cv2.imread(directory + "ball.png"
                       dtype=tc.float).unsqueeze(0) / 255
 test_vgg16 = Variable(get_variable(tc.cat((test_cat, test_ball), 0)))
 
-t = process_time_ns()
+t = process_time()
 for i in range(10):
     vgg16(test_vgg16)
-timeOrig = process_time_ns() - t
+timeOrig = process_time() - t
 
-t = process_time_ns()
+t = process_time()
 for i in range(10):
     vgg16_dec(test_vgg16)
-timeNew = process_time_ns() - t
+timeNew = process_time() - t
 print("Actual speed-up was {} times.".format(timeOrig / timeNew))
