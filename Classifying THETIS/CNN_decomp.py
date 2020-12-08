@@ -1,5 +1,5 @@
 # True if using the
-HPC = True
+HPC = False
 
 import os
 

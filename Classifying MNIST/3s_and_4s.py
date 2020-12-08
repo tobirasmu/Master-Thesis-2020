@@ -7,7 +7,9 @@ Created on Tue Sep  8 16:38:38 2020
 
 In this file, it is attempted to decompose some 3s and 4s from the MNIST data set.
 """
-
+import os
+path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
+os.chdir(path)
 from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
 import numpy as np
 from numpy.linalg import pinv, inv

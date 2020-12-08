@@ -7,7 +7,9 @@ Created on Tue Sep  8 16:38:38 2020
 
 In this file, it is attempted to decompose some set of digits from the MNIST data set.
 """
-
+import os
+path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
+os.chdir(path)
 from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
 import numpy as np
 from numpy.linalg import pinv, inv
@@ -33,7 +35,7 @@ data = loadMNIST()
 
 # %% Making a tensor of a subset of the digits
 
-digits = (3,4)
+digits = (3, 4)
 
 X_all = data.x_train
 Y_all = data.y_train
@@ -43,15 +45,15 @@ for i in range(len(digits)):
     whereTot += (data.y_train == digits[i])
 indicesAll = np.where(whereTot)    
 
-X_sub = X_all[indicesAll].reshape((-1,28,28))
+X_sub = X_all[indicesAll].reshape((-1, 28, 28))
 
 # Making sure Ys are classes 0...k and not the original ones
 Y_subIni = Y_all[indicesAll]
 Y_sub = tc.zeros(Y_subIni.shape[0])
-for i in range(1,len(digits)):
+for i in range(1, len(digits)):
     Y_sub += (Y_subIni == digits[i])*i
 
-plotMany(X_sub, 30,20)
+plotMany(X_sub, 30, 20)
 
 N = len(Y_sub)
 print("There is a total of %d digits of the types:" % N, digits)
