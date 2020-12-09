@@ -1,5 +1,5 @@
 # True if using the
-HPC = False
+HPC = True
 
 import os
 
@@ -220,7 +220,7 @@ print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}".format(LEARNING_RATE, BATCH_SIZE, NU
 train(netDec, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
 
 # %% Observed time both total and layer-wise
-num_samples, num_runs = 2, 2
+num_samples, num_runs = 10, 1000
 
 # Original network
 net.eval()
@@ -289,7 +289,7 @@ vgg16_dec.classifier[3] = lin_to_tucker1(vgg16.classifier[3])
 vgg16_dec.classifier[6] = lin_to_tucker1(vgg16.classifier[6])
 
 print("\n{:-^60}\n{:-^60}\n{:-^60}".format('', " The VGG-16 network ", ''))
-# Converting to cuda if possible
+#Converting to cuda if possible
 if tc.cuda.is_available():
     vgg16 = vgg16.cuda()
     vgg16_dec = vgg16_dec.cuda()
@@ -318,12 +318,12 @@ test_ball = tc.tensor(np.moveaxis(cv2.cvtColor(cv2.imread(directory + "ball.png"
 test_vgg16 = Variable(get_variable(tc.cat((test_cat, test_ball), 0)))
 
 t = process_time()
-for i in range(10):
+for i in range(1000):
     vgg16(test_vgg16)
 timeOrig = process_time() - t
 
 t = process_time()
-for i in range(10):
+for i in range(1000):
     vgg16_dec(test_vgg16)
 timeNew = process_time() - t
-print("Actual speed-up was {} times.".format(timeOrig / timeNew))
+print("Actual speed-up was {} times based on {} seconds for the original and {} for the decomposed.".format(timeOrig / timeNew, timeOrig/2000, timeNew/2000))
