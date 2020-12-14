@@ -508,6 +508,11 @@ def matrixFLOPs(N1, N2, N3):
     return 2 * N1 * N2 * N3 - N1 * N3
 
 
+# Only considering the multiplications
+def matrixFLOPs_mul(N1, N2, N3):
+    return N1 * N2 * N3
+
+
 def conv_dims(dims, kernels, strides, paddings):
     """
     Computes the resulting output dimensions when performing a convolution with the given kernel, stride and padding.
@@ -518,6 +523,10 @@ def conv_dims(dims, kernels, strides, paddings):
     for i in range(dimensions):
         new_dims[i] = int((dims[i] - kernels[i] + 2 * paddings[i]) / strides[i] + 1)
     return new_dims
+
+
+def conv_FLOPs_mul(kernel_shape, output_shape):
+    return tc.prod(output_shape.long()) * tc.prod(kernel_shape.long())
 
 
 # Output shape is excluding out_channels which comes from the kernel.
@@ -566,6 +575,39 @@ def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=
                 FLOPs[-1] += tc.prod(output_shape.long())
             else:
                 FLOPs[-1] += kernel_shape[0]
+    return tc.tensor(FLOPs)
+
+
+def numFLOPsPerPush_mul(net, input_shape, paddings=None, pooling=None, pool_kernels=None):
+    """
+    Returns the number of floating point operations needed to make one forward push of each of the layers,
+    in a given network. Padding is a list of the layer number that has padding in it (assumed full padding), pooling is
+    a list of the layers that have pooling just after them. Pool_kernels are the corresponding pooling kernels for each
+    layer that have pooling in them
+    """
+    FLOPs = []
+    layer = 0
+    paddings = [] if paddings is None else paddings
+    pooling = [] if pooling is None else pooling
+    wasConv = False
+    output_shape = input_shape
+    for weights in list(net.parameters()):
+        kernel_shape = tc.tensor(weights.shape)
+        if len(kernel_shape) == 2:
+            layer += 1
+            FLOPs.append(matrixFLOPs_mul(kernel_shape[0], kernel_shape[1], 1))
+            wasConv = False
+        elif len(kernel_shape) > 2:
+            wasConv = True
+            layer += 1
+            this_padding = kernel_shape[2:] // 2 if layer in paddings else (0, 0, 0)
+            output_shape = conv_dims(input_shape, kernel_shape[2:], strides=(1, 1, 1), paddings=this_padding)
+            FLOPs.append(conv_FLOPs_mul(kernel_shape, output_shape))
+            if layer in pooling:
+                this_kernel = pool_kernels.pop(0)
+                input_shape = conv_dims(output_shape, this_kernel, strides=this_kernel, paddings=(0, 0, 0))
+            else:
+                input_shape = output_shape
     return tc.tensor(FLOPs)
 
 

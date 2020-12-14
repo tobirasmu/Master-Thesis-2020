@@ -1,5 +1,5 @@
 # True if using the
-HPC = True
+HPC = False
 
 import os
 
@@ -19,7 +19,7 @@ import tensorly as tl
 from tensorly.decomposition import partial_tucker
 from video_functions import showFrame, loadTHETIS, conv_to_tucker1_3d, conv_to_tucker2_3d, conv_to_tucker1, \
     conv_to_tucker2, lin_to_tucker1, lin_to_tucker2, numParams, get_variable, train_epoch, eval_epoch, plotAccs, \
-    numFLOPsPerPush
+    numFLOPsPerPush, numFLOPsPerPush_mul
 import torch.optim as optim
 from sklearn.model_selection import KFold
 from copy import deepcopy
@@ -284,7 +284,7 @@ vgg16_dec.features[21] = conv_to_tucker2(vgg16.features[21])
 vgg16_dec.features[24] = conv_to_tucker2(vgg16.features[24])
 vgg16_dec.features[26] = conv_to_tucker2(vgg16.features[26])
 vgg16_dec.features[28] = conv_to_tucker2(vgg16.features[28])
-#vgg16_dec.classifier[0] = lin_to_tucker2(vgg16.classifier[0])   # Takes LONG to decompose
+vgg16_dec.classifier[0] = lin_to_tucker2(vgg16.classifier[0], ranks=[50, 10])   # Takes LONG to decompose
 vgg16_dec.classifier[3] = lin_to_tucker1(vgg16.classifier[3])
 vgg16_dec.classifier[6] = lin_to_tucker1(vgg16.classifier[6])
 
@@ -300,11 +300,11 @@ print("Number of parameters:\n{: <30s}{: >12d}\n{: <30s}{: >12d}\n{: <30s}{: >12
                                                                                            numParams(vgg16_dec), "Ratio:",
                                                                                            numParams(vgg16_dec) / numParams(vgg16)))
 # %% Calculating the theoretical and actual speed-ups
-FLOPs_vgg16 = numFLOPsPerPush(vgg16, (224, 224), paddings=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-                              pooling=[2, 4, 7, 10, 13], pool_kernels=[(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)])
+FLOPs_vgg16 = numFLOPsPerPush_mul(vgg16, (224, 224), paddings=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+                                  pooling=[2, 4, 7, 10, 13], pool_kernels=[(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)])
+FLOPs_vgg16_dcmp = numFLOPsPerPush_mul(vgg16_dec, (224, 224), paddings=[1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37],
+                                       pooling=[5, 11, 20, 29, 38], pool_kernels=[(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)])
 # Distribution of time used:
-FLOPs_vgg16_dcmp = numFLOPsPerPush(vgg16_dec, (224, 224), paddings=[1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37],
-                                   pooling=[5, 11, 20, 29, 38], pool_kernels=[(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)])
 
 # Overall theoretical speed-up
 print("Overall ratio is {:.4f} hence the speed-up should be of around {:.2f} times".format(
