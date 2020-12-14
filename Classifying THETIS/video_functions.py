@@ -501,22 +501,25 @@ def numParams(net):
 
 
 # Two matrices of size [N1 x N2] and [N2 x N3] respectively excluding N1 x N3 biases
-def matrixFLOPs(N1, N2, N3):
+def linearFLOPs(out_features, in_features):
     """
-    Returns the number of FLOPs needed to perform a matrix-matrix product with shape (N1 x N2) and (N2 x N3).
+    Returns the number of FLOPs needed to perform forward push through a linear layer with the given in- and output
+    features.
+    Based on the paper "Pruning CNNs for resource efficiency" by Molchanov P, Tyree S, Karras T, et al.
     """
-    return 2 * N1 * N2 * N3 - N1 * N3
-
-
-# Only considering the multiplications
-def matrixFLOPs_mul(N1, N2, N3):
-    return N1 * N2 * N3
+    return (2 * in_features - 1) * out_features
 
 
 def conv_dims(dims, kernels, strides, paddings):
     """
     Computes the resulting output dimensions when performing a convolution with the given kernel, stride and padding.
-    dims is the input dimension
+    INPUT:
+            dims - the input dimensions
+            kernels - kernel width for each dimension
+            strides - strides for each dimension
+            paddings - for each dimension
+    OUTPUT:
+            list of resulting dimensions
     """
     dimensions = len(dims)
     new_dims = tc.empty(dimensions)
@@ -525,18 +528,17 @@ def conv_dims(dims, kernels, strides, paddings):
     return new_dims
 
 
-def conv_FLOPs_mul(kernel_shape, output_shape):
-    return tc.prod(output_shape.long()) * tc.prod(kernel_shape.long())
-
-
-# Output shape is excluding out_channels which comes from the kernel.
-def convFLOPs(kernel_shape, output_shape):
+def convFLOPs(kernel_shape, input_shape):
     """
-    The number of FLOPs needed to perform a convolution. For each output value (f' x h' x w' x t) the number of
-    multiplications will correspond to the size of the kernel (df x dh x dw x s) and the number of additions will be
-    the same minus 1.
+    The FLOPs needed to perform a convolution.
+    INPUT:
+            kernel_shape = (out_channels, in_channels, (d_f), d_h, d_w)
+            input_shape = ((f), h, w)
+    Based on the paper "Pruning CNNs for resource efficiency" by Molchanov P, Tyree S, Karras T, et al.
     """
-    return tc.prod(output_shape.long()) * (2 * tc.prod(kernel_shape.long()) - 1)
+    C_out, C_in = kernel_shape[0:2]
+    filter_shape = kernel_shape[2:]
+    return 2 * tc.prod(input_shape.long()) * (C_in * tc.prod(filter_shape.long()) + 1) * C_out
 
 
 def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=None):
@@ -556,7 +558,7 @@ def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=
         kernel_shape = tc.tensor(weights.shape)
         if len(kernel_shape) == 2:
             layer += 1
-            FLOPs.append(matrixFLOPs(kernel_shape[0], kernel_shape[1], 1))
+            FLOPs.append(linearFLOPs(kernel_shape[0], kernel_shape[1]))
             wasConv = False
         elif len(kernel_shape) > 2:
             wasConv = True

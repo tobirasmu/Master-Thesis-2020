@@ -300,7 +300,7 @@ print("Number of parameters:\n{: <30s}{: >12d}\n{: <30s}{: >12d}\n{: <30s}{: >12
                                                                                            numParams(vgg16_dec), "Ratio:",
                                                                                            numParams(vgg16_dec) / numParams(vgg16)))
 # %% Calculating the theoretical and actual speed-ups
-FLOPs_vgg16 = numFLOPsPerPush_mul(vgg16, (224, 224), paddings=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+FLOPs_vgg16 = numFLOPsPerPush(vgg16, (224, 224), paddings=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                                   pooling=[2, 4, 7, 10, 13], pool_kernels=[(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)])
 FLOPs_vgg16_dcmp = numFLOPsPerPush_mul(vgg16_dec, (224, 224), paddings=[1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37],
                                        pooling=[5, 11, 20, 29, 38], pool_kernels=[(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)])
