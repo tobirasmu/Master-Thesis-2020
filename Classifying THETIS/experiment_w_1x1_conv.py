@@ -1,5 +1,4 @@
 import timeit
-code = """
 import os
 path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
 os.chdir(path)
@@ -153,8 +152,8 @@ net3.l1.bias.data = net2.l1.bias.data
 
 # %%
 from time import process_time
+
 testX = Variable(tc.from_numpy(data.x_train[0:1000]))
-"""
 # %%
 t1 = timeit.timeit('net2(testX)', setup=code, number=10)
 t2 = timeit.repeat('net3(testX)', setup=code, number=10)
@@ -166,10 +165,4 @@ t = process_time()
 net3(testX)
 time2 = process_time() - t
 print(time1, time2, "Ratio: ", time2 / time1)
-
-def numParams(net):
-    """
-    Returns the number of parameters in the entire network.
-    """
-    return sum(np.prod(p.size()) for p in net.parameters())
 

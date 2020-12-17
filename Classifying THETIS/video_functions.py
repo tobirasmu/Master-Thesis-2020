@@ -1,166 +1,17 @@
 import numpy as np
 import torch as tc
+import timeit
 import torch.nn as nn
-from torch.nn.functional import interpolate
 from torch.nn import Linear, Conv3d, MaxPool3d, Conv2d
 from torch.autograd import Variable
 from sklearn.metrics import accuracy_score
 import tensorly as tl
+tl.set_backend("pytorch")
 from tensorly.decomposition import partial_tucker
 from VBMF import EVBMF
 import matplotlib.pyplot as plt
 import cv2
-import csv
 import os
-
-
-# %% Function for loading a single video
-def loadVideo(filename, middle=None, nFrames=None, b_w=True, resolution=1., normalize=True):
-    """
-    Loads a video using the full path and returns a 4D tensor (channels, frames, height, width).
-    INPUT:
-        filename - the full path of the video
-        middle - the time at the point of the middle of the shot in the video
-        length - the desired length to take out in seconds. Half this time will be included on each side of the middle
-        b_w    - true if a black/white video is wanted (only one channel)
-    Output:
-        A tensor of dimension (channels, frames, height, width) where the number of frames = length * 18 + 1
-    """
-    cap = cv2.VideoCapture(filename)
-    frameRate = int(cap.get(cv2.CAP_PROP_FPS))
-    if middle is None:
-        numFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        firstFrame = 0
-        lastFrame = numFrames
-    else:
-        numFrames = nFrames
-        firstFrame = int(middle * frameRate) - int((numFrames - 1) / 2)
-        lastFrame = firstFrame + numFrames - 1
-    ch = 1 if b_w else 3
-    height, width = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frames = tc.empty((ch, numFrames, height, width))
-    framesLoaded = 0
-    framesRead = 0
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if ret is False or framesRead is lastFrame:
-            break
-        framesRead += 1
-        if framesRead >= firstFrame:
-            if b_w:
-                frame = np.expand_dims(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), 0)
-                frame = frame / 255 if normalize else frame
-            else:
-                frame = np.moveaxis(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), -1, 0)
-                frame = frame / 255 if normalize else frame
-            frames[:, framesLoaded, :, :] = tc.tensor(frame)
-            framesLoaded += 1
-    cap.release()
-    if resolution != 1:
-        factor = int(1 // resolution)
-        frames = interpolate(frames, size=(height // factor, width // factor))
-    return frames
-
-
-# %% Function for loading an entire directory
-def loadShotType(shot_type, directory, input_file=None, length=None, ignore_inds=None, resolution=1., normalize=True):
-    """
-    Loads all the videos of a directory and makes them into a big tensor. If the inputfile is given, the output will be
-    a big tensor of shape (numVideos, channels, numFrames, height, width), otherwise the output will be a list of 4D
-    tensors with different number of Frames.
-    Inputfile contains the middle of the shot (time), dontLoadsInds are the videos that will not be loaded, due to
-    potential problems. The resolution is for getting a lower resolution if needed (< 1).
-    Shot types :
-     - 0  Forehand flat
-     - 1  Backhand
-    Output:
-        Tensor of dimension (numVideos, channels, numFrames, height, width) where the 3 first channels correspond to the
-        RGB video, while the last channel is the black/white depth video.
-    """
-    shot_types = {
-        0: "forehand_flat/",
-        1: "backhand/"
-    }
-    directory_rgb = directory + "VIDEO_RGB/" + shot_types.get(shot_type)
-    directory_dep = directory + "VIDEO_Depth/" + shot_types.get(shot_type)
-    filenames_rgb = sorted(os.listdir(directory_rgb))
-    filenames_dep = sorted(os.listdir(directory_dep))
-
-    if input_file is None:
-        if ignore_inds is not None:
-            if len(ignore_inds) > 1:
-                ignore_inds = sorted(ignore_inds, reverse=True)
-            for ind in ignore_inds:
-                filenames_rgb.pop(ind)
-                filenames_dep.pop(ind)
-        all_videos = []
-        for i in range(len(filenames_rgb)):
-            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], b_w=False, resolution=resolution, normalize=normalize)
-            thisDep = loadVideo(directory_dep + filenames_dep[i], b_w=True, resolution=resolution, normalize=normalize)
-            all_videos.append(tc.cat((thisRGB, thisDep), 0))
-        return all_videos
-    else:
-        rFile = open(input_file, "r")
-        reader = csv.reader(rFile, delimiter=";")
-        files = list(reader)
-        if ignore_inds is not None:
-            if len(ignore_inds) > 1:
-                ignore_inds = sorted(ignore_inds, reverse=True)
-            for ind in ignore_inds:
-                files.pop(ind)
-                filenames_rgb.pop(ind)
-                filenames_dep.pop(ind)
-        numVideos = len(filenames_rgb)
-        nFrames = int(18 * length + 1)
-        thisRGB = loadVideo(directory_rgb + filenames_rgb[0], float(files[0][1]), nFrames=nFrames, b_w=False,
-                            resolution=resolution, normalize=normalize)
-        thisDep = loadVideo(directory_dep + filenames_dep[0], float(files[0][1]), nFrames=nFrames, b_w=True,
-                            resolution=resolution, normalize=normalize)
-        thisVideo = tc.cat((thisRGB, thisDep), 0)
-        all_videos = tc.empty((numVideos, *thisVideo.shape))
-        all_videos[0] = thisVideo
-        for i in range(1, numVideos):
-            middle = float(files[i][1])
-            thisRGB = loadVideo(directory_rgb + filenames_rgb[i], middle=middle, nFrames=nFrames, b_w=False,
-                                resolution=resolution)
-            thisDep = loadVideo(directory_dep + filenames_dep[i], middle=middle, nFrames=nFrames, b_w=True,
-                                resolution=resolution)
-            all_videos[i] = tc.cat((thisRGB, thisDep), 0)
-        return all_videos
-
-
-# %% Loading the data and saving as a tensor
-def loadTHETIS(shotTypes, input_files, ignore_inds, directory, out_directory, length=1.5, resolution=0.25, seed=43):
-    tc.manual_seed(seed)
-    X = loadShotType(shotTypes[0], directory, input_file=input_files[0], length=length, resolution=resolution,
-                     ignore_inds=ignore_inds[0])
-    Y = tc.zeros(X.shape[0])
-    for i in range(1, len(shotTypes)):
-        this = loadShotType(shotTypes[i], directory, input_file=input_files[i], length=length, resolution=resolution,
-                            ignore_inds=ignore_inds[i])
-        X = tc.cat((X, this), dim=0)
-        Y = tc.cat((Y, tc.ones(this.shape[0]) * i))
-    permutation = tc.randperm(Y.shape[0])
-    X = X[permutation]
-    Y = Y[permutation]
-    tc.save((X, Y), out_directory)
-    return X, Y
-
-
-# %% Writes all names of directory to file
-def writeNames2file(directory, out_directory=None):
-    """
-    Write all the file names of a directory to a file in the out_directory.
-    """
-    if out_directory is None:
-        out_directory = directory
-    out_name = out_directory + str.split(directory, '/')[-2] + '_filenames.csv'
-    file = open(out_name, 'w')
-    writer = csv.writer(file)
-    files = sorted(os.listdir(directory))
-    for filename in files:
-        writer.writerow([filename])
-    file.close()
 
 
 # %% Writes a tensor to a video
@@ -493,6 +344,17 @@ def lin_to_tucker1(layer, rank=None, in_channels=True):
     return nn.Sequential(*new_layers)
 
 
+def estimate_ranks(weight_tensor, dimensions):
+    """
+    Estimates the sufficient ranks for a given tensor
+    """
+    ranks = []
+    for dim in dimensions:
+        _, diag, _, _ = EVBMF(tl.unfold(weight_tensor, dim))
+        ranks.append(diag.shape[dim])
+    return ranks
+
+
 def numParams(net):
     """
     Returns the number of parameters in the entire network.
@@ -580,45 +442,59 @@ def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=
     return tc.tensor(FLOPs)
 
 
-def numFLOPsPerPush_mul(net, input_shape, paddings=None, pooling=None, pool_kernels=None):
+# %% Timing a single layer of different types
+def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, number=10, num_dim=3):
     """
-    Returns the number of floating point operations needed to make one forward push of each of the layers,
-    in a given network. Padding is a list of the layer number that has padding in it (assumed full padding), pooling is
-    a list of the layers that have pooling just after them. Pool_kernels are the corresponding pooling kernels for each
-    layer that have pooling in them
+    Timing a convolutional layer with the given structure.
+    INPUT:
+            num_obs    : how many observations are to be pushed through
+            input_size : the size of the video (frames, height, width)
+            in_ch      : input channels
+            out_ch     : output channels
+            kernel     : the given kernel
+            padding    : the given padding
+            bias       : if bias is needed
+            number     : how many times it should be timed
+            num_dim    : number of dimensions (3 for video, 2 for picture)
+    OUTPUT:
+            the time in seconds
     """
-    FLOPs = []
-    layer = 0
-    paddings = [] if paddings is None else paddings
-    pooling = [] if pooling is None else pooling
-    wasConv = False
-    output_shape = input_shape
-    for weights in list(net.parameters()):
-        kernel_shape = tc.tensor(weights.shape)
-        if len(kernel_shape) == 2:
-            layer += 1
-            FLOPs.append(matrixFLOPs_mul(kernel_shape[0], kernel_shape[1], 1))
-            wasConv = False
-        elif len(kernel_shape) > 2:
-            wasConv = True
-            layer += 1
-            this_padding = kernel_shape[2:] // 2 if layer in paddings else (0, 0, 0)
-            output_shape = conv_dims(input_shape, kernel_shape[2:], strides=(1, 1, 1), paddings=this_padding)
-            FLOPs.append(conv_FLOPs_mul(kernel_shape, output_shape))
-            if layer in pooling:
-                this_kernel = pool_kernels.pop(0)
-                input_shape = conv_dims(output_shape, this_kernel, strides=this_kernel, paddings=(0, 0, 0))
-            else:
-                input_shape = output_shape
-    return tc.tensor(FLOPs)
+    input_shape = (num_obs, in_ch, *input_size)
+    code = """
+from layer_timing_functions import conv_layer_timing
+from torch.autograd import Variable
+from video_functions import get_variable
+import torch as tc
+net = conv_layer_timing("""
+    code = code + str(in_ch) + "," + str(out_ch) + "," + str(kernel) + ", stride=(1, 1, 1), padding=" + str(padding) + \
+           ", bias=" + str(bias) + ", dimensions=" + str(num_dim) + """) 
+if tc.cuda.is_available():
+    net = net.cuda()
+x = get_variable(Variable(tc.rand(""" + str(input_shape) + """)))
+"""
+    return timeit.timeit("net(x)", setup=code, number=number) / number
 
 
-def estimate_ranks(weight_tensor, dimensions):
+def time_lin(num_obs, in_neurons, out_neurons, bias=True, number=10):
     """
-    Estimates the sufficient ranks for a given tensor
+    Timing the linear forward push with the given structure:
+    INPUT:
+            num_obs     : how many observations to be pushed forward
+            in_neurons  : how many input neurons in the layer
+            out_neurons : how many output neurons
+            bias        : if bias is also timed
+            number      : how many times it should be timed
     """
-    ranks = []
-    for dim in dimensions:
-        _, diag, _, _ = EVBMF(tl.unfold(weight_tensor, dim))
-        ranks.append(diag.shape[dim])
-    return ranks
+    input_shape = (num_obs, in_neurons)
+    code = """
+from layer_timing_functions import lin_layer_timing
+from torch.autograd import Variable
+from video_functions import get_variable
+import torch as tc
+net = lin_layer_timing("""
+    code = code + str(in_neurons) + "," + str(out_neurons) + ", " + str(bias) + """)
+if tc.cuda.is_available():
+    net = net.cuda()
+x = get_variable(Variable(tc.rand(""" + str(input_shape) + """)))
+"""
+    return timeit.timeit("net(x)", setup=code, number=number) / number
