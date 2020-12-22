@@ -8,6 +8,7 @@
 \usepackage{extdash}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\newcommand{\algorithmautorefname}{Algorithm}
 
 \usepackage[pdftex]{graphicx} % Required for including pictures
 \usepackage[english]{babel} % using english
@@ -94,14 +95,14 @@ pdfauthor = {Tobias Engelhardt Rasmussen}
 }
 
 \fancypagestyle{abbreviations}{
-  \fancyhead[L]{\huge \textbf{List of Abbreviations}}
-  \fancyhead[R]{}
+  \fancyhead[L]{}
+  \fancyhead[R]{\huge \textbf{List of Abbreviations}}
   \cfoot{\thepage}
 }
 
 \fancypagestyle{symbols}{
- \fancyhead[L]{}
- \fancyhead[R]{\huge \textbf{Nomenclature}}
+ \fancyhead[L]{\huge \textbf{Nomenclature}}
+ \fancyhead[R]{}
  \cfoot{\thepage}}
 
 \fancypagestyle{contents}{

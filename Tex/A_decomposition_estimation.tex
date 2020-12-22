@@ -28,7 +28,7 @@ The loading matrices can be initialized either by guessing randomly or by Higher
 \end{align}
 
 \subsection{Block-Term Decomposition (BTD)}
-Since the BTD is simply a sum of Tucker decompositions, the algorithm for estimating it is a generalization of HOOI which is used for Tucker. Wang et al. proposes this algorithm in \cite{Wang2016} and claims it superior to other methods. The algorithm, which they call Principle Component Iteration (PCI), is breaking the input tensor into a number of principle components, which are trained iteratively by calculating the residual tensor using the other components until convergence. The algorithm is given in Algorithm \ref{alg:PCI}.
+Since the BTD is simply a sum of Tucker decompositions, the algorithm for estimating it is a generalization of HOOI which is used for Tucker. Wang et al. proposes this algorithm in \cite{Wang2016} and claims it superior to other methods. The algorithm, which they call Principle Component Iteration (PCI), is breaking the input tensor into a number of principle components, which are trained iteratively by calculating the residual tensor using the other components until convergence. The algorithm is given in \autoref{alg:PCI}.
 \begin{algorithm} \caption{Principle Component Iteration} \label{alg:PCI}
 \begin{algorithmic}[1]
 \Procedure{PCI}{$\tensor{X}, R$}
@@ -68,7 +68,7 @@ From these the objective, which is minimizing the error $\| \tensor{X} - \hat{\t
 until convergence\cite[28]{Kolda2007}. The matrices $\bs{A}, \bs{B}$ and $\bs{C}$ will all have $R$ columns which correspond to the vector loadings for each rank. Like for Tucker Decomposition these can be initialized either randomly or by HOSVD.
 
 \subsection{Tensor-Train (TT) decomposition}
-Also goes by the name of Matrix-Product-State decomposition, and was developed by Oseledets in \cite{Oseledets2011}. In the same work he describes what he calls the TT-format of a tensor, how to estimate it and how to do calculations in the TT-format. The non-recursive algorithm developed by Oseledets is given in Algorithm \ref{alg:ttsvd}. In addition to the $d$-dimensional tensor, the algorithm is given a prescribed accuracy $\epsilon$ and ensures that the approximated tensor $\hat{\tensor{X}}$ satisfies:
+Also goes by the name of Matrix-Product-State decomposition, and was developed by Oseledets in \cite{Oseledets2011}. In the same work he describes what he calls the TT-format of a tensor, how to estimate it and how to do calculations in the TT-format. The non-recursive algorithm developed by Oseledets is given in \autoref{alg:ttsvd}. In addition to the $d$-dimensional tensor, the algorithm is given a prescribed accuracy $\epsilon$ and ensures that the approximated tensor $\hat{\tensor{X}}$ satisfies:
 \begin{equation}
     \| \tensor{X}-\hat{\tensor{X}} \|_F \leq \epsilon \| \tensor{X} \|_F
 \end{equation}
