@@ -1,7 +1,10 @@
+# The THETIS Data Set
+This project learns the [THETIS data set](http://thetis.image.ece.ntua.gr), in which the goal is to classify different types of tennis shots. It holds functions for loading and pre-processing the data, and for learning and decomposing the learned networks.
+
 ## Loading the Data
 
 #### load_THETIS.py
-Imports the different videos given a set of hyper-parameters, stacks the videos in a big tensor using appropriate shaping and saves the tensor to a file that can later be accessed more efficiently. Loading the data requires a file for each shot type manually annotated and pre-made. The function /writeNames2file/ writes all the file names of a directory to a file in order to carry out the manual annotation.
+Imports the different videos given a set of hyper-parameters, stacks the videos in a big tensor using appropriate shaping and saves the tensor to a file that can later be accessed more efficiently. Loading the data requires a file for each shot type manually annotated and pre-made. The function **writeNames2file** writes all the file names of a directory to a file in order to carry out the manual annotation.
 
 
 ## General Functions
