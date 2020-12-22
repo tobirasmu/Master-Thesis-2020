@@ -11,7 +11,7 @@
 \begin{document}
 
 % Block commenting starting here !! (ends with \fi)
-\iffalse
+%\iffalse
 
 \newgeometry{top = 2in}
 
@@ -35,7 +35,7 @@
 \clearpage
 
 % PREFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\afterpage{\blankpage}
+%\afterpage{\blankpage}
 \thispagestyle{preface}
 \input{Tex/000_Preface}
 \clearpage
@@ -60,7 +60,7 @@
 \listoftables
 \clearpage
 
-\fi %finish commenting
+%\fi %finish commenting
 
 % ABREVIATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \thispagestyle{abbreviations}
@@ -83,14 +83,14 @@
 
 
 % Sections %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{Tex/1_Introduction}
-%\clearpage
+\input{Tex/1_Introduction}
+\clearpage
 
-%\input{Tex/2_Theory}
-%\clearpage
+\input{Tex/2_Theory}
+\clearpage
 
-%\input{Tex/3_Previous_work}
-%\clearpage
+\input{Tex/3_Previous_work}
+\clearpage
 
 \input{Tex/4_Data}
 \clearpage
@@ -98,8 +98,8 @@
 \input{Tex/5_Methods}
 \clearpage
 
-%\input{Tex/6_Results}
-%\clearpage
+\input{Tex/6_Results}
+\clearpage
 
 
 % References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -108,7 +108,7 @@
 \clearpage
 
 % Appendix %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\iffalse % Block commenting commencing here
+%\iffalse % Block commenting commencing here
 
 \appendix
 \pagenumbering{arabic}% resets `page` counter to 1
@@ -116,9 +116,15 @@
 \input{Tex/A_decomposition_estimation}
 \clearpage
 
+\pagenumbering{arabic}
+\renewcommand{\thepage}{B\arabic{page}}
+\input{Tex/B_tucker1_decomposition_convolution}
+\clearpage
+
 %\pagenumbering{arabic}
 %\renewcommand{\thepage}{B\arabic{page}}
 %\input{}
 %\clearpage
-\fi
+
+%\fi
 \end{document}

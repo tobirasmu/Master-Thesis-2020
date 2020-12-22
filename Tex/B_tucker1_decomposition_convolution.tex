@@ -1,0 +1,53 @@
+\section{Derivations of Tucker-1 Decomposition of the Convolutional Kernel} \label{tex:tucker1_conv_derivations}
+The convolution of an input tensor $\tensor{X}$ of size $F\times H \times W \times S$ into an output tensor $\tensor{Y}$ of size $F'\times H' \times W' \times T$ is given by:
+\begin{equation}
+    \tensor{Y}(f', h', w', t) = \sum_{i=1}^{D_F} \sum_{j=1}^{D_H} \sum_{l=1}^{D_W} \sum_{s=1}^{S} \ \tensor{K}(i, j, l, s, t) \ \tensor{X}(f_i, h_j, w_l, s)
+    \label{eq:3d_convolution_appendix}
+\end{equation}
+Where:
+\begin{equation}
+    f_i = \left(f' - 1\right) \Delta_F + i - P_F \qquad h_j =  \left(h' - 1\right) \Delta_H + j - P_H \qquad w_l =  \left(w' - 1\right) \Delta_W + l - P_W
+\end{equation}
+Where the $\Delta$s are the strides in each of the dimensions, the $P$s are the corresponding padding, and ($f'$, $h'$, $w'$, $t$) is the position in the output tensor $\tensor{Y}$. $\tensor{K}$ is the 5-dimensional convolutional kernel, i.e. the stack of 4-dimensional filters, and the $D$s are the filter sizes in each of the spatial and temporal dimensions. 
+
+\subsection{Decomposing the Input Channel Dimension}
+Now the Tucker-1 decomposition of $\tensor{K}$ with respect to the input channel dimension is given by:
+\begin{equation}
+    \mathcal{K}(i, j, l, s, t)=\sum_{r_{4}=1}^{R_{4}} \mathcal{C}\left(i, j, l, r_{4}, t\right) \boldsymbol{U}^{(4)}\left(s, r_{4}\right)
+\end{equation}
+Inserting this into \eqref{eq:3d_convolution_appendix} and performing rearrangements, yields:
+\begin{equation}
+    \tensor{Y}(f', h', w', t) = \sum_{i=1}^{D_F} \sum_{j=1}^{D_H} \sum_{l=1}^{D_W}  \sum_{r_{4}=1}^{R_{4}} \mathcal{C}\left(i, j, l, r_{4}, t\right) \underbrace{\sum_{s=1}^{S} \boldsymbol{U}^{(4)}\left(s, r_{4}\right) \ \tensor{X}(f_i, h_j, w_l, s)}_{\tensor{Q}}
+\end{equation}
+Summing out $S$ yields an intermediate tensor $\tensor{Q}$ of size $F\times H\times W \times R_4$. The remaining is simply a 3D convolution on $R_4$ input channels and $T$ output channels:
+\begin{equation}
+    \tensor{Y}(f', h', w', t) = \sum_{i=1}^{D_F} \sum_{j=1}^{D_H} \sum_{l=1}^{D_W}  \sum_{r_{4}=1}^{R_{4}} \mathcal{C}\left(i, j, l, r_{4}, t\right) \ \tensor{Q} (f_i, h_j, w_l, r_4)
+    \label{eq:3D_conv1_appendix}
+\end{equation}
+While $\tensor{Q}$ is a $1\times 1\times 1$ convolution on $S$ input and $R_4$ outout channels:
+\begin{equation}
+    \tensor{Q}(f, h, w, r_4) = \sum_{s=1}^{S} \boldsymbol{U}^{(4)}\left(s, r_{4}\right) \mathcal{X}\left(f, h, w, s\right)
+    \label{eq:Q_appendix}
+\end{equation}
+Which means that the convolution \eqref{eq:3d_convolution_appendix} can be expressed as a $1\times 1\times 1$ convolution \eqref{eq:Q_appendix} followed by a 3D convolution \eqref{eq:3D_conv1_appendix}. 
+
+\subsection{Decomposing the Output Channel Dimension}
+Now the Tucker-1 decomposition of $\tensor{K}$ with respect to the output dimension is given by:
+\begin{equation}
+    \mathcal{K}(i, j, l, s, t)= \sum_{r_{5}=1}^{R_{5}} \mathcal{C}\left(i, j, l, s, r_{5}\right) \boldsymbol{U}^{(5)}\left(t, r_{5}\right)
+\end{equation}
+Inserting this into \eqref{eq:3d_convolution_appendix} and performing rearrangements, yields:
+\begin{equation}
+    \tensor{Y}(f', h', w', t) = \sum_{r_{5}=1}^{R_{5}} \boldsymbol{U}^{(5)}\left(t, r_{5}\right) \underbrace{\sum_{i=1}^{D_F} \sum_{j=1}^{D_H} \sum_{l=1}^{D_W} \sum_{s=1}^{S} \mathcal{C}\left(i, j, l, s, r_{5}\right) \ \tensor{X}(f_i, h_j, w_l, s)}_{\tensor{Q}'}
+\end{equation}
+Now summing out everything except $r_5$ yields an intermediate tensor $\tensor{Q}'$ of size $F'\times H'\times W' \times R_5$. The remaining corresponds to a $1\times 1\times 1$ convolution on $R_5$ input and $T$ output dimensions:
+\begin{equation}
+    \tensor{Y}(f', h', w', t) = \sum_{r_{5}=1}^{R_{5}} \boldsymbol{U}^{(5)}\left(t, r_{5}\right) \tensor{Q}'(f', h', w', r_5) 
+    \label{eq:Q'_appendix}
+\end{equation}
+While the intermediate tensor $\tensor{Q}'$ corresponds to a 3D convolution on $S$ input and $R_5$ output channels:
+\begin{equation}
+    \tensor{Q}'(f, h, w, r_5) = \sum_{i=1}^{D_F} \sum_{j=1}^{D_H} \sum_{l=1}^{D_W} \sum_{s=1}^{S} \mathcal{C}\left(i, j, l, s, r_{5}\right) \ \tensor{X}(f_i, h_j, w_l, s)
+    \label{eq:3d_conv2_appendix}
+\end{equation}
+Which means that the convolution \eqref{eq:3d_convolution_appendix} can be expressed by a 3D convolution \eqref{eq:3d_conv2_appendix} and a $1\times 1\times 1$ convolution \eqref{eq:Q'_appendix}. 
