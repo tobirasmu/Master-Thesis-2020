@@ -1,4 +1,4 @@
-#####   Loading the data   ##############################################
+# Loading the Data
 
 load_THETIS.py
 Imports the different videos given a set of hyper-parameters, stacks the videos in a big tensor using appropriate shaping and saves the tensor to a file that can later be accessed more efficiently. Loading the data requires a file for each shot type manually annotated and pre-made. The function "writeNames2file" writes all the file names of a directory to a file in order to carry out the manual annotation.
