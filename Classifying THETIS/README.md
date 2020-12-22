@@ -34,7 +34,7 @@ Decomposes the original network and fine-tunes the compressed network
 
 ## Timing the networks
 
-### layer_timing_functions.py
+#### layer_timing_functions.py
 Holds the classes for single layer architectures to be used for timing a single layer
 
 
