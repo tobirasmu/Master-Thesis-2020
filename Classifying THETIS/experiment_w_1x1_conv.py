@@ -9,7 +9,7 @@ tl.set_backend('pytorch')
 from tensorly.decomposition import partial_tucker
 import matplotlib.pyplot as plt
 import torch as tc
-from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
+from pic_functions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
 # Packages related to pytorch nn framework
 
 from torch.nn.parameter import Parameter

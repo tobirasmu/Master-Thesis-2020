@@ -10,7 +10,7 @@ import os
 path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
 os.chdir(path)
 
-from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany
+from pic_functions import training, loadMNIST, Data, showImage, showWrong, plotMany
 from time import time, process_time, process_time_ns
 import numpy as np
 from numpy.linalg import pinv, inv

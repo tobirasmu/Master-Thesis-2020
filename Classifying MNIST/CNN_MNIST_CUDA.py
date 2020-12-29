@@ -11,7 +11,7 @@ will be used.
 
 """
 
-from nnFunctions import loadMNIST, Data
+from pic_functions import loadMNIST, Data
 
 # Loading the data and picking out a subset
 fullData = loadMNIST()

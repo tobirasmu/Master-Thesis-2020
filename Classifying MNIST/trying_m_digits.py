@@ -10,7 +10,7 @@ In this file, it is attempted to decompose some set of digits from the MNIST dat
 import os
 path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
 os.chdir(path)
-from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
+from pic_functions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
 import numpy as np
 from numpy.linalg import pinv, inv
 import tensorly as tl

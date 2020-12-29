@@ -13,10 +13,10 @@ from sklearn.metrics import accuracy_score
 
 # For using pytorch nn framework
 import torch.nn as nn
-import torch.optim as optim
 from torch.autograd import Variable
 
 
+# %% Functions for loading the data
 def loadMNIST(p=1 / 3, normalize=True):
     """ For loading the MNIST data set and making an instance of the data-class 
         p percent of the training data being validation """
@@ -38,6 +38,43 @@ def loadMNIST(p=1 / 3, normalize=True):
                 normalize)
 
 
+class Data:
+    """
+    The data-class to hold the different data splits. The data class is initialized with all the splits of the data.
+    """
+
+    def __init__(self, x_train, y_train, x_val, y_val, x_test, y_test, normalize=True):
+        self.x_train = x_train
+        self.y_train = y_train
+        self.x_val = x_val
+        self.y_val = y_val
+        self.x_test = x_test
+        self.y_test = y_test
+        if normalize:
+            self.x_train /= 255
+            self.x_val /= 255
+            self.x_test /= 255
+
+    def subset(self, nTr, nVal, nTe):
+        """
+        If not all the traning data is needed, one can take out a subset of given sizes
+        """
+        return Data(self.x_train[:nTr], self.y_train[:nTr],
+                    self.x_val[:nVal], self.y_val[:nVal],
+                    self.x_test[:nTe], self.y_test[:nTe], normalize=False)
+
+    def size(self):
+        return self.x_train.shape[0], self.x_val.shape[0], self.x_test.shape[0]
+
+    def __repr__(self):
+        train, val, test = self.size()
+        out = "This is a data set of: \n" + str(train) + " training samples, \n"
+        out = out + str(val) + " validation samples, and: \n" + str(test)
+        out = out + " testing samples."
+        return out
+
+
+# %% Visualization
 def showImage(img, label=""):
     """ For being able to plot the handwritten digits. 
         Either one by one, or a matrix of them """
@@ -75,43 +112,22 @@ def plotMany(img_L, B=10, H=10):
     plt.show()
 
 
-class Data:
-    """ The data-class to hold the different data splits """
-
-    def __init__(self, x_train, y_train, x_val, y_val, x_test, y_test, normalize=True):
-        self.x_train = x_train
-        self.y_train = y_train
-        self.x_val = x_val
-        self.y_val = y_val
-        self.x_test = x_test
-        self.y_test = y_test
-        if normalize:
-            self.x_train /= 255
-            self.x_val /= 255
-            self.x_test /= 255
-
-    def subset(self, nTr, nVal, nTe):
-        return Data(self.x_train[:nTr], self.y_train[:nTr],
-                    self.x_val[:nVal], self.y_val[:nVal],
-                    self.x_test[:nTe], self.y_test[:nTe], normalize=False)
-
-    def size(self):
-        return self.x_train.shape[0], self.x_val.shape[0], self.x_test.shape[0]
-
-    def __repr__(self):
-        train, val, test = self.size()
-        out = "This is a data set of: \n" + str(train) + " training samples, \n"
-        out = out + str(val) + " validation samples, and: \n" + str(test)
-        out = out + " testing samples."
-        return out
-
-
-# The training loop
+# %% The training loop
 def get_slice(i, size):
     return range(i * size, (i + 1) * size)
 
 
 def training(net, data, batch_size, num_epochs, optimizer, every=1):
+    """
+    The traning loop for MNIST
+    :param net:
+    :param data:
+    :param batch_size:
+    :param num_epochs:
+    :param optimizer:
+    :param every:
+    :return:
+    """
     criterion = nn.CrossEntropyLoss()
 
     num_samples_train, num_samples_valid, num_samples_test = data.size()

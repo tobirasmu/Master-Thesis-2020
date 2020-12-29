@@ -14,7 +14,7 @@ import numpy as np
 from mnist import MNIST
 import matplotlib.pyplot as plt
 import torch as tc
-from nnFunctions import *
+from pic_functions import *
 # Packages related to pytorch nn framework
 
 import torch.nn as nn

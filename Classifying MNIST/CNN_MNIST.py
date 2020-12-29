@@ -17,7 +17,7 @@ os.chdir(path)
 import numpy as np
 import matplotlib.pyplot as plt
 import torch as tc
-from nnFunctions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
+from pic_functions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
 # Packages related to pytorch nn framework
 
 from torch.nn.parameter import Parameter
