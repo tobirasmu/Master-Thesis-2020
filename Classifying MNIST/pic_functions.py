@@ -183,10 +183,10 @@ def train_epoch(thisNet, X, y, optimizer, batch_size):
         batch_loss.backward()
         optimizer.step()
 
-        losses.append(batch_loss.data.numpy())
+        losses.append(get_data(batch_loss).numpy())
         predictions = tc.max(output, 1)[1]
         targs += list(y[slce])
-        preds += list(predictions.data.numpy())
+        preds += list(get_data(predictions).numpy())
     return np.mean(losses), accuracy_score(targs, preds)
 
 
@@ -205,7 +205,7 @@ def eval_epoch(thisNet, X, y, batch_size):
 
         predictions = tc.max(output, 1)[1]
         targs += list(y[slce])
-        preds += list(predictions.data.numpy())
+        preds += list(get_data(predictions).numpy())
     return accuracy_score(targs, preds)
 
 
