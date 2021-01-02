@@ -8,3 +8,6 @@ Is a collection of general functions to be used elsewhere:
  - Loading the data
  - Training the data
  - Visualising the data
+
+
+## Training the Networks
