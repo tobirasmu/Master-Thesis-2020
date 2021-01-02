@@ -5,7 +5,7 @@ Created on Wed Oct 14 16:41:30 2020
 
 @author: Tobias
 """
-HPC = False
+HPC = True
 import os
 
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
