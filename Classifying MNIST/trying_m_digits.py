@@ -7,35 +7,34 @@ Created on Tue Sep  8 16:38:38 2020
 
 In this file, it is attempted to decompose some set of digits from the MNIST data set.
 """
-
+HPC = False
 import os
-path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
+
+path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
+    "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
 os.chdir(path)
-from pic_functions import training, loadMNIST, Data, showImage, showWrong, plotMany, get_slice
+from pic_functions import training, loadMNIST, Data, showImage, plotMany
 import numpy as np
-from numpy.linalg import pinv, inv
+from numpy.linalg import pinv
 import tensorly as tl
 tl.set_backend('pytorch')
 import torch as tc
-from tensorly.decomposition import parafac, tucker, non_negative_parafac, non_negative_tucker, matrix_product_state, partial_tucker
-from tensorly.tenalg import kronecker, multi_mode_dot, mode_dot
+from tensorly.decomposition import partial_tucker
+from tensorly.tenalg import multi_mode_dot, mode_dot
 import matplotlib.pyplot as plt
-from time import time, process_time_ns
-
-from torch.nn.parameter import Parameter
-from torch.autograd import Variable
 import torch.nn as nn
-import torch.nn.init as init
 import torch.optim as optim
-import torch.nn.functional as Fun
-from torch.nn.functional import relu, elu, relu6, sigmoid, tanh, softmax
-from torch.nn import Linear, Conv2d, BatchNorm2d, MaxPool2d, Dropout2d, Dropout, BatchNorm1d
+from torch.nn.functional import relu, softmax
+from torch.nn import Linear, Dropout
 
 
 data = loadMNIST()
 
 # %% Making a tensor of a subset of the digits
-
+"""
+    Digits is a tuple with the specific digits that is to be considered. 3 and 4 seems to be fairly easy to distiguish, 
+    while 4 and 9 seems similar hence harder for the decomposition algorithm to distinguish. 
+"""
 digits = (3, 4)
 
 X_all = data.x_train
@@ -57,7 +56,7 @@ for i in range(1, len(digits)):
 plotMany(X_sub, 30, 20)
 
 N = len(Y_sub)
-print("There is a total of %d digits of the types:" % N, digits)
+print("There is a total of {:d} digits of the types: ".format(N), *digits)
 
 # %% Tucker decomposition
 

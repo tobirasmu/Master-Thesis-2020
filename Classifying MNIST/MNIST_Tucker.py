@@ -5,7 +5,7 @@ Created on Wed Oct 14 16:41:30 2020
 
 @author: Tobias
 """
-HPC = True
+HPC = False
 import os
 
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
@@ -18,7 +18,6 @@ import numpy as np
 import tensorly as tl
 from copy import deepcopy
 import torch as tc
-import matplotlib.pyplot as plt
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.optim as optim
@@ -124,7 +123,6 @@ def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1):
         except KeyboardInterrupt:
             print('\n KeyboardInterrupt')
             break
-    epochs = np.arange(len(train_accs))
     saveAt = "/zhome/2a/c/108156/Outputs/accuracies_MNIST.png" if HPC else "/Users/Tobias/Desktop/accuracies_MNIST.png"
     plotAccs(train_accs, valid_accs, saveName=saveAt)
 
@@ -160,7 +158,7 @@ print("\nAccuracy before: {}   Accuracy after: {}".format(acc_ori, acc_dec))
 print("\n{:-^60s}\n{:-^60s}\n{:-^60s}\n".format("", "  Fine-tuning the decomposed network  ", ""))
 train(netDec, data, lr=0.01, factor=2)
 
-acc_dec = eval_epoch(netDec, data.x_test, data.y_test)
-acc_ori = eval_epoch(net, data.x_test, data.y_test)
+acc_dec = eval_epoch(netDec, data.x_test, data.y_test, BATCH_SIZE)
+acc_ori = eval_epoch(net, data.x_test, data.y_test, BATCH_SIZE)
 print("-- Final accuracy differences --")
 print("\n Accuracy before: {}   Accuracy after: {}".format(acc_ori, acc_dec))
