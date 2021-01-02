@@ -5,15 +5,13 @@ Created on Wed Oct 14 16:41:30 2020
 
 @author: Tobias
 """
-# %% Loading the data and all the libraries
 import os
 
 path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
 os.chdir(path)
 
 from pic_functions import train_epoch, eval_epoch, loadMNIST, conv_to_tucker1, conv_to_tucker2, lin_to_tucker2, \
-    lin_to_tucker1, numParams
-from time import time, process_time, process_time_ns
+    lin_to_tucker1, numParams, get_data, get_variable
 import numpy as np
 import tensorly as tl
 from copy import deepcopy
@@ -24,7 +22,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.nn.functional import relu, softmax
 from torch.nn import Linear, Conv2d, MaxPool2d, Dropout2d, Dropout
-from VBMF import EVBMF
 
 tl.set_backend('pytorch')
 
@@ -81,23 +78,26 @@ class Net(nn.Module):
 
 
 net = Net()
+if tc.cuda.is_available():
+    print("----  Network converted to CUDA  ----\n")
+    net = net.cuda()
 print(net)
 # Trying one forward push
 x_test = np.random.normal(0, 1, (5, 1, 28, 28)).astype('float32')
-out = net(Variable(tc.from_numpy(x_test)))
-print(out)
+out = net(get_variable(Variable(tc.from_numpy(x_test))))
 
 # %% Training the network
 BATCH_SIZE = 128
 NUM_EPOCHS = 60
+LR_UPDs = 8
 
 data = fullData.subset(10000, 10000, 10000)
 
 
 def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1):
     train_accs, valid_accs, test_accs = [], [], []
-    m_inc = (0.9 - momentum) / 8
-    inc = NUM_EPOCHS // 8  # We want 8 updates to the momentum and the learning rate
+    m_inc = (0.9 - momentum) / LR_UPDs
+    inc = NUM_EPOCHS // LR_UPDs  # Making sure we make the correct number of updates to the learning rate and momentum
     epoch = 0
     while epoch < NUM_EPOCHS:
         epoch += 1
@@ -130,11 +130,14 @@ def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1):
     plt.ylabel('Accuracy')
 
 
+print("{:-^60s}\n{:-^60s}\n{:-^60s}".format("", "  Learning the full network  ", ""))
 train(net, data)
-
 
 # %% Trying to decompose the learned network
 # Making a copy
+print("\n{:-^60s}\n{:-^60s}\n{:-^60s}\n".format("", "  Decomposing the learned network  ", ""))
+if tc.cuda.is_available():
+    net = net.cpu()
 netDec = deepcopy(net)
 
 netDec.conv1 = conv_to_tucker1(netDec.conv1)
@@ -142,51 +145,23 @@ netDec.conv2 = conv_to_tucker2(netDec.conv2)
 netDec.l1 = lin_to_tucker2(netDec.l1)
 netDec.l2 = lin_to_tucker1(netDec.l2)
 
-# %% The change in number of parameters
-print("Before: {}, after: {}, which is {:.3}".format(numParams(net), numParams(netDec),
-                                                     numParams(netDec) / numParams(net)))
-# Not the biggest decomp... How about accuracy?
-t = time()
-acc2 = eval_epoch(netDec, data.x_test, data.y_test)
-print(time() - t)
-t = time()
-acc1 = eval_epoch(net, data.x_test, data.y_test)
-print(time() - t)
-print("\nAccuracy before: ", acc1)
-print("\nAccuracy after: ", acc2)
-# So the accuracy have decreased by a bit. Maybe it can be finetuned?
+if tc.cuda.is_available():
+    net = net.cuda()
+    netDec = netDec.cuda()
 
-# %% Timing just one forward pass
-x_test = Variable(tc.from_numpy(data.x_train[100]).unsqueeze(0))
-allTimeNet = 0
-allTimeDec = 0
-for i in range(1000):
-    t = process_time_ns()
-    net(x_test)
-    allTimeNet += process_time_ns() - t
-    t = process_time_ns()
-    netDec(x_test)
-    allTimeDec += process_time_ns() - t
-print(allTimeNet / 1000, " ", allTimeDec / 1000, "  ", (allTimeDec / 1000) / (allTimeNet / 1000))
+# %% The change in number of parameters
+print("The number of parameters:\nBefore: {}, after: {}, which is {:.3}".format(numParams(net), numParams(netDec),
+                                                                                numParams(netDec) / numParams(net)))
+# Not the biggest decomp... How about accuracy?
+acc_dec = eval_epoch(netDec, data.x_test, data.y_test, BATCH_SIZE)
+acc_ori = eval_epoch(net, data.x_test, data.y_test, BATCH_SIZE)
+print("\nAccuracy before: {}   Accuracy after: {}".format(acc_ori, acc_dec))
 
 # %% Fine-tuning the decomposed network
+print("\n{:-^60s}\n{:-^60s}\n{:-^60s}\n".format("", "  Fine-tuning the decomposed network  ", ""))
 train(netDec, data, lr=0.01, factor=2)
 
-# %% 
-print("Before: {}, after: {}, which is {:.3}".format(numParams(net), numParams(netDec),
-                                                     numParams(netDec) / numParams(net)))
-# Not the biggest decomp... How about accuracy?
-times1 = []
-for i in range(10):
-    t = process_time()
-    acc1 = eval_epoch(netDec, data.x_test, data.y_test)
-    times1.append(process_time() - t)
-print(np.mean(times1[1:]))
-times2 = []
-for i in range(10):
-    t = process_time()
-    acc2 = eval_epoch(net, data.x_test, data.y_test)
-    times2.append(process_time() - t)
-print(np.mean(times2[1:]))
-print("\nAccuracy before: ", acc2)
-print("\nAccuracy after: ", acc1)
+acc_dec = eval_epoch(netDec, data.x_test, data.y_test)
+acc_ori = eval_epoch(net, data.x_test, data.y_test)
+print("-- Final accuracy differences --")
+print("\n Accuracy before: {}   Accuracy after: {}".format(acc_ori, acc_dec))

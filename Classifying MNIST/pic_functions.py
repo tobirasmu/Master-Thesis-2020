@@ -117,7 +117,26 @@ def plotMany(img_L, B=10, H=10):
     plt.show()
 
 
-# %% The training loop
+# %% CUDA functions
+def get_variable(x):
+    """
+    Converts a tensor to tensor.cuda if cuda is available
+    """
+    if tc.cuda.is_available():
+        return x.cuda()
+    return x
+
+
+def get_data(x):
+    """
+    Fetch the tensor from the GPU if cuda is available, or simply converting to tensor if not
+    """
+    if tc.cuda.is_available():
+        return x.cpu().data
+    return x.data
+
+
+# %% The training functions
 def get_slice(i, size):
     return range(i * size, (i + 1) * size)
 
@@ -137,10 +156,10 @@ def train_epoch(thisNet, X, y, optimizer, batch_size):
             print("--", end='')
         # Sending the batch through the network
         slce = get_slice(i, batch_size)
-        X_batch = Variable(tc.from_numpy(X[slce]))
+        X_batch = get_variable(Variable(tc.from_numpy(X[slce])))
         output = thisNet(X_batch)
         # The targets
-        y_batch = Variable(tc.from_numpy(y[slce]).long())
+        y_batch = get_variable(Variable(tc.from_numpy(y[slce]).long()))
         # Computing the error and doing the step
         optimizer.zero_grad()
         batch_loss = criterion(output, y_batch)
@@ -164,7 +183,7 @@ def eval_epoch(thisNet, X, y, batch_size):
         if i % (num_batches // 10) == 0:
             print("--", end='')
         slce = get_slice(i, batch_size)
-        X_batch_val = Variable(tc.from_numpy(X[slce]))
+        X_batch_val = get_variable(Variable(tc.from_numpy(X[slce])))
         output = thisNet(X_batch_val)
 
         predictions = tc.max(output, 1)[1]
@@ -204,11 +223,11 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1):
         for i in range(num_batches_train):
             # Sending the batch through the network
             slce = get_slice(i, batch_size)
-            x_batch = Variable(tc.from_numpy(data.x_train[slce]))
+            x_batch = get_variable(Variable(tc.from_numpy(data.x_train[slce])))
             output = net(x_batch)
 
             # Computing gradients and loss
-            target_batch = Variable(tc.from_numpy(data.y_train[slce]).long())
+            target_batch = get_variable(Variable(tc.from_numpy(data.y_train[slce]).long()))
             batch_loss = criterion(output, target_batch)
             optimizer.zero_grad()
             batch_loss.backward()
@@ -224,7 +243,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1):
         train_preds, train_targs = [], []
         for i in range(num_batches_train):
             slce = get_slice(i, batch_size)
-            x_batch = Variable(tc.from_numpy(data.x_train[slce]))
+            x_batch = get_variable(Variable(tc.from_numpy(data.x_train[slce])))
 
             output = net(x_batch)
             preds = tc.max(output, 1)[1]
@@ -236,7 +255,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1):
         valid_preds, valid_targs = [], []
         for i in range(num_batches_valid):
             slce = get_slice(i, batch_size)
-            x_batch = Variable(tc.from_numpy(data.x_val[slce]))
+            x_batch = get_variable(Variable(tc.from_numpy(data.x_val[slce])))
 
             output = net(x_batch)
             preds = tc.max(output, 1)[1]
@@ -260,7 +279,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1):
     plt.ylabel('Accuracy')
 
     # The testing accuracy
-    test_preds = tc.max(net(Variable(tc.from_numpy(data.x_test))), 1)[1]
+    test_preds = tc.max(net(get_variable(Variable(tc.from_numpy(data.x_test)))), 1)[1]
     print("---------------|o|----------------\nTesting accuracy on %3i samples: %f" % (
         num_samples_test, accuracy_score(test_preds.numpy(), data.y_test)))
 
