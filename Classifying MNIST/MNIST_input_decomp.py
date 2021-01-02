@@ -35,7 +35,7 @@ data = loadMNIST()
     Digits is a tuple with the specific digits that is to be considered. 3 and 4 seems to be fairly easy to distinguish, 
     while 4 and 9 seems similar hence harder for the decomposition algorithm to distinguish. 
 """
-digits = (3, 4)
+digits = (9, 4)
 
 X_all = data.x_train
 Y_all = data.y_train
@@ -82,8 +82,8 @@ plotMany(X_hat, 10, 10)
 # %% Plotting a scatter-plot if there are 2 digits
 if len(digits) == 2:
     plt.figure()
-    A3s = A[tc.where(Y_sub[:nTrain] == 0)[0]]
-    A4s = A[tc.where(Y_sub[:nTrain] == 1)[0]]
+    A3s = A[tc.where(tc.from_numpy(Y_sub)[:nTrain] == 0)[0]]
+    A4s = A[tc.where(tc.from_numpy(Y_sub)[:nTrain] == 1)[0]]
     plt.scatter(A3s[:, 0], A3s[:, 1], facecolor='None', edgecolor='red', s=10)
     plt.scatter(A4s[:, 0], A4s[:, 1], facecolor='Blue', edgecolor='blue', marker="x", s=10)
     m4s = tc.mean(A4s, 0)
@@ -99,7 +99,7 @@ if len(digits) == 2:
     plt.show()
 
 for i in range(len(digits)):
-    this_mean = tc.mean(A[tc.where(Y_sub[:nTrain] == i)[0]], 0)
+    this_mean = tc.mean(A[tc.where(tc.from_numpy(Y_sub)[:nTrain] == i)[0]], 0)
     this_general = mode_dot(core, this_mean, mode=0)
     showImage(this_general)
 all_general = tc.mean(A, 0)
@@ -107,12 +107,16 @@ general = mode_dot(core, all_general, mode=0)
 showImage(general)
 
 # %% Trying just a dense neural network
-
+"""
+    The very simple ANN used in this experiment consists of just one hidden layer with a given number of hidden neurons
+    (num_l1). 
+"""
 data = Data(X_sub[:nTrain], Y_sub[:nTrain], X_sub[nTrain:nVal], Y_sub[nTrain:nVal], X_sub[nVal:], Y_sub[nVal:],
             normalize=False)
 
 num_classes = len(digits)
 _, height, width = data.x_train.shape
+# Number of hidden units
 num_l1 = 20
 
 
@@ -146,16 +150,16 @@ training(net, data, 100, 300, optimizer, every=5)
 
 # %% Trying with the loadings from A
 
-A_new = tl.unfold(multi_mode_dot(X_sub[nTrain:], [pinv(B), pinv(C)], modes=[1, 2]), mode=0) @ pinv(
-    tl.unfold(core, mode=0))
-X_new = multi_mode_dot(core, [A_new, B, C], modes=[0, 1, 2])
+A_new = tl.unfold(tc.from_numpy(X_sub)[nTrain:], mode=0) @ pinv(tl.unfold(core, mode=0))
+X_new = multi_mode_dot(core, [A_new], modes=[0, 1, 2])
 
 plotMany(X_new, 10, 10)
 
 # %%
 num_classes = len(digits)
-num_features = A2_new.shape[1]
-num_l1 = 20
+num_features = A_new.shape[1]
+
+# Uses the same number of hidden units as the other
 
 
 class Net(nn.Module):
@@ -174,7 +178,7 @@ class Net(nn.Module):
 
 net = Net()
 print(net)
-dataDecomp = Data(A2, Y_sub[:nTrain], A2_new[:(nVal - nTrain)], Y_sub[nTrain:nVal], A2_new[(nVal - nTrain):],
+dataDecomp = Data(A.numpy(), Y_sub[:nTrain], A_new[:(nVal - nTrain)].numpy(), Y_sub[nTrain:nVal], A_new[(nVal - nTrain):].numpy(),
                   Y_sub[nVal:], normalize=False)
 
 # %% Training the decomposed network
