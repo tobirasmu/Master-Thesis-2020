@@ -89,13 +89,13 @@ out = net(get_variable(Variable(tc.from_numpy(x_test))))
 
 # %% Training the network
 BATCH_SIZE = 128
-NUM_EPOCHS = 60
+NUM_EPOCHS = 100
 LR_UPDs = 8
 
 data = fullData
 
 
-def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1):
+def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1, num_epochs=NUM_EPOCHS):
     train_accs, valid_accs, test_accs = [], [], []
     m_inc = (0.9 - momentum) / LR_UPDs
     inc = NUM_EPOCHS // LR_UPDs  # Making sure we make the correct number of updates to the learning rate and momentum
@@ -156,7 +156,7 @@ print("\nAccuracy before: {}   Accuracy after: {}".format(acc_ori, acc_dec))
 
 # %% Fine-tuning the decomposed network
 print("\n{:-^60s}\n{:-^60s}\n{:-^60s}\n".format("", "  Fine-tuning the decomposed network  ", ""))
-train(netDec, data, lr=0.01, factor=2)
+train(netDec, data, lr=0.01, factor=2, num_epochs=50)
 
 acc_dec = eval_epoch(netDec, data.x_test, data.y_test, BATCH_SIZE)
 acc_ori = eval_epoch(net, data.x_test, data.y_test, BATCH_SIZE)
