@@ -117,6 +117,23 @@ def plotMany(img_L, B=10, H=10):
     plt.show()
 
 
+def plotAccs(train_accs, val_accs, title=None, saveName=None):
+    """
+    Plots the training and validation accuracies vs. the epoch. Use saveName to save it to a file.
+    """
+    epochs = np.arange(len(train_accs))
+    plt.figure()
+    plt.plot(epochs, train_accs, 'r', epochs, val_accs, 'b')
+    title = title if title is not None else "Training and Validation Accuracies vs. Epoch"
+    plt.title(title)
+    plt.legend(['Train accuracy', 'Validation accuracy'])
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    if saveName is not None:
+        plt.savefig(saveName)
+    else:
+        plt.show()
+
 # %% CUDA functions
 def get_variable(x):
     """

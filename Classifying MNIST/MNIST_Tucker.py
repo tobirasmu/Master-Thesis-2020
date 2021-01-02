@@ -5,13 +5,15 @@ Created on Wed Oct 14 16:41:30 2020
 
 @author: Tobias
 """
+HPC = True
 import os
 
-path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
+path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
+    "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
 os.chdir(path)
 
 from pic_functions import train_epoch, eval_epoch, loadMNIST, conv_to_tucker1, conv_to_tucker2, lin_to_tucker2, \
-    lin_to_tucker1, numParams, get_data, get_variable
+    lin_to_tucker1, numParams, get_data, get_variable, plotAccs
 import numpy as np
 import tensorly as tl
 from copy import deepcopy
@@ -123,11 +125,8 @@ def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1):
             print('\n KeyboardInterrupt')
             break
     epochs = np.arange(len(train_accs))
-    plt.figure()
-    plt.plot(epochs, train_accs, 'r', epochs, valid_accs, 'b')
-    plt.legend(['Train accuracy', 'Validation accuracy'])
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
+    saveAt = "/zhome/2a/c/108156/Outputs/accuracies_MNIST.png" if HPC else "/Users/Tobias/Desktop/accuracies_MNIST.png"
+    plotAccs(train_accs, valid_accs, saveName=saveAt)
 
 
 print("{:-^60s}\n{:-^60s}\n{:-^60s}".format("", "  Learning the full network  ", ""))
