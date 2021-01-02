@@ -134,6 +134,7 @@ def plotAccs(train_accs, val_accs, title=None, saveName=None):
     else:
         plt.show()
 
+
 # %% CUDA functions
 def get_variable(x):
     """
@@ -229,8 +230,6 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1):
     # Setting up lists
     train_acc, train_loss = [], []
     valid_acc, valid_loss = [], []
-    test_acc, test_loss = [], []
-    cur_loss = 0
     losses = []
 
     for epoch in range(num_epochs):
@@ -266,7 +265,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1):
             preds = tc.max(output, 1)[1]
 
             train_targs += list(data.y_train[slce])
-            train_preds += list(preds.data.numpy())
+            train_preds += list(get_data(preds).numpy())
 
         # Evaluating validation data
         valid_preds, valid_targs = [], []
@@ -278,7 +277,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1):
             preds = tc.max(output, 1)[1]
 
             valid_targs += list(data.y_val[slce])
-            valid_preds += list(preds.data.numpy())
+            valid_preds += list(get_data(preds).numpy())
         train_acc_cur = accuracy_score(train_targs, train_preds)
         valid_acc_cur = accuracy_score(valid_targs, valid_preds)
 

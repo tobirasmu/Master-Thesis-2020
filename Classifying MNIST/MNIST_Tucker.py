@@ -5,7 +5,7 @@ Created on Wed Oct 14 16:41:30 2020
 
 @author: Tobias
 """
-HPC = True
+HPC = False
 import os
 
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
@@ -92,7 +92,7 @@ BATCH_SIZE = 128
 NUM_EPOCHS = 60
 LR_UPDs = 8
 
-data = fullData.subset(10000, 10000, 10000)
+data = fullData
 
 
 def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1):
