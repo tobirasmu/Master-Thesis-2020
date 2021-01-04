@@ -4,10 +4,10 @@ from video_functions import numFLOPsPerPush, time_conv, time_lin, get_variable
 from timeit import repeat
 from torch.autograd import Variable
 
-HPC = False
+HPC = True
 
-NUM_OBS = 2
-SAMPLE_SIZE = 10
+NUM_OBS = 10
+SAMPLE_SIZE = 100
 test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 
 # %% Full timing of the network including layer-wise
@@ -31,8 +31,8 @@ print("Full time was: {:.3} seconds, while sum of layers was {:.3} seconds".form
                                                                                    tc.sum(layer_time_m)))
 
 # %% Timing of the decomposed network
-net = Net(4, 28, 120, 160)
-
+if tc.cuda.is_available():
+    net = net.cpu()
 # Loading the parameters of the pretrained network (needs to be after converting the network back to cpu)
 if HPC:
     net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Results_hpc/trained_network_92.pt"))
@@ -43,6 +43,7 @@ else:
 netDec = compressNet(net)
 if tc.cuda.is_available():
     netDec = netDec.cuda()
+    net = net.cuda()
 
 fullTime_dec = tc.tensor(repeat("netDec(test)", globals=locals(), number=1, repeat=SAMPLE_SIZE))
 
