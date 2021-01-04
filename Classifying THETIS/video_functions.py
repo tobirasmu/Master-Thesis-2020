@@ -1,18 +1,19 @@
 import numpy as np
 import torch as tc
-import timeit
+from timeit import repeat
 import torch.nn as nn
 from torch.nn import Linear, Conv3d, MaxPool3d, Conv2d
 from torch.autograd import Variable
 from sklearn.metrics import accuracy_score
 import tensorly as tl
+from layer_timing_functions import conv_layer_timing, lin_layer_timing
+
 tl.set_backend("pytorch")
 from tensorly.decomposition import partial_tucker
 from VBMF import EVBMF
 import matplotlib.pyplot as plt
 import cv2
 import os
-
 
 # %% Writes a tensor to a video
 FRAME_RATE = 18  # not true for all videos but okay.
@@ -362,6 +363,7 @@ def numParams(net):
     return sum(np.prod(p.size()) for p in net.parameters())
 
 
+# %% Functions for calculating the theoretical speed-up
 # Two matrices of size [N1 x N2] and [N2 x N3] respectively excluding N1 x N3 biases
 def linearFLOPs(out_features, in_features):
     """
@@ -390,17 +392,16 @@ def conv_dims(dims, kernels, strides, paddings):
     return new_dims
 
 
-def convFLOPs(kernel_shape, input_shape):
+def convFLOPs(kernel_shape, output_shape):
     """
     The FLOPs needed to perform a convolution.
     INPUT:
             kernel_shape = (out_channels, in_channels, (d_f), d_h, d_w)
             input_shape = ((f), h, w)
-    Based on the paper "Pruning CNNs for resource efficiency" by Molchanov P, Tyree S, Karras T, et al.
     """
     C_out, C_in = kernel_shape[0:2]
     filter_shape = kernel_shape[2:]
-    return 2 * tc.prod(input_shape.long()) * (C_in * tc.prod(filter_shape.long()) + 1) * C_out
+    return C_out * tc.prod(output_shape.long()) * (2 * C_in * tc.prod(filter_shape.long()) - 1)
 
 
 def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=None):
@@ -443,7 +444,7 @@ def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=
 
 
 # %% Timing a single layer of different types
-def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, number=10, num_dim=3):
+def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, sample_size=10, num_dim=3):
     """
     Timing a convolutional layer with the given structure.
     INPUT:
@@ -460,41 +461,33 @@ def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, nu
             the time in seconds
     """
     input_shape = (num_obs, in_ch, *input_size)
-    code = """
-from layer_timing_functions import conv_layer_timing
-from torch.autograd import Variable
-from video_functions import get_variable
-import torch as tc
-net = conv_layer_timing("""
-    code = code + str(in_ch) + "," + str(out_ch) + "," + str(kernel) + ", stride=(1, 1, 1), padding=" + str(padding) + \
-           ", bias=" + str(bias) + ", dimensions=" + str(num_dim) + """) 
-if tc.cuda.is_available():
-    net = net.cuda()
-x = get_variable(Variable(tc.rand(""" + str(input_shape) + """)))
-"""
-    return timeit.timeit("net(x)", setup=code, number=number) / number
+
+    net = conv_layer_timing(in_ch, out_ch, kernel, stride=(1, 1, 1), padding=padding, bias=bias, dimensions=num_dim)
+    if tc.cuda.is_available():
+        net = net.cuda()
+    x = get_variable(Variable(tc.rand(input_shape)))
+    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=sample_size))
+    return tc.mean(times), tc.std(times), times
 
 
-def time_lin(num_obs, in_neurons, out_neurons, bias=True, number=10):
+def time_lin(num_obs, in_neurons, out_neurons, bias=True, sample_size=10):
     """
-    Timing the linear forward push with the given structure:
+        Timing the linear forward push with the given structure. Repeats number times and reports the mean, standard
+        deviation, and the list of times.
     INPUT:
             num_obs     : how many observations to be pushed forward
             in_neurons  : how many input neurons in the layer
             out_neurons : how many output neurons
             bias        : if bias is also timed
             number      : how many times it should be timed
+    OUTPUT:
+            mean times, std time, list times
     """
     input_shape = (num_obs, in_neurons)
-    code = """
-from layer_timing_functions import lin_layer_timing
-from torch.autograd import Variable
-from video_functions import get_variable
-import torch as tc
-net = lin_layer_timing("""
-    code = code + str(in_neurons) + "," + str(out_neurons) + ", " + str(bias) + """)
-if tc.cuda.is_available():
-    net = net.cuda()
-x = get_variable(Variable(tc.rand(""" + str(input_shape) + """)))
-"""
-    return timeit.timeit("net(x)", setup=code, number=number) / number
+
+    net = lin_layer_timing(in_neurons, out_neurons, bias)
+    if tc.cuda.is_available():
+        net = net.cuda()
+    x = get_variable(Variable(tc.rand(input_shape)))
+    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=sample_size))
+    return tc.mean(times), tc.std(times), times

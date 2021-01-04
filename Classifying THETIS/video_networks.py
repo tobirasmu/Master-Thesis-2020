@@ -2,11 +2,10 @@ from copy import deepcopy
 
 import torch as tc
 import torch.nn as nn
-import torchvision.models as models
 from torch.nn import Conv3d, MaxPool3d, Linear
 from torch.nn.functional import relu, softmax
 
-from video_functions import conv_to_tucker2, conv_to_tucker1, lin_to_tucker2, lin_to_tucker1, conv_to_tucker2_3d, conv_to_tucker1_3d
+from video_functions import lin_to_tucker2, lin_to_tucker1, conv_to_tucker2_3d, conv_to_tucker1_3d
 
 
 def conv_dims(dims, kernels, strides, paddings):
@@ -79,36 +78,10 @@ class Net(nn.Module):
         return softmax(self.l_out(x), dim=1)
 
 
-def get_VGG16(compressed=False):
-    """
-    Returns the VGG-16 network either compressed or not
-    """
-    vgg16 = models.vgg16(pretrained=True)
-
-    if compressed:
-        vgg16_dec = deepcopy(vgg16)
-        vgg16_dec.features[0] = conv_to_tucker1(vgg16.features[0])
-        vgg16_dec.features[2] = conv_to_tucker2(vgg16.features[2])
-        vgg16_dec.features[5] = conv_to_tucker2(vgg16.features[5])
-        vgg16_dec.features[7] = conv_to_tucker2(vgg16.features[7])
-        vgg16_dec.features[10] = conv_to_tucker2(vgg16.features[10])
-        vgg16_dec.features[12] = conv_to_tucker2(vgg16.features[12])
-        vgg16_dec.features[14] = conv_to_tucker2(vgg16.features[14])
-        vgg16_dec.features[17] = conv_to_tucker2(vgg16.features[17])
-        vgg16_dec.features[19] = conv_to_tucker2(vgg16.features[19])
-        vgg16_dec.features[21] = conv_to_tucker2(vgg16.features[21])
-        vgg16_dec.features[24] = conv_to_tucker2(vgg16.features[24])
-        vgg16_dec.features[26] = conv_to_tucker2(vgg16.features[26])
-        vgg16_dec.features[28] = conv_to_tucker2(vgg16.features[28])
-        vgg16_dec.classifier[0] = lin_to_tucker2(vgg16.classifier[0], ranks=[50, 10])  # Takes LONG to decompose
-        vgg16_dec.classifier[3] = lin_to_tucker1(vgg16.classifier[3])
-        vgg16_dec.classifier[6] = lin_to_tucker1(vgg16.classifier[6])
-        return vgg16_dec
-    else:
-        return vgg16
-
-
 def compressNet(net):
+    """
+        Function that compresses the network given above
+    """
     net_dec = deepcopy(net)
 
     net_dec.c1 = conv_to_tucker2_3d(net.c1)
