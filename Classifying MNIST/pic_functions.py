@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch as tc
 import tensorly as tl
+tl.set_backend('pytorch')
 from tensorly.decomposition import partial_tucker
 from mnist import MNIST
 from sklearn.metrics import accuracy_score

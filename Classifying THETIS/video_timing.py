@@ -85,9 +85,10 @@ layer_time_dec_comp = tc.tensor([tc.sum(layer_time_dec_m[0:3]), tc.sum(layer_tim
 
 input_shape = (28, 120, 160)
 FLOPs_orig = numFLOPsPerPush(net, input_shape, paddings=[1], pooling=[1, 2], pool_kernels=[(2, 4, 4), (2, 4, 4)])
-FLOPs_dcmp = numFLOPsPerPush(netDec, input_shape, paddings=[1], pooling=[3, 6], pool_kernels=[(2, 4, 4), (2, 4, 4)])
+FLOPs_dcmp = numFLOPsPerPush(netDec, input_shape, paddings=[2], pooling=[3, 6], pool_kernels=[(2, 4, 4), (2, 4, 4)])
 dcmp_layer_wise = tc.tensor([tc.sum(FLOPs_dcmp[0:3]), tc.sum(FLOPs_dcmp[3:6]), tc.sum(FLOPs_dcmp[6:9]),
                              tc.sum(FLOPs_dcmp[9:11]), FLOPs_dcmp[11]])
+
 # Calculating layer-wise speed-ups
 theoretical_SP_layer = FLOPs_orig / dcmp_layer_wise
 observed_SP_layer = layer_time_m / layer_time_dec_comp
