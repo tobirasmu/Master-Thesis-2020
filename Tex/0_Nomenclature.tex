@@ -1,6 +1,6 @@
 \section{Nomenclature}
 
-In this thesis vectors will be denoted as bold lower case letters $\boldsymbol{x}$, while bold upper case letters denote matrices $\bs{X}$. Tensors of dimension at least 3 are written in calligraphic letters, hence $\mathcal{X}^{d_1\times d_2 \times \dots \times d_N}$ is a tensor of order $N$ with elements $\tensor{X}(i_1, i_2, \dots, i_N) = x_{i_1, i_2, \dots, i_N}$. A list of symbols used throughout the thesis is given below. 
+In this thesis, vectors will be denoted as bold lower case letters $\boldsymbol{x}$, while bold upper case letters denote matrices $\bs{X}$, with elements $\bs{X}(i, j) = x_{i,j}$. Tensors of dimension at least 3 are written in calligraphic letters, hence $\mathcal{X}^{d_1\times d_2 \times \dots \times d_N}$ is a tensor of order $N$ with elements $\tensor{X}(i_1, i_2, \dots, i_N) = x_{i_1, i_2, \dots, i_N}$. A list of symbols used throughout the thesis is given below. 
 
 \vspace{1cm}
 
@@ -9,10 +9,10 @@ In this thesis vectors will be denoted as bold lower case letters $\boldsymbol{x
     & & \\
     $\langle \mathcal{A}, \mathcal{B}\rangle$ & Inner product & $\langle \mathcal{A}, \mathcal{B}\rangle = \sum_{i,j,k} a_{i,j,k}\cdot b_{i,j,k}$ \\[2ex]
     $\circ$ &  Outer product & $\boldsymbol{a} \circ \boldsymbol{b} = \boldsymbol{C}$ where $c_{i,j} = a_i \cdot b_j$ \\[2ex]
-    $\| \mathcal{A} \|_F$ & Frobenius norm & $\sqrt{\langle \mathcal{A}, \mathcal{A}\rangle}$ \\
+    $\| \mathcal{A} \|_F$ & Frobenius norm & $\sqrt{\langle \mathcal{A}, \mathcal{A}\rangle}$ \\[2ex]
     $\bs{X}_{(n)}$ & Matricizing & $\tensor{X}^{I_1 \times I_2 \times \dots I_N} \longrightarrow \bs{X}_{(n)}^{I_n \times I_1 \cdot I_2 \cdots I_{n-1} \cdot I_{n+1} \cdots I_N}$ \\[2ex]
     $\times_n$ & $n$-mode product & $\tensor{X}\times_n \bs{M} = \tensor{Z}$ where $\bs{Z}_{(n)} = \bs{M}\bs{X}_{(n)}$ \\[2ex]
-    $\otimes$ & Kronecker product & $\bs{A}\otimes \bs{B} = \bs{C}$ where $c_{k + K(i-1), l + L(j-1)} = a_{ij}b_{kl}$ \\[2ex]
+    $\otimes$ & Kronecker product & $\bs{A}\otimes \bs{B} = \bs{C}$ where $\bs{C}\left(k + K(i-1), l + L(j-1)\right) = a_{ij} \cdot b_{kl}$ \\[2ex]
     $\bs{X}^{\dagger}$ & Moore-penrose inverse & $\bs{X}^{\dagger} = ( \bs{X}^\top \bs{X})^{-1}\bs{X}^{\top}$ \\[2ex]
-    $\odot$ & Khatri-Rao product & $\bs{A} \odot \bs{B} = \bs{C}$ where $c_{k + K(i-1), j} = a_{ij}b_{kj}$
+    $\odot$ & Khatri-Rao product & $\bs{A} \odot \bs{B} = \bs{C}$ where $\bs{C}\left(k + K(i-1), j\right) = a_{ij}b_{kj}$
 \end{tabular}
