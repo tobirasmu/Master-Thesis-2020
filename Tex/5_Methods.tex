@@ -1,5 +1,5 @@
 \section{Methodology} \label{tex:methodology}
-Overall the methods examined in this thesis can be divided into two parts; namely those trying to decompose the input into a NN, and those decomposing the weights of a pre-trained NN with subsequent fine-tuning. In the following, the methods used within each of these parts will be discussed in detail. The Python library \textit{PyTorch}\cite{pytorch} will be used to implement and train all NN architectures, while all decomposition estimation will be executed using the Python library \textit{TensorLy}\cite{tensorly}. PyTorch provides a very popular application programming interface (API) for machine learning and tensor computing, which is easily accelerated using the graphics processing unit (GPU). TensorLy provides an API for tensor methods including the different decomposition methods described in \autoref{tex:decomp_methods}. TensorLy is also compatible with different back-ends\footnote{The back-end is the Python library that is responsible for low-level calculation and specification of the tensors. Typically \textit{NumPy}\cite{numpy} or \textit{PyTorch}\cite{pytorch}}, making it easy to combine with PyTorch. The algorithms for estimating the decompositions are given in \autoref{app:DecompEstimation}. 
+Overall the methods examined in this thesis can be divided into two parts; namely those trying to decompose the input into a NN, and those decomposing the weights of a pre-trained NN with subsequent fine-tuning. In the following, the methods used within each of these parts will be discussed in detail. The Python library \textit{PyTorch}\cite{pytorch} will be used to implement and train all NN architectures, while all decomposition estimation will be executed using the Python library \textit{TensorLy}\cite{tensorly}. PyTorch provides a very popular application programming interface (API) for machine learning and tensor computing, which is easily accelerated using the graphics processing unit (GPU). TensorLy provides an API for tensor methods including the different decomposition methods described in \autoref{tex:decomp_methods}. TensorLy is also compatible with different back-ends\footnote{The back-end is the Python library that is responsible for low-level calculation and specification of the tensors. Typically \textit{NumPy}\cite{numpy} or \textit{PyTorch}\cite{pytorch}}, making it easy to combine with PyTorch. The algorithms used for estimating the decompositions in \textit{TensorLy} are given in \autoref{app:DecompEstimation}. 
 
 \subsection{Decomposing the Input}
 In reality, tampering with data that is going to be learned is data preprocessing, hence decomposing the input is just a form of this. Data preprocessing is a vital part of almost all ML, because structured data of high quality is simply much easier to learn and to work with. Put in another way: "Garbage in, garbage out". In addition knowledge of the structure and the variance of the data often ease the algorithm development process. The decomposition algorithms seems appropriate for this task due to their ability to exploit the structure of the data.
@@ -26,7 +26,7 @@ In this project experiments will be made with different architectures for the si
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{Pics/05_methodology/input_decomp.png}
+    \includegraphics[width=\linewidth]{Pics/05_methodology/input_decomp_illustration.png}
     \captionsetup{width=.95\linewidth}
     \caption{Illustration of the algorithm that decomposes the input into the NN. The stacked data tensor will be decomposed along the between-sample dimension resulting in a loading matrix $\bs{A}$ which holds $L$ values for each observation, which will then be used as input into a simple ANN}
     \label{fig:illustrationinputdecomp}
@@ -40,8 +40,9 @@ Since the testing data cannot be decomposed along with the training data, the lo
 The two matrices $\bs{A}$ and $\bs{A}_{test}$ will be given as the input to the ANN as the training data and the validation/testing data respectively.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    Decomposing Pre-Trained Network    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+%%        Decomposing Pre-Trained Network    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Decomposing a Pre-Trained Network Using Tucker Decomposition}
 Using this approach is relatively easy to justify which is properly the reason why all the methods discussed in \autoref{tex:previous_work} use this approach. Pre-training a network makes it easier to ensure a network that works well, also because the training is often performed on powerful computers which allows for more complex networks. After the training is concluded the network is only decomposed to optimise the evaluation time in order to make it useful on platforms with less computation power. As discussed in \autoref{tex:previous_work} there are multiple approaches for this, but especially the methods using Tucker-decomposition and BTD seamed to be performing well and relatively straight-forward to implement and fine-tune.
