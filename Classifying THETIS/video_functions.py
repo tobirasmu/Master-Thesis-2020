@@ -460,13 +460,13 @@ def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, sa
     OUTPUT:
             the time in seconds
     """
+    burn_in = sample_size // 10
     input_shape = (num_obs, in_ch, *input_size)
-
     net = conv_layer_timing(in_ch, out_ch, kernel, stride=(1, 1, 1), padding=padding, bias=bias, dimensions=num_dim)
     if tc.cuda.is_available():
         net = net.cuda()
     x = get_variable(Variable(tc.rand(input_shape)))
-    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=sample_size))
+    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=(sample_size + burn_in))[burn_in:])
     return tc.mean(times), tc.std(times), times
 
 
@@ -483,11 +483,11 @@ def time_lin(num_obs, in_neurons, out_neurons, bias=True, sample_size=10):
     OUTPUT:
             mean times, std time, list times
     """
+    burn_in = sample_size // 10
     input_shape = (num_obs, in_neurons)
-
     net = lin_layer_timing(in_neurons, out_neurons, bias)
     if tc.cuda.is_available():
         net = net.cuda()
     x = get_variable(Variable(tc.rand(input_shape)))
-    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=sample_size))
+    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=(sample_size + burn_in))[burn_in:])
     return tc.mean(times), tc.std(times), times

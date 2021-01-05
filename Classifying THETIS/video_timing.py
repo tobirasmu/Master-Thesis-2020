@@ -8,6 +8,7 @@ HPC = True
 
 NUM_OBS = 10
 SAMPLE_SIZE = 100
+BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 
 # %% Full timing of the network including layer-wise
@@ -16,7 +17,7 @@ net = Net(4, 28, 120, 160)
 if tc.cuda.is_available():
     net = net.cuda()
 
-fullTime = tc.tensor(repeat("net(test)", globals=locals(), number=1, repeat=SAMPLE_SIZE))
+fullTime = tc.tensor(repeat("net(test)", globals=locals(), number=1, repeat=(SAMPLE_SIZE + BURN_IN))[BURN_IN:])
 
 # Layer-wise :
 layer_time_m, layer_time_s = tc.zeros(5), tc.zeros(5)
@@ -45,7 +46,7 @@ if tc.cuda.is_available():
     netDec = netDec.cuda()
     net = net.cuda()
 
-fullTime_dec = tc.tensor(repeat("netDec(test)", globals=locals(), number=1, repeat=SAMPLE_SIZE))
+fullTime_dec = tc.tensor(repeat("netDec(test)", globals=locals(), number=1, repeat=(SAMPLE_SIZE + BURN_IN))[BURN_IN:])
 
 # Ranks of the decomposition
 r1_c1 = netDec.c1[0].out_channels

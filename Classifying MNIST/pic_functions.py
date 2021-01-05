@@ -391,17 +391,17 @@ def lin_to_tucker1(layer, rank=None, in_channels=True):
         core, [A] = partial_tucker(weights, modes=[0], ranks=rank)
 
         # Now we have W = AG, we need Wb which means we can do Wb = A (Gb) as two linear layers
-        coreb = Linear(in_features=nIn, out_features=rank[0], bias=False)
-        Acoreb = Linear(in_features=rank[0], out_features=nOut, bias=True)
+        core_b = Linear(in_features=nIn, out_features=rank[0], bias=False)
+        A_core_b = Linear(in_features=rank[0], out_features=nOut, bias=True)
 
         # Let the decomposed weights be the weights of the new
-        coreb.weight.data = core
-        Acoreb.weight.data = A
+        core_b.weight.data = core
+        A_core_b.weight.data = A
 
         # The bias goes on the second one
-        Acoreb.bias.data = layer.bias.data
+        A_core_b.bias.data = layer.bias.data
 
-        new_layers = [coreb, Acoreb]
+        new_layers = [core_b, A_core_b]
     return nn.Sequential(*new_layers)
 
 
@@ -525,7 +525,7 @@ def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=
 
 
 # %% Timing functions
-def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, number=10, num_dim=2):
+def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, sample_size=10, num_dim=2):
     """
     Timing a convolutional layer with the given structure.
     INPUT:
@@ -541,8 +541,8 @@ def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, nu
     OUTPUT:
             the time in seconds
     """
+    burn_in = sample_size // 10
     input_shape = (num_obs, in_ch, *input_size)
-
     from layer_timing_functions import conv_layer_timing
     from torch.autograd import Variable
     from pic_functions import get_variable
@@ -551,11 +551,11 @@ def time_conv(num_obs, input_size, in_ch, out_ch, kernel, padding, bias=True, nu
     if tc.cuda.is_available():
         net = net.cuda()
     x = get_variable(Variable(tc.rand(input_shape)))
-    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=number))
+    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=(sample_size + burn_in))[burn_in:])
     return tc.mean(times), tc.std(times), times
 
 
-def time_lin(num_obs, in_neurons, out_neurons, bias=True, number=10):
+def time_lin(num_obs, in_neurons, out_neurons, bias=True, sample_size=10):
     """
     Timing the linear forward push with the given structure:
     INPUT:
@@ -565,6 +565,7 @@ def time_lin(num_obs, in_neurons, out_neurons, bias=True, number=10):
             bias        : if bias is also timed
             number      : how many times it should be timed
     """
+    burn_in = sample_size // 10
     input_shape = (num_obs, in_neurons)
     from layer_timing_functions import lin_layer_timing
     from torch.autograd import Variable
@@ -574,5 +575,5 @@ def time_lin(num_obs, in_neurons, out_neurons, bias=True, number=10):
     if tc.cuda.is_available():
         net = net.cuda()
     x = get_variable(Variable(tc.rand(input_shape)))
-    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=number))
+    times = tc.tensor(repeat("net(x)", globals=locals(), number=1, repeat=(sample_size + burn_in))[burn_in:])
     return tc.mean(times), tc.std(times), times
