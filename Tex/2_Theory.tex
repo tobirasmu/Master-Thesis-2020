@@ -1,6 +1,15 @@
 \section{Theory} \label{tex:theory}
-Hej
+In this section, the theory used to develop the methods and obtain the result in this thesis will be discussed. First, neural networks (NNs) will be covered - both the simpler artificial NNs (ANNs) and more complex networks such as the convolutional NN (CNN) in both 2 and 3 dimensions. Also methods for calculating the theoretical speed of a NN will be covered. This is followed by the theory behind different methods in tensor decomposition, and how to choose the appropriate rank in some cases.
 
 \subsection{Neural Networks}\label{tex:theory_NN}
+The NN gets its name from what gave rise to the idea of it around half a century ago - the brain. Similar to the brain a NN consists of a network of neurons that pass on information between each other. The way this is done is illustrated in XX. Each neuron is, with a given input, associated with a value called its activation. This activation is based on the inputs to that very neuron, and is what is passed on from that neuron. The activation is calculated as the weighted sum of the activations of the inputs to that neuron plus a bias, all sent through an activation function $\phi$. Typical choices of $\phi$ are:
+\begin{figure}
+    \centering
+    \includegraphics{}
+    \caption{}
+    \label{fig:my_label}
+\end{figure}
+
+The size and layout of a NN is called the network architecture. The simplest type of NN architecture is the ANN. 
 
 \subsection{Decomposition Methods}\label{tex:decomp_methods}
