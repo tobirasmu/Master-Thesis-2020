@@ -2,7 +2,7 @@ import numpy as np
 import torch as tc
 from timeit import repeat
 import torch.nn as nn
-from torch.nn import Linear, Conv3d, MaxPool3d, Conv2d
+from torch.nn import Linear, Conv3d, Conv2d
 from torch.autograd import Variable
 from sklearn.metrics import accuracy_score
 import tensorly as tl
