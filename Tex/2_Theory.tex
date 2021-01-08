@@ -47,11 +47,18 @@ Where $\gamma$ is the learning rate that can be used to determine the speed of t
 NNs are very flexible and can easily be adapted to fit every need. Not only can they be built off an arbitrary number of layers of different sizes, but also there are multiple different types of layers. Each layer finds progressively more complex features in the input data, hence more layers will be able to find more complex features. NNs can be both feed-forward (information flows forward) or recurrent (information flows backwards). The two types of layers that we will cover in this thesis are the dense layer and the convolutional layer respectively. Both have powerful properties and will be discussed further in the following.
 
 \paragraph{The dense layer}
-The dense layer is the basic building block of NNs and ANNs are almost always built of these. A dense layer (also called fully-connected layer) is a layer in which each of neurons have a connection with all the neurons in the previous layer. Both the middle and output layers in the network illustrated in \autoref{fig:very_simple_ANN} are dense layers.
+The dense layer is the basic building block of NNs, and ANNs are almost always built of these. A dense layer (also called fully-connected layer) is a layer in which each of neurons have a connection with all the neurons in the previous layer. Both the middle and output layers in the network illustrated in \autoref{fig:very_simple_ANN} are dense layers. In CNNs the dense layers are often used in the last part of the network to condense the information from the convolutional layers.
 
-The dense layer is calculated as the non-linear transform of a matrix-vector product with the matrix consisting of the weights on the edges connecting the layer to the previous, and the vector being the input from the previous layer.
+The dense layer is calculated as the non-linear transform of a matrix-vector product with the matrix consisting of the weights on the edges connecting the layer to the previous, and the vector being the input from the previous layer. This concept is illustrated in \autoref{fig:dense_layer_VM_prod}.
+\begin{figure}
+    \centering
+    \captionsetup{width=.95\linewidth}
+    \includegraphics[width=\linewidth]{Pics/02_Theory/dense_layer_VM_prod.png}
+    \caption{Illustration of the calculation of the dense layer. The dense layer is calculated as the non-linear transform of the bias plus the matrix-vector product between the weights and the input vector. $\phi$ is the activation function or non-linear transform.}
+    \label{fig:dense_layer_VM_prod}
+\end{figure}
 
 \paragraph{The convolutional layer}
-
+The convolutional layer has become a very powerful tool in image classification due to its ability to find features in images using the spatial information. 
 
 \subsection{Decomposition Methods}\label{tex:decomp_methods}
