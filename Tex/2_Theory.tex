@@ -71,5 +71,11 @@ Where:
     h_i =  \left(h' - 1\right) \Delta_H + i - P_H \qquad w_j =  \left(w' - 1\right) \Delta_W + j - P_W
 \end{equation}
 In \eqref{eq:3d_convolution_1} $\tensor{K}$ is the 4-dimensional kernel of size $D_H \times D_W \times S \times T$ which corresponds to the $T$ different stacked filters of size $D_H \times D_W \times S$. $\Delta$ corresponds to the stride, i.e. how much the filters should move between each calculation (usually 1). $P$ corresponds to the padding which is how many 0s should be put on the edges of the image, and can be used to ensure the same input and output size in terms of the spatial dimensions. $(h_i, w_j)$ is the top left corner of the position in the input image and the three sums correspond to the application of the $t$th filter to that position. The application of a filter to an image with a single input channel is illustrated in XXX.
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{Pics/02_Theory/convolution_illustration/convolution_illustration.001.png}
+    \caption{Illustration of a simple convolution of a picture with a single input channel. The value $\tensor{Y}($ If there are more input channels, the input image $\tensor{X}$ and the filter $\tensor{K}$ will be 3-dimensional tensors.}
+    \label{fig:convolution_illustration}
+\end{figure}
 
 \subsection{Decomposition Methods}\label{tex:decomp_methods}
