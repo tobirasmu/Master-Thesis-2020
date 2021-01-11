@@ -59,6 +59,17 @@ The dense layer is calculated as the non-linear transform of a matrix-vector pro
 \end{figure}
 
 \paragraph{The convolutional layer}
-The convolutional layer has become a very powerful tool in image classification due to its ability to find features in images using the spatial information. 
+The convolutional layer has become a very powerful tool in image classification due to its ability to find features in images using the spatial information. In a convolutional layer the weights are arranged in a number of filters, each of which can be trained to look for specific features. For instance, a low-level filter can search for lines or curves in various directions, while higher-level filters look for e.g. faces, bodies, or wrinkles on clothes \cite{Yosinski2015}. The filters are placed in every position in the input image to calculate the activation at that position simply by multiplying the weights of the filter by the image and summing everything. The resulting activations will also be arranged as an image with high values corresponding to high activations.
+
+Since color-images have multiple input channels (one red, one green, one blue), they are represented as order-3 tensors of size $H \times W \times S$, where $H$ is the image height in number of pixels, $W$ is the width of the image, and $S$ is the number of input channels. The convolution of an input image $\tensor{X}$ with this size into an output tensor $\tensor{Y}$ of size $H' \times W' \times T$ is given by:
+\begin{equation}
+    \tensor{Y}(h', w', t) =\sum_{i=1}^{D_H} \sum_{j=1}^{D_W} \sum_{s=1}^{S} \ \tensor{K}(i, j, s, t) \ \tensor{X}(h_i, w_j, s)
+    \label{eq:3d_convolution_1}
+\end{equation}
+Where:
+\begin{equation}
+    h_i =  \left(h' - 1\right) \Delta_H + i - P_H \qquad w_j =  \left(w' - 1\right) \Delta_W + j - P_W
+\end{equation}
+In \eqref{eq:3d_convolution_1} $\tensor{K}$ is the 4-dimensional kernel of size $D_H \times D_W \times S \times T$ which corresponds to the $T$ different stacked filters of size $D_H \times D_W \times S$. $\Delta$ corresponds to the stride, i.e. how much the filters should move between each calculation (usually 1). $P$ corresponds to the padding which is how many 0s should be put on the edges of the image, and can be used to ensure the same input and output size in terms of the spatial dimensions. $(h_i, w_j)$ is the top left corner of the position in the input image and the three sums correspond to the application of the $t$th filter to that position. The application of a filter to an image with a single input channel is illustrated in XXX.
 
 \subsection{Decomposition Methods}\label{tex:decomp_methods}
