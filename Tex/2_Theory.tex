@@ -64,18 +64,72 @@ The convolutional layer has become a very powerful tool in image classification 
 Since color-images have multiple input channels (one red, one green, one blue), they are represented as order-3 tensors of size $H \times W \times S$, where $H$ is the image height in number of pixels, $W$ is the width of the image, and $S$ is the number of input channels. The convolution of an input image $\tensor{X}$ with this size into an output tensor $\tensor{Y}$ of size $H' \times W' \times T$ is given by:
 \begin{equation}
     \tensor{Y}(h', w', t) =\sum_{i=1}^{D_H} \sum_{j=1}^{D_W} \sum_{s=1}^{S} \ \tensor{K}(i, j, s, t) \ \tensor{X}(h_i, w_j, s)
-    \label{eq:3d_convolution_1}
+    \label{eq:2d_convolution_1}
 \end{equation}
 Where:
 \begin{equation}
     h_i =  \left(h' - 1\right) \Delta_H + i - P_H \qquad w_j =  \left(w' - 1\right) \Delta_W + j - P_W
 \end{equation}
-In \eqref{eq:3d_convolution_1} $\tensor{K}$ is the 4-dimensional kernel of size $D_H \times D_W \times S \times T$ which corresponds to the $T$ different stacked filters of size $D_H \times D_W \times S$. $\Delta$ corresponds to the stride, i.e. how much the filters should move between each calculation (usually 1). $P$ corresponds to the padding which is how many 0s should be put on the edges of the image, and can be used to ensure the same input and output size in terms of the spatial dimensions. $(h_i, w_j)$ is the top left corner of the position in the input image and the three sums correspond to the application of the $t$th filter to that position. The application of a filter to an image with a single input channel is illustrated in XXX.
+In \eqref{eq:2d_convolution_1} $\tensor{K}$ is the 4-dimensional kernel of size $D_H \times D_W \times S \times T$ which corresponds to the $T$ different stacked filters of size $D_H \times D_W \times S$. $\Delta$ corresponds to the stride, i.e. how much the filters should move between each calculation (usually 1). $P$ corresponds to the padding which is how many 0s should be put on the edges of the image, and can be used to ensure the same input and output size in terms of the spatial dimensions. $(h_i, w_j)$ is the top left corner of the position in the input image and the three sums correspond to the application of the $t$th filter to that position. The application of a filter to an image with a single input channel is illustrated in \autoref{fig:convolution_illustration}.
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{Pics/02_Theory/convolution_illustration/convolution_illustration.001.png}
-    \caption{Illustration of a simple convolution of a picture with a single input channel. The value $\tensor{Y}($ If there are more input channels, the input image $\tensor{X}$ and the filter $\tensor{K}$ will be 3-dimensional tensors.}
+    \captionsetup{width=.95\linewidth}
+    \includegraphics[width=\linewidth]{Pics/02_Theory/convolution_illustration.png}
+    \caption{Illustration of a simple convolution of a picture with a single input channel. The calculation of the value $\tensor{Y}(3, 5, \cdot)$ is the one that is highlighted. The arrow signifies the sum of applying the filter to the input image. The input image will always be 1-indexed, hence the padding (grey 0s) is indexed appropriately. The very simple filter is trained to look for diagonal lines, hence the output will have a high activation if a diagonal line is present. If there are more input channels, the input image $\tensor{X}$ and the filter $\tensor{K}$ will be 3-dimensional tensors.}
     \label{fig:convolution_illustration}
 \end{figure}
+The output size $H' \times W'$ is calculated by the formula:
+\begin{align}
+    H' &= \frac{H - D_H + 2\cdot P_H}{\Delta_H} + 1 \label{eq:out_dim_H}\\
+    W' &= \frac{W - D_W + 2\cdot P_W}{\Delta_W} + 1 \label{eq:out_dim_W}
+\end{align}
+\subparagraph{The 3D convolution in videos}
+There are multiple ways of doing convolutions for videos, that are simply a stack of images. One way is to do convolutions on every frame in a sequence and gathering the result - another way is to apply a 3-dimensional filter.\footnote{This filter will actually be 4-dimensional if there are multiple input dimensions} The 3-dimensional filter will not only look for features in the spatial dimensions, but also for temporal information, i.e. movement. The 3D convolution is very similar to the 2D case \eqref{eq:2d_convolution_1}, except for another sum and higher dimensions. The 3D convolution of an input video $\tensor{X}$ of size $F\times H \times W \times S$ ($F$ is the frames) into an output tensor $\tensor{Y}$ of size $F'\times H' \times W' \times T$ is given by:
+\begin{equation}
+    \tensor{Y}(f', h', w', t) = \sum_{i=1}^{D_F} \sum_{j=1}^{D_H} \sum_{l=1}^{D_W} \sum_{s=1}^{S} \ \tensor{K}(i, j, l, s, t) \ \tensor{X}(f_i, h_j, w_l, s)
+\end{equation}
+Where:
+\begin{equation}
+    f_i = \left(f' - 1\right) \Delta_F + i - P_F \qquad h_j =  \left(h' - 1\right) \Delta_H + j - P_H \qquad w_l =  \left(w' - 1\right) \Delta_W + l - P_W
+\end{equation}
+Now the convolutional kernel $\tensor{K}$ is 5-dimensional and have the size $D_F \times D_H \times D_W \times S \times T$, which is a stack of 4-dimensional filters. The output size $F'$ is calculated in the same way as \eqref{eq:out_dim_H} and \eqref{eq:out_dim_W} by:
+\begin{equation}
+    F' = \frac{F - D_F + 2\cdot P_F}{\Delta_F} + 1
+\end{equation}
 
-\subsection{Decomposition Methods}\label{tex:decomp_methods}
+\subsection{Tensors and Tensor Decomposition}\label{tex:decomp_methods}
+A tensor is a data array of an arbitrary number of dimensions, hence matrices are order-2 tensors, while vectors are order-1 tensors. Tensors are frequently used in many different fields that have to do with computer science\cite{Mørup2011}. Tensors have many great properties due to their many dimensions, but also quickly grow very large.
+
+The concept of tensor decomposition or tensor factorisation concerns itself with exploiting the tendencies of the data in order to find a representation that is smaller and easier to work with. There are multiple representations or decompositions that will be discussed in detail in this section. Since the python library \textit{TensorLy} has great implementations of the different algorithms, it will be used to calculate the decompositions throughout the thesis. The algorithms for estimating the decomposition are given in \autoref{app:DecompEstimation}. 
+
+\subsubsection{CP / Parafac}
+CP (Candecomp) decomposition that also goes by the names of Parafac or canonical decomposition is the most basic representation. The CP decomposition represents the tensor as the sum of $R$ outer-vector products, where each dimension has a loading vector for each $R$. $R$ is the rank of the decomposition and obviously this allows for more specific details the higher $R$ gets. The CP decomposition of an order-3 tensor $\tensor{X}$ of size $n_1\times n_2 \times n_3$ is given by:
+\begin{equation}
+    \tensor{X} \approx \sum_{d=1}^R \bs{a}_d \circ \bs{b}_d \circ \bs{c}_d
+\end{equation}
+Or element-wise:
+\begin{equation}
+    \tensor{X}(i, j, l) \approx \sum_{d=1}^R \bs{a}_d(i) \cdot \bs{b}_d(j) \cdot \bs{c}_d(l)
+\end{equation}
+Where $\boldsymbol{a}_i$, $\boldsymbol{b}_i$, and $\boldsymbol{c}_i$ are the $i$th loading vectors of each dimension respectively. If each of these loading vectors are concatenated to form loading matrices, the decomposition can also be written in the following way using a diagonal or identity tensor $\tensor{D}$ and $n$-mode products:
+\begin{equation}
+    \tensor{X}^{n_1 \times n_2 \times n_3} \approx \tensor{D}^{R\times R\times R} \times_1 \bs{A}^{n_1 \times R} \times_2 \bs{B}^{n_2 \times R} \times_3 \bs{C}^{n_3 \times R}
+    \label{eq:CP_matrix_rep}
+\end{equation}
+$\tensor{D}$ is also called the core tensor. For the loading matrices we have that:
+\begin{equation}
+    \bs{A} = \begin{bmatrix} | & | & & |\\ \bs{a}_1 & \bs{a}_2 & \dots & \bs{a}_R \\ | & | & & | \end{bmatrix} \qquad \bs{B} = \begin{bmatrix} | & | & & |\\ \bs{b}_1 & \bs{b}_2 & \dots & \bs{b}_R \\ | & | & & | \end{bmatrix} \qquad \bs{C} = \begin{bmatrix} | & | & & |\\ \bs{c}_1 & \bs{c}_2 & \dots & \bs{c}_R \\ | & | & & | \end{bmatrix}
+\end{equation}
+
+Due to the nature of the CP decomposition only the $i$th loading of each loading vector can interact with each other, making the CP decomposition rather restricted. However the restriction of this representation implies a unique optimal solution of the CP decomposition, which desirable. The method is good at resolving different additive physical profiles, e.g. if addition of multiple chemicals to a solution have different effects on a response variable, these can be resolved. CP decomposition however fails when different dimensions are correlated, due to strong cancellation effects between the various components of the representation, making it slow to converge and hard to interpret \cite{Mørup2011}.
+
+\subsubsection{Tucker}
+Tucker decomposition is the less restricted version of the CP decomposition - or actually CP decomposition is a special case of Tucker. In Tucker decomposition loadings can interact with each other even crisscrossing, which gives this representation a good deal of freedom. This is achieved allowing the core-tensor $\tensor{D}$ ($\tensor{G}$ for Tucker) to be non-diagonal, hence we also get to choose special ranks for each dimension. Based on the matrix-representation of the CP decomposition \eqref{eq:CP_matrix_rep}, the Tucker decomposition of an order-3 tensor $\tensor{X}$ of size $n_1 \times n_2 \times n_3$ is given as:
+\begin{equation}
+    \tensor{X}^{n_1 \times n_2 \times n_3} \approx \tensor{G}^{R_A \times R_B \times R_C} \times_1 \bs{A}^{n_1 \times R_A} \times_2 \bs{B}^{n_2 \times R_B} \times_3 \bs{C}^{n_3 \times R_C}
+\end{equation}
+Where $\bs{A}$, $\bs{B}$, and $\bs{C}$ are the loading matrices of each of the dimensions and $R_A$, $R_B$, and $R_C$ are the ranks of the decomposition in each of the dimensions. $\tensor{G}$ is the core tensor that we in the Tucker case allow to be non-diagonal. We can also write the Tucker representation element-wise:
+\begin{equation}
+    \tensor{X}(x_1,x_2,x_3) \approx \sum_{i=1}^{n_1} \sum_{j=1}^{n_2} \sum_{l=1}^{n_3} \tensor{G}(i, j, l) \cdot \bs{A}(x_1, i) \cdot \bs{B}(x_2, j) \cdot \bs{C}(x_3, l)
+\end{equation}
+The concept of Tucker decomposition is shown in XXX. 
