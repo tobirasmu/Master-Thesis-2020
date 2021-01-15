@@ -1,13 +1,12 @@
 \section{Theory} \label{tex:theory}
-In this section, the theory used to develop the methods and obtain the result in this thesis will be discussed. First, neural networks (NNs) will be covered - both the simpler artificial NNs (ANNs) and more complex networks such as the convolutional NN (CNN) in both 2 and 3 dimensions. Also methods for calculating the theoretical speed of a NN will be covered. This is followed by the theory behind different methods in tensor decomposition, and how to choose the appropriate rank in some cases.
+In this section, the theory used to develop the methods and obtain the result in this thesis will be discussed. First, neural networks (NNs) will be covered - both the simpler artificial NNs (ANNs) and more complex networks such as the convolutional NN (CNN) in both 2 (image) and 3 (videos) dimensions. Also methods for calculating the theoretical speed of a NN will be covered. This is followed by the theory behind tensors and different methods in tensor decomposition. There will be more focus on Tucker decomposition since it is the one used in this thesis, and how to choose the appropriate rank in the case of Tucker decomposition.
 \begin{figure}[H]
     \centering
     \captionsetup{width=.95\linewidth}
     \includegraphics[width=.7\linewidth]{Pics/02_Theory/activation_illustration.png}
-    \caption{Illustration of the flow of information through a neuron. Each edge (arrow) has a weight $w$ associated with it, and each neuron (circle) has an activation associated with it. The activations correspond to the information that is passed through the network. $\phi$ is a non-linear transform called the activation function.}
+    \caption{Illustration of the flow of information through a neuron. Each edge (arrow) has a weight $w$ associated with it, and each neuron (circle) has an activation associated with it. The activations correspond to the information that is passed through the network, i.e. in this case the $L$ $x$s are used as inputs into the big neuron, where $y$ will be the resulting activation. $\phi$ is a non-linear transform called the activation function.}
     \label{fig:activation_illustration}
 \end{figure}
-
 
 
 \subsection{Neural Networks}\label{tex:theory_NN}
@@ -57,7 +56,7 @@ The dense layer is calculated as the non-linear transform of a matrix-vector pro
     \centering
     \captionsetup{width=.95\linewidth}
     \includegraphics[width=\linewidth]{Pics/02_Theory/dense_layer_VM_prod.png}
-    \caption{Illustration of the calculation of the dense layer. The dense layer is calculated as the non-linear transform of the bias plus the matrix-vector product between the weights and the input vector. $\phi$ is the activation function or non-linear transform.}
+    \caption{Illustration of the calculation of the dense layer. $x_i$ and $z_i$ are the $i$th activation of the two layers respectively. $w_{ji}$ is the weight corresponding to the connection between $x_i$ and $z_j$, and $b_i$ is the bias to be added to $z_i$. The dense layer is calculated as the non-linear transform of the bias plus the matrix-vector product between the weight matrix $\bs{W}$ and the input vector $\bs{x}$. $\phi$ is the activation function or non-linear transform.}
     \label{fig:dense_layer_VM_prod}
 \end{figure}
 
@@ -78,7 +77,7 @@ In \eqref{eq:2d_convolution_1} $\tensor{K}$ is the 4-dimensional kernel of size 
     \centering
     \captionsetup{width=.95\linewidth}
     \includegraphics[width=\linewidth]{Pics/02_Theory/convolution_illustration.png}
-    \caption{Illustration of a simple convolution of a picture with a single input channel. The calculation of the value $\tensor{Y}(3, 5, \cdot)$ is the one that is highlighted. The arrow signifies the sum of applying the filter to the input image. The input image will always be 1-indexed, hence the padding (grey 0s) is indexed appropriately. The very simple filter is trained to look for diagonal lines, hence the output will have a high activation if a diagonal line is present. If there are more input channels, the input image $\tensor{X}$ and the filter $\tensor{K}$ will be 3-dimensional tensors.}
+    \caption{Illustration of a simple convolution of a picture with a single input channel. The calculation of the value $\tensor{Y}(3, 5, \cdot)$ is the one that is highlighted. The arrow signifies the sum of the result of applying the filter $\tensor{K}$ to the input image $\tensor{X}$. The input image will always be 1-indexed, hence the padding (grey 0s) is indexed appropriately. The very simple filter is trained to look for diagonal lines, hence the output will have a high activation if a diagonal line is present in $\tensor{X}$. If there are more input channels, the input image $\tensor{X}$ and the filter $\tensor{K}$ will both be 3-dimensional tensors.}
     \label{fig:convolution_illustration}
 \end{figure}
 The output size $H' \times W'$ is calculated by the formula:
@@ -108,7 +107,10 @@ Now the convolutional kernel $\tensor{K}$ is 5-dimensional and have the size $D_
 \subsection{Tensors and Tensor Decomposition}\label{tex:decomp_methods}
 A tensor is a data array of an arbitrary number of dimensions, hence matrices are order-2 tensors, while vectors are order-1 tensors. Tensors are frequently used in many different fields that have to do with computer science\cite{Mørup2011}. Tensors have many great properties due to their many dimensions, but also quickly grow very large.
 
-The concept of tensor decomposition or tensor factorisation concerns itself with exploiting the tendencies of the data in order to find a representation that is smaller and easier to work with. There are multiple representations or decompositions that will be discussed in detail in this section. Since the python library \textit{TensorLy} has great implementations of the different algorithms, it will be used to calculate the decompositions throughout the thesis. The algorithms for estimating the decomposition are given in \autoref{app:DecompEstimation}. 
+The concept of tensor decomposition or tensor factorisation concerns itself with exploiting the tendencies of the data in order to find a representation that is smaller and easier to work with. There are multiple representations or decompositions that will be discussed in detail in this section. The Tucker method will be discussed in a bit more detail, due to its importance to the work done in the thesis. Since the python library \textit{TensorLy} has great implementations of the different algorithms, it will be used to calculate the decompositions throughout the thesis. The algorithms for estimating the decomposition are given in \autoref{app:DecompEstimation}.
+
+\paragraph{Basic tensor representation and operations} \label{tex:tensor_operations}
+Tensors can be matricized by the use of one of the dimensions
 
 \subsubsection{CP / Parafac}
 CP (Candecomp) decomposition that also goes by the names of Parafac or canonical decomposition is the most basic representation. The CP decomposition represents the tensor as the sum of $R$ outer-vector products, where each dimension has a loading vector for each $R$. $R$ is the rank of the decomposition and obviously this allows for more specific details the higher $R$ gets. The CP decomposition of an order-3 tensor $\tensor{X}$ of size $n_1\times n_2 \times n_3$ is given by:
@@ -133,7 +135,7 @@ The CP decomposition is illustrated in \autoref{fig:CP_decomp_illustration}.
     \centering
     \captionsetup{width=.95\linewidth}
     \includegraphics[width=\linewidth]{Pics/02_Theory/CP_decomp_illustration.png}
-    \caption{The tensor $\tensor{X}$ is decomposed using the CP decomposition. The CP decomposition is the sum of a sequence of $R$ outer-vector products, with $R$ being the rank of the decomposition. The vectors have length corresponding to the length of the dimension in $\tensor{X}$, e.g. all the $\bs{a}$-vectors have length $n_1$.}
+    \caption{The tensor $\tensor{X}$ is decomposed using the CP decomposition. The CP decomposition approximation is the sum of a sequence of $R$ outer-vector products, with $R$ being the rank of the decomposition. The vectors have length corresponding to the length of the dimension in $\tensor{X}$, e.g. all the $\bs{a}$-vectors have length $n_1$.}
     \label{fig:CP_decomp_illustration}
 \end{figure}
 
@@ -153,7 +155,7 @@ The concept of Tucker decomposition is shown in \autoref{fig:tucker_decomp_illus
     \centering
     \captionsetup{width=.95\linewidth}
     \includegraphics[width=.7\linewidth]{Pics/02_Theory/Tucker_decomp_illustration.png}
-    \caption{The tensor $\tensor{X}$ is decomposed using Tucker decomposition. The Tucker decomposition is a sequence of $n$-mode products between the core tensor $\tensor{G}$ and the three loading matrices (one for each dimensions). The size of $\tensor{G}$ is the ranks of the decomposition, i.e. $R_A \times R_B \times R_C$. The length of the first dimension of the loading matrices correspond to the length of the given dimension, e.g. for $\bs{A}$ it is $n_1$}
+    \caption{The tensor $\tensor{X}$ is decomposed using Tucker-3 decomposition, which means that all 3 dimensions will be decomposed. The Tucker decomposition is a sequence of $n$-mode products between the core tensor $\tensor{G}$ and the three loading matrices $\bs{A}$, $\bs{B}$, and $\bs{C}$. The size of $\tensor{G}$ is equal to the ranks of the decomposition, i.e. $R_A \times R_B \times R_C$. The length of the first dimension of the loading matrices correspond to the length of the given dimension, e.g. for $\bs{A}$ it is $n_1$}
     \label{fig:tucker_decomp_illustration}
 \end{figure}
 The different rank along each of the dimensions, makes the user able to choose how many different features the algorithm should find along each dimensions. The flexibility of the Tucker decomposition makes it useful for many applications, one of them being the data compression task. The flexibility however also comes at a cost; the representation does not yield unique optimal solutions, and the results harder to interpret than for CP decomposition.
@@ -166,7 +168,7 @@ Rank selection for the Tucker decomposition is either choosing appropriate ranks
 I.e. the approximation being equal to the actual tensor. Here $\bs{a}_i$, $\bs{b}_i$, and $\bs{c}_i$ are the $i$th column of the loading matrices respectively. Finding the optimal ranks is a challenging problem, which have been solved in different ways. Due to the challenge of the problem, this thesis will make use of the analytical solution to variational Bayesian matrix factorization (VBMF) by inspiration from Kim et. al \cite{Kim2016}. This approach is chosen because it is a good and easily reproducible heuristic, even though it is sub-optimal. VBMF will be discussed in the following.
 
 \paragraph{Variational Bayesian Matrix Factorization}
-The global analytical solution to the VBMF have been derived by Nakajima et. al in 2013 \cite{Nakajima2013}. They use a probabilistic model to find the optimal low-rank factorization of a matrix, automatically taking care of the noise. Given an matrix $\bs{V}$ of size $L\times M$ that is assumed to be the sum of a target matrix and an error matrix:
+The global analytical solution to the VBMF have been derived by Nakajima et. al in 2013 \cite{Nakajima2013}, and can be used as a method for rank selection for the Tucker model\footnote{Also applicable to CP-decomposition, since it is a special case of Tucker decomposition}. The authors use a probabilistic model to find the optimal low-rank factorization of a matrix, automatically taking care of the noise. Given an matrix $\bs{V}$ of size $L\times M$ that is assumed to be the sum of a target matrix and an error matrix:
 \begin{equation}
     \bs{V}^{L\times M} = \bs{U}^{L\times M} + \bs{E}^{L\times M}
 \end{equation}
@@ -174,7 +176,7 @@ The goal is to find matrices $\bs{A}$ and $\bs{B}$ such that:
 \begin{equation}
     \bs{U} = \bs{B}\bs{A}^{\top}
 \end{equation}
-This is achieved by considering a probabilistic model of $\bs{V}$ given prior variances, and use this model to compute the posterior distributions of $\bs{V}$, $\bs{A}$, and $\bs{B}$. Doing this is generally a non-convex problem why the analytical solution is key. This however does only work for matrices, hence tensors of order $> 2$ need to be converted into matrices using matricization. Matricization using the $i$th dimension gives the estimated rank of that same dimension of the tensor. It should be noted that this method only works when the $L < M$, since we need to have $\frac{L}{M} < 1$ to satisfy the nature of the probabilistic distribution.
+This is achieved by considering a probabilistic model of $\bs{V}$ given prior variances, and use this model to compute the posterior distributions of $\bs{V}$, $\bs{A}$, and $\bs{B}$. Doing this is generally a non-convex problem why the analytical solution is key. This however does only work for matrices, hence tensors of order $> 2$ need to be converted into matrices using matricization discussed in \autoref{tex:tensor_operations}. Matricization using the $i$th dimension gives the estimated rank of that same dimension of the tensor. It should be noted that this method only works when the $L < M$, since we need to have $\frac{L}{M} < 1$ to satisfy the nature of the probabilistic distribution.
 
 \subsubsection{Block-Term Decomposition}
 Block-Term Decomposition (BTD) is simply a sum of Tucker terms, i.e. given an order-3 tensor $\tensor{X}$ and a rank $R$ the BTD of $\tensor{X}$ is given by:
@@ -193,7 +195,7 @@ Where $\tensor{G}_i$ is the $i$th loading tensor of size $r_{i-1}\times n_1\time
     \centering
     \captionsetup{width=.95\linewidth}
     \includegraphics[width=.9\linewidth]{Pics/02_Theory/TT_decomp_illustration.png}
-    \caption{The approximation of a single value of the target tensor using the TT-decomposition. The value is the result of a vector-matrix-vector product between slices of the loading tensors $\tensor{G}$. The bottom row shows how the vectors and the matrix are taken out of the $\tensor{G}$s using the given indices.}
+    \caption{The approximation of a single value of the target tensor using the TT-decomposition. The value is the result of a vector-matrix-vector product between $\tensor{G}_1(i_1)$, $\tensor{G}_2(i_2)$, and $\tensor{G}_3(i_4)$ that are slices of the loading tensors $\tensor{G}$. The bottom row shows how the vectors and the matrix are taken out of the $\tensor{G}$s using the given indices $i_1$, $i_2$, and $i_3$.}
     \label{fig:TT_decomp_illustration}
 \end{figure}
 
