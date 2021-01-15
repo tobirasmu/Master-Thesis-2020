@@ -12,10 +12,15 @@ For a dense layer with $N_{in}$ input neurons and $N_{out}$ output neurons, the 
 FLOPs to compute a forward push through the dense layer.
 
 \paragraph{Convolutional layer}
-The number of FLOPs needed for a forward push in a convolutional layer is not as simple to compute due to the many hyper-parameters. The FLOPs will be based on the number of outputs, since this is direct result of the hyper-parameters. The following will only be computed for a 3D convolutional kernel, since it generalises to an image kernel. Consider a convolutional layer with input channels $S$, output channels $T$, convolutional kernel $(D_F, D_H, D_W)$, input size $(F, H, W)$, and output size $(F', H', W')$ calculated using the formulas \eqref{eq:out_dim_H}, \eqref{eq:out_dim_W}, and \eqref{eq:out_dim_F}. For every one of the $F' H' W' T$ output values, the filter is applied once which takes $D_F D_H D_W S$ multiplications and the same minus 1 additions. This makes the convolutional forward push use a total of:
+The number of FLOPs needed for a forward push in a convolutional layer is not as simple to compute due to the many hyper-parameters. The FLOPs will be based on the number of outputs, since this is direct result of the hyper-parameters. The following will only be computed for a 3D video convolutional kernel, since it generalises to an image kernel. Consider a convolutional layer with input channels $S$, output channels $T$, convolutional kernel $(D_F, D_H, D_W)$, and input size $(F, H, W)$. For every one of the $F' H' W' T$ output values, the filter is applied once which takes $D_F D_H D_W S$ multiplications and the same minus 1 additions. This makes the convolutional forward push use a total of:
 \begin{equation}
-    FLOPs_{conv} = T\cdot F'\cdot H'\cdot W'\cdot (2\cdot D_F\cdot D_H\cdot D_W - 1)
+    FLOPs_{conv} = T\cdot F'\cdot H'\cdot W'\cdot (2\cdot S \cdot D_F\cdot D_H\cdot D_W - 1)
 \end{equation}
+FLOPs to calculate. Here the output size of each dimension is calculated using the formula:
+\begin{equation}
+    out_{dim}(d, D, \Delta, P) = \frac{d - D + 2\cdot P}{\Delta} + 1
+\end{equation}
+Where $d$ is the input size, $D$ is the kernel size, $\Delta$ is the stride, and $P$ is the padding - all of the given dimension.
 
 \subsection{Decomposing the Input}
 In reality, tampering with data that is going to be learned is data preprocessing, hence decomposing the input is just a form of this. Data preprocessing is a vital part of almost all ML, because structured data of high quality is simply much easier to learn and to work with. Put in another way: "Garbage in, garbage out". In addition knowledge of the structure and the variance of the data often ease the algorithm development process. The decomposition algorithms seems appropriate for this task due to their ability to exploit the structure of the data.
