@@ -67,7 +67,7 @@ The two matrices $\bs{A}$ and $\bs{A}_{test}$ will be given as the input to the 
 
 \subsection{Decomposing a Pre-Trained Network Using Tucker Decomposition}
 Using this approach is relatively easy to justify which is properly the reason why all the methods discussed in \autoref{tex:previous_work} use this approach. Pre-training a network makes it easier to ensure a network that works well, also because the training is often performed on powerful computers which allows for more complex networks. After the training is concluded the network is only decomposed to optimise the evaluation time in order to make it useful on platforms with less computation power. As discussed in \autoref{tex:previous_work} there are multiple approaches for this, but especially the methods using Tucker-decomposition and BTD seamed to be performing well and relatively straight-forward to implement and fine-tune.
-The method used in this project builds on the work done by Kim et al. in \cite{Kim2016}, which is briefly discussed in \autoref{tex:sub_entire_network}.  Similar to the work done by Kim et al., Tucker-1 or Tucker-2 will be used for specific layers through the network. The advantage of using Tucker-decompositions is that they can be applied to each of the layers in the network, compressing everything at once before fine-tuning the whole network. In the following the methods of decomposing and changing the architecture of the layers of the network will be discussed. Due to the dissimilarities of the linear vs. the convolutional layer, each of these decompositions will be implemented individually for each type of layer. In the end, the full algorithm for compressing a whole network will be given.
+The method used in this project builds on the work done by Kim et al. in \cite{Kim2016}, which is briefly discussed in \autoref{tex:sub_entire_network}.  Similar to the work done by Kim et al., Tucker-1 or Tucker-2 will be used for specific layers through the network. Kim et al. proposed method for compressing image convolutions, why the methods will be generalized to videos in the following. The advantage of using Tucker-decompositions is that they can be applied to each of the layers in the network, compressing everything at once before fine-tuning the whole network. In the following the methods of decomposing and changing the architecture of the layers of the network will be discussed. Due to the dissimilarities of the linear vs. the convolutional layer, each of these decompositions will be implemented individually for each type of layer. In the end, the full algorithm for compressing a whole network will be given.
 
 \subsubsection{The linear / dense layer}
 As explained in \autoref{tex:theory_NN} the dense layer with $N_{in}$ input neurons and $N_{out}$ output neurons in simply a matrix-vector product:
@@ -121,7 +121,7 @@ What also makes this decomposition smart is that the sequence of matrix multipli
 \end{figure}
 
 \subsubsection{The convolutional layer}
-As explained in \autoref{tex:theory_NN} a convolution corresponds to calculating the result of applying a number of filters to every part of the input picture or video in space (and time). Applying the Tucker-decomposition to a convolutional layer implies turning it into a sequence of 3 (Tucker-2) or 2 (Tucker-1) smaller, less computational convolutions. The following method will only be discussed for videos, since the calculations are almost identical for lower dimensions. See \cite{Kim2016} for these, which the following derivation is based upon.
+As explained in \autoref{tex:theory_NN} a convolution corresponds to calculating the result of applying a number of filters to every part of the input picture or video in space (and time). Applying the Tucker-decomposition to a convolutional layer implies turning it into a sequence of 3 (Tucker-2) or 2 (Tucker-1) smaller, less computational convolutions. The following method will only be discussed for videos, since the calculations are almost identical for lower dimensions. Kim et al. proposed a method for compressing an image filter in \cite{Kim2016}. In the following their method will be generalized to videos based on their derivations.
 
 \paragraph{Tucker-2 decomposition of the convolutional kernel}
 The convolution of an input tensor $\tensor{X}$ of size\footnote{Here and in the following $F$, $H$, $W$ are the number of frames, the height and the width of the video respectively. $S$ is the number of input channels.} $F\times H \times W \times S$ into an output tensor $\tensor{Y}$ of size $F'\times H' \times W' \times T$ is given by:
@@ -169,12 +169,49 @@ correspond to the following sequence of simpler convolutions:
     \item Eq. \eqref{eq:Q'} - A $D_F \times D_H \times D_W$ convolution with $R_4$ input channels and $R_5$ output channels
     \item Eq. \eqref{eq:Y} - A $1\times 1$ convolution with $R_5$ input channels and $T$ output channels
 \end{itemize}
-So what this sequence is actually doing is first using the $1\times 1$ convolution to bring down the number of input channels to the 3D convolution, in order to perform the 3D convolution on a smaller set of input and output channels. In the end it uses the $1\times 1$ convolution to bring the now lower number of output channels back up to what it should be. This all results in a speed-up if the ranks are chosen to be small. Due to the challenge of illustrating a 4D tensor, the concept is illustrated in the 2D version (a picture) in \autoref{fig:tuckerDecompConv}. Like for the linear layer, the loadings of the decomposition of the kernel $\tensor{K}$ can be used directly as weights in the adapted architecture, and also the original biases will only be added to the last layer, while the other wont have biases.
+So what this sequence is actually doing is first using the $1\times 1$ convolution to bring down the number of input channels to the 3D convolution, in order to perform the 3D convolution on a smaller set of input and output channels. In the end it uses the $1\times 1$ convolution to bring the now lower number of output channels back up to what it should be. This all results in a speed-up if the ranks are chosen to be small. Due to the challenge of illustrating a 4D tensor, the concept is illustrated in the 2D version (a picture) in \autoref{fig:tuckerDecompConv}. Like for the linear layer, the loadings of the decomposition of the kernel $\tensor{K}$ can be used directly as weights in the adapted architecture, and also the original biases will only be added to the last layer, while the other won't have biases.
 
 \paragraph{Tucker-1 decomposition of the convolutional kernel}
 In some situations it might not be beneficial to decompose both the input and the output channel dimensions, e.g. for an input image with only 3 input channels. The approach when doing the Tucker-1 decomposition is the same as for the Tucker-2 decomposition, however only one (relevant) rank is considered. This means that the resulting sequence have two smaller convolutions, and that there will be only two intermediate tensors corresponding to \eqref{eq:Q} and \eqref{eq:Q'} if the input channel dimension is to be decomposed, or \eqref{eq:Q'} and \eqref{eq:Y} for the output channel dimension. The derivations will be given for each of the dimensions in \autoref{tex:tucker1_conv_derivations}.
 
+In order to choose the ranks so that the computation is faster, the number of multiplications needed for a forward push is now considered. We assume padding, i.e. same input and output sizes, since the difference between these is small - especially for small kernel sizes. The original convolution with $S$ input channels, $T$ output channels, a convolutional kernel with size $D_F\times D_H \times D_W$, and input/output size of $F\times H \times W$ uses:
+\begin{equation}
+    S \cdot T \cdot F \cdot H \cdot W \cdot D_F \cdot D_H \cdot D_W
+\end{equation}
+multiplications which quickly becomes a big number. We define:
+\begin{equation}
+    \Gamma = F \cdot H \cdot W \qquad \qquad \Lambda = D_F \cdot D_H \cdot D_W
+    \label{eq:lambda_gamma_definition}
+\end{equation}
+To be used in the following such that the original convolution uses $S\cdot T \cdot \Gamma \cdot \Lambda$. The Tucker-1 decomposition of the convolution with rank $R$ uses:
+\begin{equation}
+S \cdot R \cdot \Gamma \cdot 1^3 + R\cdot T \cdot \Gamma \cdot \Lambda = R\cdot \Gamma \left( S + T\cdot \Lambda \right)
+\end{equation}
+multiplications if the decomposition is carried out on the input channels, and
+\begin{equation}
+    S \cdot R \cdot \Gamma \cdot \Lambda + R \cdot T \cdot \Gamma \cdot 1^3 = R \cdot \Gamma \cdot \left( S \cdot \Lambda + T \right)
+\end{equation}
+multiplications on the output channels. For the convolution using the Tucker-2 decomposition with ranks $R_1$ and $R_2$, the forward push use:
+\begin{equation}
+    S\cdot R_1 \cdot \Gamma \cdot 1^3 + R_1 \cdot R_2 \cdot \Gamma \cdot \Lambda + R_2 \cdot T \cdot \Gamma \cdot 1^3 = \Gamma \left( S\cdot R_1 + R_1\cdot R_2 \cdot \Lambda + R_2\cdot T \right)
+\end{equation}
+multiplications. \autoref{tab:number_multiplications_conv} shows how the ranks should be chosen in order for the compressions to have less multiplications than the original convolution, hence be faster.
+\begin{table}
+    \centering
+    \captionsetup{width=.95\linewidth}
+    \caption{Number of multiplications used for a forward push for a 3D convolution using different algorithms and how the ranks should be chosen so the compressions are faster. $\Lambda$ and $\Gamma$ are defined in \eqref{eq:lambda_gamma_definition}.}
+    \begin{tabular}{l|c|c}
+        \textbf{Method} & \textbf{\# Multiplications} & \textbf{Faster when} \\ \hline
+        Original & $S\cdot T \cdot \Gamma \cdot \Lambda$ & - \\
+        Tucker-1 (in) & $R\cdot \Gamma \left( S + T\cdot \Lambda \right)$ & $R < \frac{S\cdot T\cdot \Lambda}{S + T\cdot \Lambda}$  \\
+        Tucker-1 (out) & $ R \cdot \Gamma \left( S \cdot \Lambda + T \right)$ & $R < \frac{S\cdot T \cdot \Lambda}{S\cdot \Lambda + T}$\\
+        Tucker-2 & $\Gamma \left( S\cdot R_1 + R_1\cdot R_2 \cdot \Lambda + R_2\cdot T \right)$ & $S\cdot R_1 + R_1\cdot R_2 \cdot \Lambda + R_2\cdot T < S\cdot T \cdot \Lambda$
+    \end{tabular}
+    \label{tab:number_multiplications_conv}
+\end{table}
+
 \subsubsection{Rank Selection}
+There will be no all-round method for rank selection in this report. Where it is possible VBMF will be used to do the decomposition automatically as explained in \autoref{tex:VBMF}. In the cases where VBMF fails the ranks will be set experimentally be the same as the rank in using the other dimension. This is mostly for the linear layers, where the automatic method fails when trying to find the rank in the input channel dimension.
 
 \subsubsection{One-Shot Compression a an entire CNN Using Tucker}
 Using the different algorithms for compressing a single layer in the CNN and appropriate ranks, the algorithm for compressing a whole CNN is given in \autoref{alg:one_shot_tucker}. The algorithm is basically training an appropriate network, decomposing all the layers given the methods above, and then fine-tuning the new decomposed network.
@@ -213,3 +250,5 @@ Using the different algorithms for compressing a single layer in the CNN and app
     \State train $\texttt{net\_dcmp}$ using the given training data \Comment{fine-tuning}
 \end{algorithmic}
 \end{algorithm}
+
+\subsection{Architectures Used in This Thesis}
