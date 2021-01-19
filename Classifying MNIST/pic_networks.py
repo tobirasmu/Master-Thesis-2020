@@ -79,7 +79,7 @@ def compressNetwork(net):
     # Decomposing
     netDec.conv1 = conv_to_tucker1(netDec.conv1)
     netDec.conv2 = conv_to_tucker2(netDec.conv2)
-    netDec.l1 = lin_to_tucker2(netDec.l1, ranks=[2, 5])  # EVMBF does not work...
+    netDec.l1 = lin_to_tucker2(netDec.l1)
     netDec.l2 = lin_to_tucker1(netDec.l2)
     return netDec
 
