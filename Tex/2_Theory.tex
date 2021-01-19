@@ -105,12 +105,27 @@ Now the convolutional kernel $\tensor{K}$ is 5-dimensional and have the size $D_
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Tensors and Tensor Decomposition}\label{tex:decomp_methods}
-A tensor is a data array of an arbitrary number of dimensions, hence matrices are order-2 tensors, while vectors are order-1 tensors. Tensors are frequently used in many different fields that have to do with computer science\cite{Mørup2011}. Tensors have many great properties due to their many dimensions, but also quickly grow very large.
+A tensor is a data array of an arbitrary number of dimensions, hence matrices are order-2 tensors, while vectors are order-1 tensors. Tensors are frequently used in many different fields that have to do with computer science\cite{Mørup2011}. Tensors have many great properties due to their many dimensions, but also quickly grow very large. Two central concepts used in calculations with tensors are matricization and the $n$-mode product, which will be discussed in \autoref{tex:tensor_operations}.
 
-The concept of tensor decomposition or tensor factorisation concerns itself with exploiting the tendencies of the data in order to find a representation that is smaller and easier to work with. There are multiple representations or decompositions that will be discussed in detail in this section. The Tucker method will be discussed in a bit more detail, due to its importance to the work done in the thesis. Since the python library \textit{TensorLy} has great implementations of the different algorithms, it will be used to calculate the decompositions throughout the thesis. The algorithms for estimating the decomposition are given in \autoref{app:DecompEstimation}.
+The concept of tensor decomposition or tensor factorisation concerns itself with exploiting the tendencies of the data in order to find a representation that is smaller and easier to work with. There are multiple representations or decompositions that will be discussed in detail later in this section. The Tucker method will be discussed in a bit more detail, due to its importance to the work done in the thesis. Since the python library \textit{TensorLy} has great implementations of the different algorithms, it will be used to calculate the decompositions throughout the thesis. The algorithms for estimating the decomposition are given in \autoref{app:DecompEstimation}.
 
-\paragraph{Basic tensor representation and operations} \label{tex:tensor_operations}
-Tensors can be matricized by the use of one of the dimensions
+\subsubsection{Basic tensor representation and operations} \label{tex:tensor_operations}
+\paragraph{Tensor matricization}
+It is often useful to reshape a tensor of order > 2 into a matrix. This is for instance in order to calculate the product of the tensor and a matrix. Tensors can be matricized with respect to one of its dimensions, i.e. using the $n$th dimension, the matricization of a tensor $\tensor{X}$ becomes:
+\begin{equation}
+    \tensor{X}^{I_1 \times I_2 \times \dots I_N} \xrightarrow[matricization]{} \bs{X}_{(n)}^{I_n \times I_1 \cdot I_2 \cdots I_{n-1} \cdot I_{n+1} \cdots I_N}
+\end{equation}
+Which means that the first dimension of the resulting matrix is equal to the $n$th dimension of $\tensor{X}$ while the second dimension will be equal to the product of the remaining dimensions. Going from a matrix to a tensor is called un-matricization or tensorizing and is given by:
+\begin{equation}
+      \bs{X}_{(n)}^{I_n \times I_1 \cdot I_2 \cdots I_{n-1} \cdot I_{n+1} \cdots I_N} \xrightarrow[un-matricization]{} \tensor{X}^{I_1 \times I_2 \times \dots I_N}
+\end{equation}
+Notice that the original (or desired) shape of $\tensor{X}$ must be know in order to tensorize a matrix. In XXX matricization of an order-3 matrix using each of the modes is illustrated.
+\begin{figure}
+    \centering
+    \includegraphics{}
+    \caption{Caption}
+    \label{fig:my_label}
+\end{figure}
 
 \subsubsection{CP / Parafac}
 CP (Candecomp) decomposition that also goes by the names of Parafac or canonical decomposition is the most basic representation. The CP decomposition represents the tensor as the sum of $R$ outer-vector products, where each dimension has a loading vector for each $R$. $R$ is the rank of the decomposition and obviously this allows for more specific details the higher $R$ gets. The CP decomposition of an order-3 tensor $\tensor{X}$ of size $n_1\times n_2 \times n_3$ is given by:
@@ -167,7 +182,7 @@ Rank selection for the Tucker decomposition is either choosing appropriate ranks
  \end{equation}
 I.e. the approximation being equal to the actual tensor. Here $\bs{a}_i$, $\bs{b}_i$, and $\bs{c}_i$ are the $i$th column of the loading matrices respectively. Finding the optimal ranks is a challenging problem, which have been solved in different ways. Due to the challenge of the problem, this thesis will make use of the analytical solution to variational Bayesian matrix factorization (VBMF) by inspiration from Kim et. al \cite{Kim2016}. This approach is chosen because it is a good and easily reproducible heuristic, even though it is sub-optimal. VBMF will be discussed in the following.
 
-\paragraph{Variational Bayesian Matrix Factorization}
+\paragraph{Variational Bayesian Matrix Factorization} \label{tex:VBMF}
 The global analytical solution to the VBMF have been derived by Nakajima et. al in 2013 \cite{Nakajima2013}, and can be used as a method for rank selection for the Tucker model\footnote{Also applicable to CP-decomposition, since it is a special case of Tucker decomposition}. The authors use a probabilistic model to find the optimal low-rank factorization of a matrix, automatically taking care of the noise. Given an matrix $\bs{V}$ of size $L\times M$ that is assumed to be the sum of a target matrix and an error matrix:
 \begin{equation}
     \bs{V}^{L\times M} = \bs{U}^{L\times M} + \bs{E}^{L\times M}
