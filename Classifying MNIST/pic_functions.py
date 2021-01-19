@@ -420,7 +420,6 @@ def lin_to_tucker2(layer, ranks=None):
         else:
             rank = estimate_ranks(weights, [1])
     ranks = [rank[0], rank[0]] if ranks is None else ranks
-
     core, [A, B] = partial_tucker(weights, modes=[0, 1], ranks=ranks)
 
     # Making the sequence of 3 smaller layers
