@@ -211,7 +211,7 @@ multiplications. \autoref{tab:number_multiplications_conv} shows how the ranks s
 \end{table}
 
 \subsubsection{Rank Selection}
-There will be no all-round method for rank selection in this report. Where it is possible VBMF will be used to do the decomposition automatically as explained in \autoref{tex:VBMF}. In the cases where VBMF fails the ranks will be set experimentally be the same as the rank in using the other dimension. This is mostly for the linear layers, where the automatic method fails when trying to find the rank in the input channel dimension. The implementation of the VBMF is taken from 
+There will be no all-round method for rank selection in this report. Where it is possible VBMF will be used to do the decomposition automatically as explained in \autoref{tex:VBMF}. In the cases where VBMF fails the ranks will be set experimentally be the same as the rank in using the other dimension. This is mostly for the linear layers, where the automatic method fails when trying to find the rank in the input channel dimension. The implementation of the VBMF is taken from \cite{VBMF_impl}.
 
 \subsubsection{One-Shot Compression a an entire CNN Using Tucker}
 Using the different algorithms for compressing a single layer in the CNN and appropriate ranks, the algorithm for compressing a whole CNN is given in \autoref{alg:one_shot_tucker}. The algorithm is basically training an appropriate network, decomposing all the layers given the methods above, and then fine-tuning the new decomposed network.
@@ -252,3 +252,7 @@ Using the different algorithms for compressing a single layer in the CNN and app
 \end{algorithm}
 
 \subsection{Architectures Used in This Thesis}
+In order to assess the performance of the different methods used in this thesis, baselines need to be established. To do this original or uncompressed architectures need to be chosen, based on what have previously proved to be appropriate in the different cases, and what intuitively makes sense. The architectures for the two different parts mentioned earlier in this section will be discussed in the following.
+
+\subsubsection{Decomposing the input}
+For this problem, the architecture needs to be 
