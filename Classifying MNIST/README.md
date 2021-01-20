@@ -27,4 +27,6 @@ Is a function that defines a CNN, trains it, decomposes it, and fine-tunes the d
 
 
 ## Timing
-TBW...
+
+#### pic_timing.py
+Is a function that times the trained network and the decomposition and calculates the uncertainties of the timing. Also the vgg-16 network is timed both originally - and compressed.
