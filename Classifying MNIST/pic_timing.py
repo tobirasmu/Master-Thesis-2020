@@ -1,4 +1,3 @@
-import cv2
 import torch as tc
 from pic_functions import time_conv, time_lin, numFLOPsPerPush, numParams
 from pic_networks import get_VGG16, Net, compressNetwork

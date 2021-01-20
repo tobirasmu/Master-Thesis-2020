@@ -105,7 +105,7 @@ def get_VGG16(compressed=False):
         vgg16_dec.features[24] = conv_to_tucker2(vgg16.features[24])
         vgg16_dec.features[26] = conv_to_tucker2(vgg16.features[26])
         vgg16_dec.features[28] = conv_to_tucker2(vgg16.features[28])
-        vgg16_dec.classifier[0] = lin_to_tucker2(vgg16.classifier[0], ranks=[50, 10])  # Takes LONG to decompose
+        vgg16_dec.classifier[0] = lin_to_tucker2(vgg16.classifier[0])  # Takes long to decompose
         vgg16_dec.classifier[3] = lin_to_tucker1(vgg16.classifier[3])
         vgg16_dec.classifier[6] = lin_to_tucker1(vgg16.classifier[6])
         return vgg16_dec
