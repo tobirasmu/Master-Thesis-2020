@@ -28,5 +28,8 @@ Is a function that defines a CNN, trains it, decomposes it, and fine-tunes the d
 
 ## Timing
 
+#### layer_timing_functions.py
+Holds the classes for single layer architectures to be used for timing a single layer
+
 #### pic_timing.py
-Is a function that times the trained network and the decomposition and calculates the uncertainties of the timing. Also the vgg-16 network is timed both originally - and compressed.
+Is a function that times the trained network and the decomposition and calculates the uncertainties of the timing. Also the vgg-16 network is timed both originally and compressed in order to test the methods on bigger networks.
