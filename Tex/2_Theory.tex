@@ -111,7 +111,7 @@ The concept of tensor decomposition or tensor factorisation concerns itself with
 
 \subsubsection{Basic tensor representation and operations} \label{tex:tensor_operations}
 \paragraph{Tensor matricization}
-It is often useful to reshape a tensor of order > 2 into a matrix. This is for instance in order to calculate the product of the tensor and a matrix. Tensors can be matricized with respect to one of its dimensions, i.e. using the $n$th dimension, the matricization of a tensor $\tensor{X}$ becomes:
+It is often useful to reshape a tensor of order $> 2$ into a matrix. This is for instance in order to calculate the product of the tensor and a matrix. Tensors can be matricized with respect to one of its dimensions, i.e. using the $n$th dimension, the matricization of a tensor $\tensor{X}$ becomes:
 \begin{equation}
     \tensor{X}^{I_1 \times I_2 \times \dots I_N} \xrightarrow[matricization]{} \bs{X}_{(n)}^{I_n \times I_1 \cdot I_2 \cdots I_{n-1} \cdot I_{n+1} \cdots I_N}
 \end{equation}
@@ -119,13 +119,25 @@ Which means that the first dimension of the resulting matrix is equal to the $n$
 \begin{equation}
       \bs{X}_{(n)}^{I_n \times I_1 \cdot I_2 \cdots I_{n-1} \cdot I_{n+1} \cdots I_N} \xrightarrow[un-matricization]{} \tensor{X}^{I_1 \times I_2 \times \dots I_N}
 \end{equation}
-Notice that the original (or desired) shape of $\tensor{X}$ must be know in order to tensorize a matrix. In XXX matricization of an order-3 matrix using each of the modes is illustrated.
+Notice that the original (or desired) shape of $\tensor{X}$ must be know in order to tensorize a matrix. In \autoref{fig:matricization} matricization of an order-3 matrix using each of the modes is illustrated.
 \begin{figure}
     \centering
-    \includegraphics{}
-    \caption{Caption}
-    \label{fig:my_label}
+    \captionsetup{width=.8\linewidth}
+    \includegraphics[width=.8\linewidth]{Pics/02_Theory/matricization.jpeg}
+    \caption{Matricization of an order-3 tensor using each of the three modes. $n_i$ is the size of the $i$th dimension.}
+    \label{fig:matricization}
 \end{figure}
+
+\paragraph{The n-mode product}
+The $n$-mode product is multiplying a a matrix onto a tensor resulting in a tensor. It is actually a three-step process of matricizing the tensor, multiplying with the matrix, and tensorizing the result to approximately the same shape. The $n$-mode product between an order $N$ tensor $\tensor{X}$ of size $I_1\times I_2 \times \dots \times I_N$ and a matrix $\bs{M}$ of size $J\times I_n$ is given by:
+\begin{equation}
+    \tensor{X}^{I_1\times I_2\times \dots \times I_n \times \dots \times I_N} \times_n \bs{M}^{J\times I_n} = \tensor{Z}^{I_1\times I_2 \times \dots \times I_{n-1} \times J \times I_{n+1} \times \dots \times I_N}
+\end{equation}
+Which corresponds to tensorizing or un-matricizing the matrix-matrix product:
+\begin{equation}
+    \bs{Z}_{(n)} = \bs{M} \bs{X}_{(n)}
+\end{equation}
+Where the un-matricization of $\bs{Z}$ needs to have the same shape as $\tensor{X}$ except $J$ instead of $I_n$.
 
 \subsubsection{CP / Parafac}
 CP (Candecomp) decomposition that also goes by the names of Parafac or canonical decomposition is the most basic representation. The CP decomposition represents the tensor as the sum of $R$ outer-vector products, where each dimension has a loading vector for each $R$. $R$ is the rank of the decomposition and obviously this allows for more specific details the higher $R$ gets. The CP decomposition of an order-3 tensor $\tensor{X}$ of size $n_1\times n_2 \times n_3$ is given by:

@@ -211,7 +211,7 @@ multiplications. \autoref{tab:number_multiplications_conv} shows how the ranks s
 \end{table}
 
 \subsubsection{Rank Selection}
-There will be no all-round method for rank selection in this report. Where it is possible VBMF will be used to do the decomposition automatically as explained in \autoref{tex:VBMF}. In the cases where VBMF fails the ranks will be set experimentally be the same as the rank in using the other dimension. This is mostly for the linear layers, where the automatic method fails when trying to find the rank in the input channel dimension.
+There will be no all-round method for rank selection in this report. Where it is possible VBMF will be used to do the decomposition automatically as explained in \autoref{tex:VBMF}. In the cases where VBMF fails the ranks will be set experimentally be the same as the rank in using the other dimension. This is mostly for the linear layers, where the automatic method fails when trying to find the rank in the input channel dimension. The implementation of the VBMF is taken from 
 
 \subsubsection{One-Shot Compression a an entire CNN Using Tucker}
 Using the different algorithms for compressing a single layer in the CNN and appropriate ranks, the algorithm for compressing a whole CNN is given in \autoref{alg:one_shot_tucker}. The algorithm is basically training an appropriate network, decomposing all the layers given the methods above, and then fine-tuning the new decomposed network.
