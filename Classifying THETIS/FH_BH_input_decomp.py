@@ -5,6 +5,13 @@ be chosen intuitively (obs, frame, height, width). We are interested in the temp
 will be given full rank (not decomposed). Since the frames are rather simple (BW depth), the spatial dimensions will not
 be given full rank
 """
+HPC = True
+
+import os
+path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
+    "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/"
+os.chdir(path)
+
 import torch as tc
 import torch.nn as nn
 from torch import optim
@@ -21,7 +28,7 @@ from sklearn.model_selection import KFold
 tl.set_backend('pytorch')
 
 # %% Loading the data
-HPC = True
+
 
 directory = "/zhome/2a/c/108156/Data_MSc/" if HPC else "/Users/Tobias/Desktop/Data/"
 X, Y = tc.load(directory + "data.pt")
@@ -88,7 +95,7 @@ net_orig = Net(channels * frames * height * width)
 
 
 # %% Training function
-LEARNING_RATE = 0.1
+LEARNING_RATE = 0.01
 NUM_EPOCHS = 100
 NUM_FOLDS = 5
 BATCH_SIZE = 10
