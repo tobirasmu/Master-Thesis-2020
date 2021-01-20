@@ -1,26 +1,7 @@
 \section{Methodology} \label{tex:methodology}
-Overall the methods examined in this thesis can be divided into two parts; namely those trying to decompose the input into a NN, and those decomposing the weights of a pre-trained NN with subsequent fine-tuning. In the following, the methods used within each of these parts will be discussed in detail. The Python library \textit{PyTorch}\cite{pytorch} will be used to implement and train all NN architectures, while all decomposition estimation will be executed using the Python library \textit{TensorLy}\cite{tensorly}. PyTorch provides a very popular application programming interface (API) for machine learning and tensor computing, which is easily accelerated using the graphics processing unit (GPU). TensorLy provides an API for tensor methods including the different decomposition methods described in \autoref{tex:decomp_methods}. TensorLy is also compatible with different back-ends\footnote{The back-end is the Python library that is responsible for low-level calculation and specification of the tensors. Typically \textit{NumPy}\cite{numpy} or \textit{PyTorch}\cite{pytorch}}, making it easy to combine with PyTorch. The algorithms used for estimating the decompositions in \textit{TensorLy} are given in \autoref{app:DecompEstimation}.
+Overall the methods examined in this thesis can be divided into two parts; namely those trying to decompose the input into a NN, and those decomposing the weights of a pre-trained NN with subsequent fine-tuning. In the following, the methods used within each of these parts will be discussed in detail. The Python library \textit{PyTorch}\cite{pytorch} will be used to implement and train all NN architectures, while all decomposition estimation will be executed using the Python library \textit{TensorLy}\cite{tensorly}. PyTorch provides a very popular application programming interface (API) for machine learning and tensor computing, which is easily accelerated using the graphics processing unit (GPU). TensorLy provides an API for tensor methods including the different decomposition methods described in \autoref{tex:decomp_methods}. TensorLy is also compatible with different back-ends\footnote{The back-end is the Python library that is responsible for low-level calculation and specification of the tensors. Typically \textit{NumPy}\cite{numpy} or \textit{PyTorch}\cite{pytorch}}, making it easy to combine with PyTorch. The algorithms used for estimating the decompositions in \textit{TensorLy} are given in \autoref{app:DecompEstimation}. 
 
-\subsubsection{Computational complexity of neural networks}
-In order to assess the theoretical performance of the different networks, we will make use of the number of floating point operations (FLOPs) that it takes for the network to do one forward push. We assume that the non-linearity (activation function) and the max-pooling computations for free, and only consider the FLOPs used in the dense and convolutional layers respectively. 
-
-\paragraph{Dense layer}
-For a dense layer with $N_{in}$ input neurons and $N_{out}$ output neurons, the forward push is calculated as a matrix-vector product. This means that it has $N_{in}N_{out}$ multiplications and $(N_{in}-1)N_{out}$ additions making it a total of:
-\begin{equation}
-    FLOPs_{lin} = N_{in}N_{out} + (N_{in}-1)N_{out} = N_{out} (2\cdot N_{in}-1)
-\end{equation}
-FLOPs to compute a forward push through the dense layer.
-
-\paragraph{Convolutional layer}
-The number of FLOPs needed for a forward push in a convolutional layer is not as simple to compute due to the many hyper-parameters. The FLOPs will be based on the number of outputs, since this is direct result of the hyper-parameters. The following will only be computed for a 3D video convolutional kernel, since it generalises to an image kernel. Consider a convolutional layer with input channels $S$, output channels $T$, convolutional kernel $(D_F, D_H, D_W)$, and input size $(F, H, W)$. For every one of the $F' H' W' T$ output values, the filter is applied once which takes $D_F D_H D_W S$ multiplications and the same minus 1 additions. This makes the convolutional forward push use a total of:
-\begin{equation}
-    FLOPs_{conv} = T\cdot F'\cdot H'\cdot W'\cdot (2\cdot S \cdot D_F\cdot D_H\cdot D_W - 1)
-\end{equation}
-FLOPs to calculate. Here the output size of each dimension is calculated using the formula:
-\begin{equation}
-    out_{dim}(d, D, \Delta, P) = \frac{d - D + 2\cdot P}{\Delta} + 1
-\end{equation}
-Where $d$ is the input size, $D$ is the kernel size, $\Delta$ is the stride, and $P$ is the padding - all of the given dimension.
+After both the above mentioned methods have been discussed in detail, an overview of the architectures used in this thesis, and the means of calculating the theoretical speed of the networks will be given.
 
 \subsection{Decomposing the Input}
 In reality, tampering with data that is going to be learned is data preprocessing, hence decomposing the input is just a form of this. Data preprocessing is a vital part of almost all ML, because structured data of high quality is simply much easier to learn and to work with. Put in another way: "Garbage in, garbage out". In addition knowledge of the structure and the variance of the data often ease the algorithm development process. The decomposition algorithms seems appropriate for this task due to their ability to exploit the structure of the data.
@@ -256,3 +237,24 @@ In order to assess the performance of the different methods used in this thesis,
 
 \subsubsection{Decomposing the input}
 For this problem, the architecture needs to be 
+
+\subsection{Computational complexity of neural networks}
+In order to assess the theoretical performance of the different networks, we will make use of the number of floating point operations (FLOPs) that it takes for the network to do one forward push. We assume that the non-linearity (activation function) and the max-pooling computations for free, and only consider the FLOPs used in the dense and convolutional layers respectively. 
+
+\subsubsection{Dense layer}
+For a dense layer with $N_{in}$ input neurons and $N_{out}$ output neurons, the forward push is calculated as a matrix-vector product. This means that it has $N_{in}N_{out}$ multiplications and $(N_{in}-1)N_{out}$ additions making it a total of:
+\begin{equation}
+    FLOPs_{lin} = N_{in}N_{out} + (N_{in}-1)N_{out} = N_{out} (2\cdot N_{in}-1)
+\end{equation}
+FLOPs to compute a forward push through the dense layer.
+
+\subsubsection{Convolutional layer}
+The number of FLOPs needed for a forward push in a convolutional layer is not as simple to compute due to the many hyper-parameters. The FLOPs will be based on the number of outputs, since this is direct result of the hyper-parameters. The following will only be computed for a 3D video convolutional kernel, since it generalises to an image kernel. Consider a convolutional layer with input channels $S$, output channels $T$, convolutional kernel $(D_F, D_H, D_W)$, and input size $(F, H, W)$. For every one of the $F' H' W' T$ output values, the filter is applied once which takes $D_F D_H D_W S$ multiplications and the same minus 1 additions. This makes the convolutional forward push use a total of:
+\begin{equation}
+    FLOPs_{conv} = T\cdot F'\cdot H'\cdot W'\cdot (2\cdot S \cdot D_F\cdot D_H\cdot D_W - 1)
+\end{equation}
+FLOPs to calculate. Here the output size of each dimension is calculated using the formula:
+\begin{equation}
+    out_{dim}(d, D, \Delta, P) = \frac{d - D + 2\cdot P}{\Delta} + 1
+\end{equation}
+Where $d$ is the input size, $D$ is the kernel size, $\Delta$ is the stride, and $P$ is the padding - all of the given dimension.
