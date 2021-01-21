@@ -5,7 +5,7 @@ be chosen intuitively (obs, frame, height, width). We are interested in the temp
 will be given full rank (not decomposed). Since the frames are rather simple (BW depth), the spatial dimensions will not
 be given full rank
 """
-HPC = True
+HPC = False
 
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
@@ -22,7 +22,7 @@ import tensorly as tl
 from tensorly.tenalg import mode_dot
 from tensorly.decomposition import partial_tucker
 import matplotlib.pyplot as plt
-from video_functions import writeTensor2video, train_epoch, eval_epoch, plotAccs
+from video_functions import writeTensor2video, train_epoch, eval_epoch, plotAccs, showFrame
 from sklearn.model_selection import KFold
 
 tl.set_backend('pytorch')
@@ -38,12 +38,12 @@ nTrain = int(0.85 * N)
 
 # %% Doing the decomposition
 modes = [0]
-ranks = [100]
+ranks = [2]
 
 core, [A] = partial_tucker(X[:nTrain], modes=modes, ranks=ranks)
 
 # %% Output a video approximation
-approx_loadings = [-0.060, 0, 0.10, 0.1]
+approx_loadings = [-0.060, 0]
 appr = mode_dot(core, tc.tensor(approx_loadings), mode=modes[0]) * 255
 writeTensor2video(appr[0:3], 'test', "/Users/Tobias/Desktop/")
 
@@ -57,12 +57,21 @@ plt.scatter(A4s[:, 0], A4s[:, 1], facecolor='Blue', edgecolor='blue', marker="x"
     It does not makes sense to plot the means, since they are very equal, what does however make 2 different clusters
     is the two different locations at which the videos have been shot.
 """
-# plt.legend(labels=(str(digits[0]), str(digits[1]), 'Mean ' + str(digits[0]), 'Mean ' + str(digits[1]), "Overall"))
+means_loc_1 = tc.mean(A[tc.where(A[:, 1] > 0.075)], dim=0)
+means_loc_2 = tc.mean(A[tc.where(A[:, 1] < 0.075)], dim=0)
+plt.scatter(means_loc_1[0], means_loc_1[1], facecolor="Black", s=50, marker="s")
+plt.scatter(means_loc_2[0], means_loc_2[1], facecolor="Black", s=50, marker="^")
 plt.xlabel('1. loading in A')
 plt.ylabel('2. loading in A')
-plt.legend(labels=('Forehand flat', 'Backhand'), loc=2)
+plt.legend(labels=('Forehand flat', 'Backhand', 'Mean location 1', 'Mean location 2'), loc=0)
 plt.title('Loadings of A for all the training examples')
 plt.show()
+
+approx_1 = mode_dot(core, means_loc_1, mode=modes[0]) * 255
+showFrame(approx_1[0:3, 14], saveName="/Users/Tobias/Desktop/loc1.png")
+approx_2 = mode_dot(core, means_loc_2, mode=modes[0]) * 255
+showFrame(approx_2[0:3, 14], saveName="/Users/Tobias/Desktop/loc2.png")
+
 
 # %% Histograms of the loadings
 plt.subplot(2, 2, 1)
