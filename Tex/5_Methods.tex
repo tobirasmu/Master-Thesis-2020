@@ -191,10 +191,10 @@ multiplications. \autoref{tab:number_multiplications_conv} shows how the ranks s
     \label{tab:number_multiplications_conv}
 \end{table}
 
-\subsubsection{Rank Selection}
+\subsubsection{Rank selection}
 There will be no all-round method for rank selection in this report. Where it is possible VBMF will be used to do the decomposition automatically as explained in \autoref{tex:VBMF}. In the cases where VBMF fails the ranks will be set experimentally be the same as the rank in using the other dimension. This is mostly for the linear layers, where the automatic method fails when trying to find the rank in the input channel dimension. The implementation of the VBMF is taken from \cite{VBMF_impl}.
 
-\subsubsection{One-Shot Compression a an entire CNN Using Tucker}
+\subsubsection{One-shot compression a an entire CNN using Tucker}
 Using the different algorithms for compressing a single layer in the CNN and appropriate ranks, the algorithm for compressing a whole CNN is given in \autoref{alg:one_shot_tucker}. The algorithm is basically training an appropriate network, decomposing all the layers given the methods above, and then fine-tuning the new decomposed network.
 
 \begin{algorithm} \caption{One-Shot Tucker Compression of CNN} \label{alg:one_shot_tucker}
@@ -238,7 +238,7 @@ In order to assess the performance of the different methods used in this thesis,
 \subsubsection{Decomposing the input}
 For this problem, the architecture needs to be 
 
-\subsection{Computational complexity of neural networks}
+\subsection{Computational complexity of neural networks}\label{tex:computational_complexity}
 In order to assess the theoretical performance of the different networks, we will make use of the number of floating point operations (FLOPs) that it takes for the network to do one forward push. We assume that the non-linearity (activation function) and the max-pooling computations for free, and only consider the FLOPs used in the dense and convolutional layers respectively. 
 
 \subsubsection{Dense layer}
