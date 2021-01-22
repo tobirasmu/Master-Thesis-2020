@@ -205,21 +205,23 @@ stroke.
 The very first seems to be wrong. 
     p1_foreflat_depth_s1.avi (0) (RGB is wrong - is actually p50)
 """
+
+
 def loadData():
-        if HPC:
-            directory = "/zhome/2a/c/108156/Data_MSc/"
-            inputForehand = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/forehand_filenames_adapted.csv"
-            inputBackhand = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/backhand_filenames_adapted.csv"
-            X, Y = loadTHETIS((0, 1), (inputForehand, inputBackhand), ([10, 45], [0]), directory,
+    if HPC:
+        directory = "/zhome/2a/c/108156/Data_MSc/"
+        inputForehand = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/forehand_filenames_adapted.csv"
+        inputBackhand = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/backhand_filenames_adapted.csv"
+        X, Y = loadTHETIS((0, 1), (inputForehand, inputBackhand), ([10, 45], [0]), directory,
                           out_dir=directory + "data.pt", length=LENGTH, resolution=RESOLUTION)
-        else:
-            directory = "/Users/Tobias/Desktop/Data/"
-            # Forehands
-            inputForehand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying " \
+    else:
+        directory = "/Users/Tobias/Desktop/Data/"
+        # Forehands
+        inputForehand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying " \
                         "THETIS/forehand_filenames_adapted.csv "
-            # Backhands
-            inputBackhand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying " \
-                            "THETIS/backhand_filenames_adapted.csv "
-            X, Y = loadTHETIS((0, 1), (inputForehand, inputBackhand), ([10, 45], [0]), directory,
-                                out_dir=directory + "data.pt",
-                                length=LENGTH, resolution=RESOLUTION)
+        # Backhands
+        inputBackhand = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying " \
+                        "THETIS/backhand_filenames_adapted.csv "
+        X, Y = loadTHETIS((0, 1), (inputForehand, inputBackhand), ([10, 45], [0]), directory,
+                          out_dir=directory + "data.pt",
+                          length=LENGTH, resolution=RESOLUTION)
