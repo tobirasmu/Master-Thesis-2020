@@ -22,6 +22,7 @@ import tensorly as tl
 from tensorly.tenalg import mode_dot
 from tensorly.decomposition import partial_tucker
 import matplotlib.pyplot as plt
+from timeit import timeit
 from video_functions import writeTensor2video, train_epoch, eval_epoch, plotAccs, showFrame
 from sklearn.model_selection import KFold
 
@@ -41,6 +42,7 @@ modes = [0]
 ranks = [2]
 
 core, [A] = partial_tucker(X[:nTrain], modes=modes, ranks=ranks)
+time = timeit('tl.unfold(core,3)', globals=globals())
 
 # %% Output a video approximation
 approx_loadings = [-0.060, 0]
