@@ -17,7 +17,7 @@ import torch.nn as nn
 from torch import optim
 from numpy.linalg import pinv
 from torch.nn import Linear
-from torch.nn.functional import relu
+from torch.nn.functional import relu, softmax
 import tensorly as tl
 from tensorly.tenalg import mode_dot
 from tensorly.decomposition import partial_tucker
@@ -38,14 +38,14 @@ nTrain = int(0.85 * N)
 
 # %% Doing the decomposition
 modes = [0]
-ranks = [100]
+ranks = [70]
 
 core, [A] = partial_tucker(X[:nTrain], modes=modes, ranks=ranks)
 
 # %% Output a video approximation
-approx_loadings = [-0.060, 0, 0.10, 0.1]
-appr = mode_dot(core, tc.tensor(approx_loadings), mode=modes[0]) * 255
-writeTensor2video(appr[0:3], 'test', "/Users/Tobias/Desktop/")
+#approx_loadings = [-0.060, 0, 0.10, 0.1]
+#appr = mode_dot(core, tc.tensor(approx_loadings), mode=modes[0]) * 255
+#writeTensor2video(appr[0:3], 'test', "/Users/Tobias/Desktop/")
 
 # %% Scatter plot of the first 2 loading vectors colored with the different classes
 plt.figure()
@@ -72,7 +72,7 @@ plt.hist(A[:, 1])
 
 # %% Simple neural networks to be trained
 _, channels, frames, height, width = X.shape
-hidden_neurons = 200
+hidden_neurons = 100
 
 
 class Net(nn.Module):
@@ -88,15 +88,16 @@ class Net(nn.Module):
 
         x = relu(self.l1(x))
 
-        return relu(self.l_out(x))
+        return softmax(self.l_out(x), dim=1)
 
 
 net_orig = Net(channels * frames * height * width)
-
+if tc.cuda.is_available():
+    net_orig = net_orig.cuda()
 
 # %% Training function
 LEARNING_RATE = 0.01
-NUM_EPOCHS = 100
+NUM_EPOCHS = 500
 NUM_FOLDS = 5
 BATCH_SIZE = 10
 
@@ -142,12 +143,14 @@ X_train, X_test = X[:nTrain], X[nTrain:]
 Y_train, Y_test = Y[:nTrain], Y[nTrain:]
 
 
-train(net_orig, X_train, Y_train, X_test, Y_test, "/zhome/2a/c/108156/Outputs/accuracies_input_dcmp_orig.png")
+#train(net_orig, X_train, Y_train, X_test, Y_test, "/zhome/2a/c/108156/Outputs/accuracies_input_dcmp_orig.png")
 
 # %% Approximating the As for the testing set and defining the new network
 
 A_new = tl.unfold(X_test, mode=0) @ pinv(tl.unfold(core, mode=0))
 
 net_dcmp = Net(ranks[0])
-
-train(net_dcmp, A, Y_train, A_new, Y_test, "/zhome/2a/c/108156/Outputs/accuracies_input_dcmp_decomp.png")
+if tc.cuda.is_available():
+    net_dcmp = net_dcmp.cuda()
+print("\n\nTraining the decomposed version with rank {}\n\n".format(ranks[0]))
+train(net_dcmp, A, Y_train, A_new, Y_test, "/zhome/2a/c/108156/Outputs/accuracies_input_dcmp_decomp_" + str(ranks[0]) + ".png")
