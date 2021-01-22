@@ -8,6 +8,7 @@ be given full rank
 HPC = True
 
 import os
+
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
     "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/"
 os.chdir(path)
@@ -45,9 +46,9 @@ core, [A] = partial_tucker(X[:nTrain], modes=modes, ranks=ranks)
 time = timeit('tl.unfold(core,3)', globals=globals())
 
 # %% Output a video approximation
-#approx_loadings = [-0.060, 0, 0.10, 0.1]
-#appr = mode_dot(core, tc.tensor(approx_loadings), mode=modes[0]) * 255
-#writeTensor2video(appr[0:3], 'test', "/Users/Tobias/Desktop/")
+# approx_loadings = [-0.060, 0, 0.10, 0.1]
+# appr = mode_dot(core, tc.tensor(approx_loadings), mode=modes[0]) * 255
+# writeTensor2video(appr[0:3], 'test', "/Users/Tobias/Desktop/")
 
 
 # %% Scatter plot of the first 2 loading vectors colored with the different classes
@@ -74,7 +75,6 @@ approx_1 = mode_dot(core, means_loc_1, mode=modes[0]) * 255
 showFrame(approx_1[0:3, 14], saveName="/Users/Tobias/Desktop/loc1.png")
 approx_2 = mode_dot(core, means_loc_2, mode=modes[0]) * 255
 showFrame(approx_2[0:3, 14], saveName="/Users/Tobias/Desktop/loc2.png")
-
 
 # %% Histograms of the loadings
 plt.subplot(2, 2, 1)
@@ -145,7 +145,7 @@ def train(this_net, X_train, y_train, X_test, y_test, saveAt=None):
                                                                 test_accs[epoch - 1]))
     if saveAt is None:
         saveAt = "/zhome/2a/c/108156/Outputs/accuracies_decomp.png" if HPC else "/Users/Tobias/Desktop" \
-                                                                            "/accuracies_input_decomp.png "
+                                                                                "/accuracies_input_decomp.png "
     plotAccs(train_accs, val_accs, saveName=saveAt)
     print("{:-^60}\nFinished".format(""))
 
@@ -154,8 +154,7 @@ def train(this_net, X_train, y_train, X_test, y_test, saveAt=None):
 X_train, X_test = X[:nTrain], X[nTrain:]
 Y_train, Y_test = Y[:nTrain], Y[nTrain:]
 
-
-#train(net_orig, X_train, Y_train, X_test, Y_test, "/zhome/2a/c/108156/Outputs/accuracies_input_dcmp_orig.png")
+# train(net_orig, X_train, Y_train, X_test, Y_test, "/zhome/2a/c/108156/Outputs/accuracies_input_dcmp_orig.png")
 
 # %% Approximating the As for the testing set and defining the new network
 
@@ -165,4 +164,5 @@ net_dcmp = Net(ranks[0])
 if tc.cuda.is_available():
     net_dcmp = net_dcmp.cuda()
 print("\n\nTraining the decomposed version with rank {}\n\n".format(ranks[0]))
-train(net_dcmp, A, Y_train, A_new, Y_test, "/zhome/2a/c/108156/Outputs/accuracies_input_dcmp_decomp_" + str(ranks[0]) + ".png")
+train(net_dcmp, A, Y_train, A_new, Y_test,
+      "/zhome/2a/c/108156/Outputs/accuracies_input_dcmp_decomp_" + str(ranks[0]) + ".png")
