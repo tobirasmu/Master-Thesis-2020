@@ -58,34 +58,38 @@ class Net(nn.Module):
 
 # %% Running for every rank the timing functions
 ranks = [30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 150, 200]
-test_input = get_variable(Variable(tc.rand((1, DELTA))))
-SAMPLE_SIZE = 20
+test_input = get_variable(Variable(tc.rand((1, 4, 28, 120, 160))))
+SAMPLE_SIZE = 1000
 BURN_IN = SAMPLE_SIZE // 10
 
 full_times, approx_times, network_times = [], [], []
 # First doing the original network
 net = Net(DELTA)
+if tc.cuda.is_available():
+    net = net.cuda()
+    print("CUDA enabled\n")
 full_times.append(repeat('net(test_input)', globals=globals(), number=1, repeat=(SAMPLE_SIZE + BURN_IN))[BURN_IN:])
 # Now timing each rank
+test_input = get_variable(Variable(tc.rand((1, DELTA))))
 for rank in ranks:
-    G1 = tc.rand((DELTA, rank))
+    G1 = get_variable(Variable(tc.rand((DELTA, rank))))
     net = Net(rank)
     if tc.cuda.is_available():
         net = net.cuda()
-    full_times.append(repeat('net(tc.matmul(test_input, G1))', globals=globals(), number=1, repeat=(SAMPLE_SIZE +
+    full_times.append(repeat('net(get_variable(Variable(tc.matmul(test_input, G1))))', globals=globals(), number=1, repeat=(SAMPLE_SIZE +
                                                                                                     BURN_IN))[BURN_IN:])
     approx_times.append(repeat('tc.matmul(test_input, G1)', globals=globals(), number=1, repeat=(SAMPLE_SIZE +
                                                                                                  BURN_IN))[BURN_IN:])
-    this_test_input = tc.matmul(test_input, G1)
+    this_test_input = get_variable(Variable(tc.matmul(test_input, G1)))
     network_times.append(repeat('net(this_test_input)', globals=globals(), number=1, repeat=(SAMPLE_SIZE + BURN_IN))[
                          BURN_IN:])
     parms, FLOPs = THETIS_input_numbers(rank, HIDDEN_NEURONS)
     print("For the rank of {} the number of parameters is  {}  and the number of FLOPs is  {}".format(rank, parms,
                                                                                                       FLOPs))
 
-full_times = tc.tensor(full_times)
-approx_times = tc.tensor(approx_times)
-network_times = tc.tensor(network_times)
+full_times = tc.tensor(full_times)*1000
+approx_times = tc.tensor(approx_times)*1000
+network_times = tc.tensor(network_times)*1000
 full_mean, full_sd = tc.mean(full_times, dim=1), tc.std(full_times, dim=1)
 approx_mean, approx_sd = tc.mean(approx_times, dim=1), tc.std(approx_times, dim=1)
 network_mean, network_sd = tc.mean(network_times, dim=1), tc.std(network_times, dim=1)
@@ -95,7 +99,8 @@ for i, rank in enumerate(ranks):
     print("{:-^84}".format(" Rank {:3d} ".format(rank)))
     print("{: ^14s}{: ^14s}{: ^14s}{: ^14s}{: ^14s}{: ^14s}".format("Full", "Std", "Approx", "Std", "Network", "Std"))
     print("{: ^14f}{: ^14f}{: ^14f}{: ^14f}{: ^14f}{: ^14f}".format(full_mean[i + 1], full_sd[i + 1], approx_mean[i],
-                                                                    approx_sd[i], network_mean[i], network_sd[i]))
+                                                                    approx_sd[i], network_mean[i], network_sd[i]),end='')
+    print("   ${:.3f} \\pm {:.3f}$ $(= {:.3f} + {:.3f} )$".format(full_mean[i + 1], full_sd[i + 1], approx_mean[i], network_mean[i]))
 print("{:-^84}".format(" Original network "))
 print("{: ^14s}{: ^14s}".format("Full", "Std"))
 print("{: ^14f}{: ^14f}".format(full_mean[0], full_sd[0]))

@@ -40,10 +40,10 @@ nTrain = int(0.85 * N)
 
 # %% Doing the decomposition
 modes = [0]
-ranks = [70]
+ranks = [100]
 
 core, [A] = partial_tucker(X[:nTrain], modes=modes, ranks=ranks)
-time = timeit('tl.unfold(core,3)', globals=globals())
+
 
 # %% Output a video approximation
 # approx_loadings = [-0.060, 0, 0.10, 0.1]
@@ -71,10 +71,11 @@ plt.legend(labels=('Forehand flat', 'Backhand', 'Mean location 1', 'Mean locatio
 plt.title('Loadings of A for all the training examples')
 plt.show()
 
-approx_1 = mode_dot(core, means_loc_1, mode=modes[0]) * 255
-showFrame(approx_1[0:3, 14], saveName="/Users/Tobias/Desktop/loc1.png")
-approx_2 = mode_dot(core, means_loc_2, mode=modes[0]) * 255
-showFrame(approx_2[0:3, 14], saveName="/Users/Tobias/Desktop/loc2.png")
+if not HPC:
+    approx_1 = mode_dot(core, means_loc_1, mode=modes[0]) * 255
+    showFrame(approx_1[0:3, 14], saveName="/Users/Tobias/Desktop/loc1.png")
+    approx_2 = mode_dot(core, means_loc_2, mode=modes[0]) * 255
+    showFrame(approx_2[0:3, 14], saveName="/Users/Tobias/Desktop/loc2.png")
 
 # %% Histograms of the loadings
 plt.subplot(2, 2, 1)
@@ -108,8 +109,8 @@ if tc.cuda.is_available():
     net_orig = net_orig.cuda()
 
 # %% Training function
-LEARNING_RATE = 0.01
-NUM_EPOCHS = 500
+LEARNING_RATE = 0.01  # 0.0001 for original
+NUM_EPOCHS = 1000
 NUM_FOLDS = 5
 BATCH_SIZE = 10
 
