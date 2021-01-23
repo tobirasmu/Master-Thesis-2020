@@ -1,0 +1,53 @@
+For the rank of 30 the number of parameters is  64515330  and the number of FLOPs is  129031860
+For the rank of 40 the number of parameters is  86020340  and the number of FLOPs is  172041850
+For the rank of 50 the number of parameters is  107525350  and the number of FLOPs is  215051840
+For the rank of 60 the number of parameters is  129030360  and the number of FLOPs is  258061830
+For the rank of 70 the number of parameters is  150535370  and the number of FLOPs is  301071820
+For the rank of 80 the number of parameters is  172040380  and the number of FLOPs is  344081810
+For the rank of 90 the number of parameters is  193545390  and the number of FLOPs is  387091800
+For the rank of 100 the number of parameters is  215050400  and the number of FLOPs is  430101790
+For the rank of 110 the number of parameters is  236555410  and the number of FLOPs is  473111780
+For the rank of 120 the number of parameters is  258060420  and the number of FLOPs is  516121770
+For the rank of 150 the number of parameters is  322575450  and the number of FLOPs is  645151740
+For the rank of 200 the number of parameters is  430100500  and the number of FLOPs is  860201690
+Using a sample size of 1000
+
+------------------------------------- Rank  30 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  30.534433      0.324745     30.322044      0.306182      0.081424      0.003619      $30.534 \pm 0.325$ $(= 30.322 + 0.081 )$
+------------------------------------- Rank  40 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  38.480545      0.370564     38.084709      0.425094      0.086726      0.006473      $38.481 \pm 0.371$ $(= 38.085 + 0.087 )$
+------------------------------------- Rank  50 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  47.789726      0.300414     47.474094      0.383137      0.092717      0.004086      $47.790 \pm 0.300$ $(= 47.474 + 0.093 )$
+------------------------------------- Rank  60 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  58.150902      0.373375     57.810528      0.423290      0.092620      0.004461      $58.151 \pm 0.373$ $(= 57.811 + 0.093 )$
+------------------------------------- Rank  70 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  72.010834      0.450453     71.641472      0.488814      0.092262      0.002929      $72.011 \pm 0.450$ $(= 71.641 + 0.092 )$
+------------------------------------- Rank  80 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  75.648300      0.397617     75.409225      0.676894      0.092695      0.003919      $75.648 \pm 0.398$ $(= 75.409 + 0.093 )$
+------------------------------------- Rank  90 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  90.568863      0.476265     90.355278      0.614858      0.092658      0.004038      $90.569 \pm 0.476$ $(= 90.355 + 0.093 )$
+------------------------------------- Rank 100 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  99.905144      0.590903     99.507118      0.700143      0.092593      0.004200      $99.905 \pm 0.591$ $(= 99.507 + 0.093 )$
+------------------------------------- Rank 110 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  106.204964     0.685193     106.113602     0.700098      0.092457      0.004358      $106.205 \pm 0.685$ $(= 106.114 + 0.092 )$
+------------------------------------- Rank 120 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  113.460548     0.986025     113.081367     0.905282      0.093089      0.004528      $113.461 \pm 0.986$ $(= 113.081 + 0.093 )$
+------------------------------------- Rank 150 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  138.881317     0.910441     138.528381     0.889005      0.093937      0.004449      $138.881 \pm 0.910$ $(= 138.528 + 0.094 )$
+------------------------------------- Rank 200 -------------------------------------
+     Full          Std          Approx         Std         Network         Std      
+  174.968262     1.870299     174.853119     3.352700      0.094032      0.003575      $174.968 \pm 1.870$ $(= 174.853 + 0.094 )$
+--------------------------------- Original network ---------------------------------
+     Full          Std      
+  95.243362      1.641645   
