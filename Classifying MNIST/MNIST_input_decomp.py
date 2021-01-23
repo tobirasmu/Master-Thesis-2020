@@ -130,11 +130,11 @@ class Net(nn.Module):
         self.l_out = Linear(in_features=num_l1, out_features=num_classes, bias=True)
         # self.norm = BatchNorm1d(num_l1)
 
-        self.dropout = Dropout(p=0.2)
+        #self.dropout = Dropout(p=0.2)
 
     def forward(self, x):
         x = x.view(-1, height * width)
-        x = self.dropout(relu(self.l1(x)))
+        x = relu(self.l1(x))
 
         # x = self.dropout(relu(self.l2(x)))
 
