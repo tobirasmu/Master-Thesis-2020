@@ -4,10 +4,10 @@ from video_functions import numFLOPsPerPush, time_conv, time_lin, get_variable
 from timeit import repeat
 from torch.autograd import Variable
 
-HPC = True
+HPC = False
 
 NUM_OBS = 1
-SAMPLE_SIZE = 1000
+SAMPLE_SIZE = 10
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 

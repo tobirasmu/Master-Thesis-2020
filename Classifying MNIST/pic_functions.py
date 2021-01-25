@@ -451,7 +451,10 @@ def estimate_ranks(weight_tensor, dimensions):
     ranks = []
     for dim in dimensions:
         _, diag, _, _ = EVBMF(tl.unfold(weight_tensor, dim))
-        ranks.append(diag.shape[dim])
+        if diag.shape[dim] == 0:
+            ranks.append(1)
+        else:
+            ranks.append(diag.shape[dim])
     return ranks
 
 
