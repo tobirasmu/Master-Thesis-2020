@@ -6,8 +6,8 @@ from torch.autograd import Variable
 
 HPC = True
 
-NUM_OBS = 10
-SAMPLE_SIZE = 100
+NUM_OBS = 1
+SAMPLE_SIZE = 1000
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 

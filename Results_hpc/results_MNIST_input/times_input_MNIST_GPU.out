@@ -1,19 +1,33 @@
 CUDA enabled
 
 For the original network the number of parameters is  16684  and the number of FLOPs is  31730
+
 For the rank of 2 the number of parameters is  1830  and the number of FLOPs is  3584
+
 For the rank of 3 the number of parameters is  2635  and the number of FLOPs is  5191
+
 For the rank of 5 the number of parameters is  4245  and the number of FLOPs is  8405
+
 For the rank of 7 the number of parameters is  5855  and the number of FLOPs is  11619
+
 For the rank of 10 the number of parameters is  8270  and the number of FLOPs is  16440
+
 For the rank of 15 the number of parameters is  12295  and the number of FLOPs is  24475
+
 For the rank of 20 the number of parameters is  16320  and the number of FLOPs is  32510
+
 For the rank of 30 the number of parameters is  24370  and the number of FLOPs is  48580
+
 For the rank of 40 the number of parameters is  32420  and the number of FLOPs is  64650
+
 For the rank of 50 the number of parameters is  40470  and the number of FLOPs is  80720
+
 For the rank of 100 the number of parameters is  80720  and the number of FLOPs is  161070
+
 For the rank of 150 the number of parameters is  120970  and the number of FLOPs is  241420
+
 For the rank of 300 the number of parameters is  241720  and the number of FLOPs is  482470
+
 Using a sample size of 100000
 
 ------------------------------------- Rank   2 -------------------------------------

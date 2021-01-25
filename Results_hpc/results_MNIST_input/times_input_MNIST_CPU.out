@@ -1,17 +1,30 @@
 For the original network the number of parameters is  8734  and the number of FLOPs is  15860
 For the rank of 2 the number of parameters is  1700  and the number of FLOPs is  3354
+
 For the rank of 3 the number of parameters is  2495  and the number of FLOPs is  4941
+
 For the rank of 5 the number of parameters is  4085  and the number of FLOPs is  8115
+
 For the rank of 7 the number of parameters is  5675  and the number of FLOPs is  11289
+
 For the rank of 10 the number of parameters is  8060  and the number of FLOPs is  16050
+
 For the rank of 15 the number of parameters is  12035  and the number of FLOPs is  23985
+
 For the rank of 20 the number of parameters is  16010  and the number of FLOPs is  31920
+
 For the rank of 30 the number of parameters is  23960  and the number of FLOPs is  47790
+
 For the rank of 40 the number of parameters is  31910  and the number of FLOPs is  63660
+
 For the rank of 50 the number of parameters is  39860  and the number of FLOPs is  79530
+
 For the rank of 100 the number of parameters is  79610  and the number of FLOPs is  158880
+
 For the rank of 150 the number of parameters is  119360  and the number of FLOPs is  238230
+
 For the rank of 300 the number of parameters is  238610  and the number of FLOPs is  476280
+
 Using a sample size of 100000
 
 ------------------------------------- Rank   2 -------------------------------------
