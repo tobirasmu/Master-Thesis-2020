@@ -1,3 +1,10 @@
+HPC = True
+import os
+
+path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
+    "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
+os.chdir(path)
+
 import torch as tc
 from torch.autograd import Variable
 import torch.nn as nn
