@@ -39,8 +39,8 @@ class Net(nn.Module):
 
 
 # %% Running for every rank
-ranks = [10, 15, 20, 25, 30, 50, 100]
-SAMPLE_SIZE = 10000
+ranks = [2, 3, 5, 7, 10, 15, 20, 30, 40, 50, 100, 150, 300]
+SAMPLE_SIZE = 100000
 BURN_IN = SAMPLE_SIZE // 10
 
 full_times, approx_times, network_times = [], [], []
