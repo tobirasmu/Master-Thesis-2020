@@ -301,7 +301,7 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1, saveAt=None)
 
     # The testing accuracy
     test_preds = tc.max(net(get_variable(Variable(tc.from_numpy(data.x_test)))), 1)[1]
-    testing_accuracy = accuracy_score(test_preds.numpy(), data.y_test)
+    testing_accuracy = accuracy_score(get_data(test_preds).numpy(), data.y_test)
     print("---------------|o|----------------\nTesting accuracy on %3i samples: %f" % (
         num_samples_test, testing_accuracy))
     return testing_accuracy
