@@ -190,7 +190,7 @@ dataDecomp = Data(A.numpy(), Y_sub[:nTrain], A_new[:(nVal - nTrain)].numpy(), Y_
 # training(net, dataDecomp, 100, 2000, optimizer, every=5)
 
 # %% Looping over and training the different networks
-ranks = (2, 3, 4, 5, 7, 10, 15, 20, 25, 30, 40, 50, 70, 100, 150, 200)
+ranks = (2, 3, 5, 7, 10, 15, 20, 30, 40, 50, 100, 150, 300)
 test_accuracies = []
 
 for rank in ranks:
