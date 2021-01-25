@@ -40,7 +40,7 @@ out = net(get_variable(Variable(tc.from_numpy(x_test))))
 
 # %% Training the network
 BATCH_SIZE = 128
-NUM_EPOCHS = 10
+NUM_EPOCHS = 100
 LR_UPDs = 8
 
 data = fullData

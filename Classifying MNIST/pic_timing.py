@@ -5,10 +5,10 @@ from timeit import repeat
 from torch.autograd import Variable
 from pic_functions import get_variable
 
-HPC = True
+HPC = False
 
 NUM_OBS = 100
-SAMPLE_SIZE = 100000
+SAMPLE_SIZE = 10
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((NUM_OBS, 1, 28, 28))))
 
