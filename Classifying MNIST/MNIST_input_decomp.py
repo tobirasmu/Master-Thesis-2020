@@ -7,7 +7,7 @@ Created on Tue Sep  8 16:38:38 2020
 
 In this file, it is attempted to decompose some set of digits from the MNIST data set.
 """
-HPC = False
+HPC = True
 import os
 
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
@@ -33,9 +33,9 @@ data = loadMNIST()
 # %% Making a tensor of a subset of the digits
 """
     Digits is a tuple with the specific digits that is to be considered. 3 and 4 seems to be fairly easy to distinguish, 
-    while 4 and 9 seems similar hence harder for the decomposition algorithm to distinguish. 
+    while 4 and 9 seems similar hence harder for the decomposition algorithm to distinguish.
 """
-digits = (9, 4)
+digits = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 X_all = data.x_train
 Y_all = data.y_train
@@ -117,7 +117,7 @@ data = Data(X_sub[:nTrain], Y_sub[:nTrain], X_sub[nTrain:nVal], Y_sub[nTrain:nVa
 num_classes = len(digits)
 _, height, width = data.x_train.shape
 # Number of hidden units
-num_l1 = 20
+num_l1 = 10
 
 
 class Net(nn.Module):
@@ -145,8 +145,9 @@ net = Net()
 print(net)
 
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.5)
-
-training(net, data, 100, 300, optimizer, every=5)
+this_save = "/zhome/2a/c/108156/Outputs/MNIST_results/original.png" if HPC else "/Users/Tobias/Desktop/MNIST_test" \
+                                                                                "/original.png "
+training(net, data, 100, 300, optimizer, every=5, saveAt=this_save)
 
 # %% Trying with the loadings from A
 
@@ -155,16 +156,15 @@ X_new = multi_mode_dot(core, [A_new], modes=[0, 1, 2])
 
 plotMany(X_new, 10, 10)
 
-# %%
-num_classes = len(digits)
-num_features = A_new.shape[1]
+# %% Defining the decomposed network
 
+num_classes = len(digits)
 # Uses the same number of hidden units as the other
 
 
 class Net(nn.Module):
 
-    def __init__(self):
+    def __init__(self, num_features):
         super(Net, self).__init__()
 
         self.l1 = Linear(in_features=num_features, out_features=num_l1, bias=True)
@@ -176,11 +176,34 @@ class Net(nn.Module):
         return softmax(self.l_out(x), dim=1)
 
 
-net = Net()
+net = Net(rank)
 print(net)
 dataDecomp = Data(A.numpy(), Y_sub[:nTrain], A_new[:(nVal - nTrain)].numpy(), Y_sub[nTrain:nVal], A_new[(nVal - nTrain):].numpy(),
                   Y_sub[nVal:], normalize=False)
 
 # %% Training the decomposed network
-optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.7)
-training(net, dataDecomp, 100, 1000, optimizer, every=5)
+# optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.7)
+# training(net, dataDecomp, 100, 2000, optimizer, every=5)
+
+# %% Looping over and training the different networks
+ranks = (2, 3, 4, 5, 7, 10, 15, 20, 25, 30, 40, 50, 70, 100, 150, 200)
+test_accuracies = []
+
+for rank in ranks:
+    print("{:-^60s}\n{:-^60s}\n{:-^60s}".format("", " Rank {:3d} ".format(rank), ""))
+    # Decomposing the input kernel
+    K = partial_tucker(tl.tensor(X_sub[:nTrain]), modes=[0], ranks=[rank])
+    core, [A] = K
+    # Estimating A_new for the testing data
+    A_new = tl.unfold(tc.from_numpy(X_sub)[nTrain:], mode=0) @ pinv(tl.unfold(core, mode=0))
+    # Making a new network to fit the rank
+    net = Net(rank)
+    if tc.cuda.is_available():
+        net = net.cuda()
+    this_data = Data(A.numpy(), Y_sub[:nTrain], A_new[:(nVal - nTrain)].numpy(),
+                     Y_sub[nTrain:nVal], A_new[(nVal - nTrain):].numpy(), Y_sub[nVal:], normalize=False)
+    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.7)
+    saveAt = "/zhome/2a/c/108156/Outputs/MNIST_results/" if HPC else "/Users/Tobias/Desktop/MNIST_test/"
+    saveAt = saveAt + "rank_" + str(rank) + ".png"
+    test_accuracies.append(training(net, this_data, 100, 500, optimizer, every=5,
+                                    saveAt="/Users/Tobias/Desktop/MNIST_test/rank_" + str(rank) + ".png"))

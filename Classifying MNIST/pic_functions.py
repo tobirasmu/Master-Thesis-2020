@@ -212,7 +212,7 @@ def eval_epoch(thisNet, X, y, batch_size):
     return accuracy_score(targs, preds)
 
 
-def training(net, data, batch_size, num_epochs, optimizer, every=1):
+def training(net, data, batch_size, num_epochs, optimizer, every=1, saveAt=None):
     """
     The traning loop for MNIST
     :param net:
@@ -294,11 +294,17 @@ def training(net, data, batch_size, num_epochs, optimizer, every=1):
     plt.legend(['Train accuracy', 'Validation accuracy'])
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
+    if saveAt is None:
+        plt.show()
+    else:
+        plt.savefig(saveAt)
 
     # The testing accuracy
     test_preds = tc.max(net(get_variable(Variable(tc.from_numpy(data.x_test)))), 1)[1]
+    testing_accuracy = accuracy_score(test_preds.numpy(), data.y_test)
     print("---------------|o|----------------\nTesting accuracy on %3i samples: %f" % (
-        num_samples_test, accuracy_score(test_preds.numpy(), data.y_test)))
+        num_samples_test, testing_accuracy))
+    return testing_accuracy
 
 
 # %% Decomposition functions
