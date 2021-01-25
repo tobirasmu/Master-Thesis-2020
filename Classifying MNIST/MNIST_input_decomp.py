@@ -117,7 +117,7 @@ data = Data(X_sub[:nTrain], Y_sub[:nTrain], X_sub[nTrain:nVal], Y_sub[nTrain:nVa
 num_classes = len(digits)
 _, height, width = data.x_train.shape
 # Number of hidden units
-num_l1 = 10
+num_l1 = 20
 
 
 class Net(nn.Module):
@@ -186,8 +186,8 @@ dataDecomp = Data(A.numpy(), Y_sub[:nTrain], A_new[:(nVal - nTrain)].numpy(), Y_
                   Y_sub[nVal:], normalize=False)
 
 # %% Training the decomposed network
-# optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.7)
-# training(net, dataDecomp, 100, 2000, optimizer, every=5)
+# optimizer = optim.SGD(net.parameters(), lr=0.5, momentum=0.5)
+# training(net, dataDecomp, 100, 500, optimizer, every=5)
 
 # %% Looping over and training the different networks
 ranks = (2, 3, 5, 7, 10, 15, 20, 30, 40, 50, 100, 150, 300)
@@ -206,10 +206,10 @@ for rank in ranks:
         net = net.cuda()
     this_data = Data(A.numpy(), Y_sub[:nTrain], A_new[:(nVal - nTrain)].numpy(),
                      Y_sub[nTrain:nVal], A_new[(nVal - nTrain):].numpy(), Y_sub[nVal:], normalize=False)
-    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.7)
+    optimizer = optim.SGD(net.parameters(), lr=0.5, momentum=0.5)
     saveAt = "/zhome/2a/c/108156/Outputs/MNIST_results/" if HPC else "/Users/Tobias/Desktop/MNIST_test/"
     saveAt = saveAt + "rank_" + str(rank) + ".png"
-    test_accuracies.append((rank, training(net, this_data, 100, 2000, optimizer, every=5,
+    test_accuracies.append((rank, training(net, this_data, 100, 1000, optimizer, every=5,
                                     saveAt=saveAt)))
 
 print("The accuracies are:")

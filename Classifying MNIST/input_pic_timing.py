@@ -13,7 +13,7 @@ from torch.nn.functional import relu, softmax
 from timeit import repeat
 from pic_functions import get_variable
 
-HIDDEN_NEURONS = 20
+HIDDEN_NEURONS = 10
 DELTA = 28 * 28
 
 
@@ -53,7 +53,7 @@ BURN_IN = SAMPLE_SIZE // 10
 full_times, approx_times, network_times = [], [], []
 # First doing the original network
 net = Net(DELTA)
-test_input = tc.rand((1, 28, 28))
+test_input = get_variable(Variable(tc.rand((1, 28, 28))))
 if tc.cuda.is_available():
     net = net.cuda()
     print("CUDA enabled\n")
