@@ -142,6 +142,10 @@ class Net(nn.Module):
 
 
 net = Net()
+if tc.cuda.is_available():
+    print("Cuda enabled \n")
+    net = net.cuda()
+
 print(net)
 
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.5)
