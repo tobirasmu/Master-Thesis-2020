@@ -13,7 +13,7 @@ from torch.nn.functional import relu, softmax
 from timeit import repeat
 from pic_functions import get_variable
 
-HIDDEN_NEURONS = 10
+HIDDEN_NEURONS = 20
 DELTA = 28 * 28
 
 
@@ -48,12 +48,13 @@ class Net(nn.Module):
 # %% Running for every rank
 ranks = [2, 3, 5, 7, 10, 15, 20, 30, 40, 50, 100, 150, 300]
 SAMPLE_SIZE = 100000
+NUM_PUSHES = 1000
 BURN_IN = SAMPLE_SIZE // 10
 
 full_times, approx_times, network_times = [], [], []
 # First doing the original network
 net = Net(DELTA)
-test_input = get_variable(Variable(tc.rand((1, 28, 28))))
+test_input = get_variable(Variable(tc.rand((NUM_PUSHES, 28, 28))))
 if tc.cuda.is_available():
     net = net.cuda()
     print("CUDA enabled\n")
@@ -63,7 +64,7 @@ orig_FLOPs = HIDDEN_NEURONS * (2 * DELTA - 1) + 10 * (2 * HIDDEN_NEURONS - 1)
 print("For the original network the number of parameters is  {}  and the number of FLOPs is  {}".format(orig_parms,
                                                                                                         orig_FLOPs))
 # Now timing each rank
-test_input = get_variable(Variable(tc.rand((1, DELTA))))
+test_input = get_variable(Variable(tc.rand((NUM_PUSHES, DELTA))))
 for rank in ranks:
     G1 = get_variable(Variable(tc.rand((DELTA, rank))))
     net = Net(rank)

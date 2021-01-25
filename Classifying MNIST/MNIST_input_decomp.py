@@ -151,7 +151,7 @@ print(net)
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.5)
 this_save = "/zhome/2a/c/108156/Outputs/MNIST_results/original.png" if HPC else "/Users/Tobias/Desktop/MNIST_test" \
                                                                                 "/original.png "
-training(net, data, 100, 300, optimizer, every=5, saveAt=this_save)
+training(net, data, 100, 500, optimizer, every=5, saveAt=this_save)
 
 # %% Trying with the loadings from A
 
