@@ -31,10 +31,10 @@ net = Net(channels, frames, height, width)
 
 # Loading the parameters of the pretrained network (needs to be after converting the network back to cpu)
 if HPC:
-    net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Results_hpc/trained_network_92.pt"))
+    net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Trained networks/THETIS_network_94.pt"))
 else:
     net.load_state_dict(
-        tc.load("/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Results_hpc/trained_network_92.pt"))
+        tc.load("/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Trained networks/THETIS_network_94.pt"))
 
 # %% The decomposition functions:
 netDec = compressNet(net)

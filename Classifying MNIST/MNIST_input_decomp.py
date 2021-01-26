@@ -7,7 +7,7 @@ Created on Tue Sep  8 16:38:38 2020
 
 In this file, it is attempted to decompose some set of digits from the MNIST data set.
 """
-HPC = True
+HPC = False
 import os
 
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
