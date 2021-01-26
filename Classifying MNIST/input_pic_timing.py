@@ -46,7 +46,7 @@ class Net(nn.Module):
 
 
 # %% Running for every rank
-ranks = [2, 3, 5, 7, 10, 15, 20, 30, 40, 50, 100, 150, 300]
+ranks = [2, 5, 7, 10, 15, 20, 25, 30, 40, 50, 70, 100, 150]
 SAMPLE_SIZE = 100000
 NUM_PUSHES = 1000
 BURN_IN = SAMPLE_SIZE // 10

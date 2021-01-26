@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch.optim as optim
 from torch.nn.functional import relu, softmax
-from torch.nn import Linear, Dropout
+from torch.nn import Linear
 
 data = loadMNIST()
 
