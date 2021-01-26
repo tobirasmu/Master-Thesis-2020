@@ -5,7 +5,7 @@ from timeit import repeat
 from torch.autograd import Variable
 from pic_functions import get_variable
 
-HPC = False
+HPC = True
 
 NUM_OBS = 100
 SAMPLE_SIZE = 10
@@ -34,10 +34,10 @@ print("The mean time for a {:d} forward pushes was {} seconds, while the sum of 
 if tc.cuda.is_available():
     net = net.cpu()
 if HPC:
-    net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Trained networks/MNIST_network.pt"))
+    net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Trained networks/MNIST_network_9866_acc.pt"))
 else:
     net.load_state_dict(tc.load("/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Trained "
-                                "networks/MNIST_network.pt"))
+                                "networks/MNIST_network_9866_acc"))
 netDec = compressNetwork(net)
 
 if tc.cuda.is_available():
@@ -336,3 +336,16 @@ print("\nThe number of parameters:\nOriginal: {:d}    Compressed:  {:d}    Ratio
                                                                                                   numParams(vgg16_dec),
                                                                                                   numParams(vgg16_dec) /
                                                                                                   numParams(vgg16)))
+print("FLOPs orig: ", FLOPs_orig)
+print("FLOPs dcmp: ", FLOPs_dcmp)
+print("FLOPs vgg16: ", FLOPs_vgg16)
+print("FLOPs vgg16_dcmp: ", FLOPs_vgg16_dcmp, "\n\n")
+print("Time full: ", tc.mean(fullTime * 1000), tc.std(fullTime * 1000))
+print("By layer: ", layer_time_m * 1000, layer_time_s * 1000)
+print("Time full dcmp: ", tc.mean(fullTime_dec * 1000), tc.std(fullTime_dec * 1000))
+print("By layer: ", layer_time_dec_m * 1000, layer_time_dec_s * 1000)
+print("VGG 16: \n\n")
+print("Full time vgg 16: ", tc.mean(fullTime_VGG16 * 1000), tc.std(fullTime_VGG16 * 1000))
+print("By layer: ", layer_time_vgg16_m, layer_time_vgg16_s * 1000)
+print("Full time vgg 16 dcmp: ", tc.mean(fullTime_VGG16_dec * 1000), tc.std(fullTime_VGG16_dec * 1000))
+print("By layer: ", layer_time_vgg16_dec_m, layer_time_vgg16_dec_s * 1000)

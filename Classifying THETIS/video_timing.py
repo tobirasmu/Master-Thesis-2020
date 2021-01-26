@@ -7,7 +7,7 @@ from torch.autograd import Variable
 HPC = True
 
 NUM_OBS = 10
-SAMPLE_SIZE = 1000
+SAMPLE_SIZE = 100
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 
@@ -107,8 +107,10 @@ for i in range(len(FLOPs_orig)):
                                                                      layer_time_m[i] / tc.sum(layer_time_m)))
 print("{:-^60s}\n{: <11s}{: ^16.4f}{: ^16.4f}".format('', "Total", tc.sum(FLOPs_orig) / tc.sum(FLOPs_dcmp),
                                                       tc.mean(fullTime) / tc.mean(fullTime_dec)))
-
+print("Based on {} samples and {} observations pushed forward".format(SAMPLE_SIZE, NUM_OBS))
 print("FLOPS orig: ", FLOPs_orig)
 print("FLOPS dcmp: ", FLOPs_dcmp)
+print("Full time: ", tc.mean(fullTime * 1000), " +- ", tc.std(fullTime * 1000))
+print("Full dcmp: ", tc.mean(fullTime_dec * 1000), " +- ", tc.std(fullTime_dec * 1000))
 print("Time orig: ", layer_time_m * 1000, layer_time_s * 1000)
 print("Layer time dcmp: ", layer_time_dec_m * 1000, layer_time_dec_s * 1000)
