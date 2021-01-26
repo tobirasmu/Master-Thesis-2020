@@ -5,7 +5,7 @@ Created on Wed Oct 14 16:41:30 2020
 
 @author: Tobias
 """
-HPC = False
+HPC = True
 import os
 
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
@@ -40,13 +40,13 @@ out = net(get_variable(Variable(tc.from_numpy(x_test))))
 
 # %% Training the network
 BATCH_SIZE = 128
-NUM_EPOCHS = 100
+NUM_EPOCHS = 500
 LR_UPDs = 8
 
 data = fullData
 
 
-def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1, num_epochs=NUM_EPOCHS):
+def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1, num_epochs=NUM_EPOCHS, saveAt=None):
     train_accs, valid_accs, test_accs = [], [], []
     m_inc = (0.9 - momentum) / LR_UPDs
     inc = num_epochs // LR_UPDs  # Making sure we make the correct number of updates to the learning rate and momentum
@@ -74,12 +74,12 @@ def train(thisNet, in_data, lr=0.1, momentum=0.5, factor=1.1, num_epochs=NUM_EPO
         except KeyboardInterrupt:
             print('\n KeyboardInterrupt')
             break
-    saveAt = "/zhome/2a/c/108156/Outputs/accuracies_MNIST.png" if HPC else "/Users/Tobias/Desktop/accuracies_MNIST.png"
     plotAccs(train_accs, valid_accs, saveName=saveAt)
 
 
 print("{:-^60s}\n{:-^60s}\n{:-^60s}".format("", "  Learning the full network  ", ""))
-train(net, data)
+saveAt = "/zhome/2a/c/108156/Outputs/accuracies_MNIST.png" if HPC else "/Users/Tobias/Desktop/accuracies_MNIST.png"
+train(net, data, saveAt)
 
 # %% Trying to decompose the learned network
 # Making a copy
@@ -111,7 +111,8 @@ print("\nAccuracy before: {}   Accuracy after: {}".format(acc_ori, acc_dec))
 
 # %% Fine-tuning the decomposed network
 print("\n{:-^60s}\n{:-^60s}\n{:-^60s}\n".format("", "  Fine-tuning the decomposed network  ", ""))
-train(netDec, data, lr=0.01, factor=2, num_epochs=50)
+saveAt = "/zhome/2a/c/108156/Outputs/accuracies_MNIST_dcmp.png" if HPC else "/Users/Tobias/Desktop/accuracies_MNIST_dcmp.png"
+train(netDec, data, lr=0.01, factor=2, num_epochs=100)
 
 acc_dec = eval_epoch(netDec, data.x_test, data.y_test, BATCH_SIZE)
 acc_ori = eval_epoch(net, data.x_test, data.y_test, BATCH_SIZE)

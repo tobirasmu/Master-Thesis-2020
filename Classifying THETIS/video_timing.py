@@ -4,10 +4,10 @@ from video_functions import numFLOPsPerPush, time_conv, time_lin, get_variable
 from timeit import repeat
 from torch.autograd import Variable
 
-HPC = False
+HPC = True
 
 NUM_OBS = 1
-SAMPLE_SIZE = 10
+SAMPLE_SIZE = 1000
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 
@@ -16,6 +16,8 @@ test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 net = Net(4, 28, 120, 160)
 if tc.cuda.is_available():
     net = net.cuda()
+    print("Using CUDA")
+print("Based on {} samples", SAMPLE_SIZE)
 
 fullTime = tc.tensor(repeat("net(test)", globals=locals(), number=1, repeat=(SAMPLE_SIZE + BURN_IN))[BURN_IN:])
 
