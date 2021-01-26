@@ -209,8 +209,7 @@ for rank in ranks:
     optimizer = optim.SGD(net.parameters(), lr=0.2, momentum=0.6)
     saveAt = "/zhome/2a/c/108156/Outputs/MNIST_results/" if HPC else "/Users/Tobias/Desktop/MNIST_test/"
     saveAt = saveAt + "rank_" + str(rank) + ".png"
-    test_accuracies.append((rank, training(net, this_data, 100, 1000, optimizer, every=5,
-                                    saveAt=saveAt)))
+    test_accuracies.append((rank, training(net, this_data, 100, 1000, optimizer, every=5, saveAt=saveAt)))
 
 print("The accuracies are:")
 print(test_accuracies)
