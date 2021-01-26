@@ -211,5 +211,6 @@ for rank in ranks:
     saveAt = saveAt + "rank_" + str(rank) + ".png"
     test_accuracies.append((rank, training(net, this_data, 100, 3000, optimizer, every=5, saveAt=saveAt)))
 
+
 print("The accuracies are:")
 print(test_accuracies)
