@@ -7,14 +7,14 @@ from pic_functions import get_variable
 from torch.nn import Conv2d, MaxPool2d, Linear
 from torch.nn.functional import relu, softmax
 import torch.nn as nn
-from time import process_time
+from time import perf_counter
 
 HPC = False
 
-NUM_OBS = 1000
+NUM_OBS = 1
 SAMPLE_SIZE = 10
 BURN_IN = SAMPLE_SIZE // 10
-test = get_variable(Variable(tc.rand((NUM_OBS, 1, 28, 28))))
+test = get_variable(tc.rand((NUM_OBS, 1, 28, 28)))
 
 
 # %% Testing something new
@@ -40,7 +40,9 @@ l2_features = 84
 l_out_features = 10
 
 start_time = []
+conv_1_start = []
 conv1_time = []
+conv_2_start = []
 conv2_time = []
 
 
@@ -69,15 +71,19 @@ class Net_timed(nn.Module):
         self.l_out = Linear(in_features=l2_features, out_features=l_out_features, bias=True)
 
     def forward(self, x):
-        start_time.append(process_time())
+        x2 = relu(self.conv1(x))
+        x2 = relu(self.conv2(x2))
+        start_time.append(perf_counter())
         # Conv 1
-        x = relu(self.conv1(x))
-        x = self.pool(x)
-        conv1_time.append(process_time())
+        x = self.conv1(x)
+        conv1_time.append(perf_counter())
+        x = self.pool(relu(x))
         # Conv 2
-        x = relu(self.conv2(x))
-        x = self.pool(x)
-        conv2_time.append(process_time())
+        conv_2_start.append(perf_counter())
+        x = self.conv2(x)
+        conv2_time.append(perf_counter())
+        x = self.pool(relu(x))
+
         x = tc.flatten(x, 1)
         # Lin 1
         x = relu(self.l1(x))
@@ -89,16 +95,18 @@ class Net_timed(nn.Module):
 
 # %% Testing the function
 net = Net_timed(1, 28)
-
-for i in range(1000):
+net.eval()
+for i in range(100):
     net(test)
 
+# %%
 start_time = tc.tensor(start_time)
 conv1_time = tc.tensor(conv1_time)
 conv2_time = tc.tensor(conv2_time)
+conv_2_start = tc.tensor(conv_2_start)
 
-time_conv1 = conv1_time - start_time
-time_conv2 = conv2_time - conv1_time
+time_conv1 = conv1_time[10:] - start_time[10:]
+time_conv2 = conv2_time[10:] - conv_2_start[10:]
 
 print("Time for conv1 was {} +- {} and for conv2 was {} +- {}".format(tc.mean(time_conv1), tc.std(time_conv1), tc.mean(time_conv2), tc.std(time_conv2)))
 
