@@ -1,111 +1,15 @@
-import os
-
-path = "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/"
-os.chdir(path)
-
 import torch as tc
 from video_networks import Net, compressNet
 from video_functions import numFLOPsPerPush, time_conv, time_lin, get_variable
 from timeit import repeat
 from torch.autograd import Variable
-from torch.nn import Conv3d, Linear, MaxPool3d
-from torch.nn.functional import relu, softmax
-import torch.nn as nn
-from time import perf_counter
 
-HPC = False
+HPC = True
 
-NUM_OBS = 1
+NUM_OBS = 10
 SAMPLE_SIZE = 1000
 BURN_IN = SAMPLE_SIZE // 10
-test = get_variable(tc.rand((NUM_OBS, 4, 28, 120, 160)))
-
-
-# %% Defining the timed network
-def conv_dims(dims, kernels, strides, paddings):
-    dimensions = len(dims)
-    new_dims = tc.empty(dimensions)
-    for i in range(dimensions):
-        new_dims[i] = int((dims[i] - kernels[i] + 2 * paddings[i]) / strides[i] + 1)
-    return new_dims
-
-
-# First convolution
-c1_channels = 6
-c1_kernel = (5, 11, 11)
-c1_stride = (1, 1, 1)
-c1_padding = (2, 5, 5)
-# Second convolution
-c2_channels = (6, 16)
-c2_kernel = (5, 11, 11)
-c2_stride = (1, 1, 1)
-c2_padding = (0, 0, 0)
-# Pooling layer
-pool_kernel = (2, 4, 4)
-pool_stride = (2, 4, 4)
-pool_padding = (0, 0, 0)
-# Linear layers
-l1_features = 128
-l2_features = 84
-l_out_features = 2
-
-start_time = []
-conv1_time = []
-conv2_time = []
-
-
-# The CNN for the THETIS dataset
-class Net_timed(nn.Module):
-
-    def __init__(self, channels, frames, height, width):
-        super(Net_timed, self).__init__()
-
-        # Adding the convolutional layers
-        self.c1 = Conv3d(in_channels=channels, out_channels=c1_channels, kernel_size=c1_kernel,
-                         stride=c1_stride, padding=c1_padding)
-        dim1s = conv_dims((frames, height, width), kernels=c1_kernel, strides=c1_stride, paddings=c1_padding)
-        dim1sP = conv_dims(dim1s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
-
-        self.c2 = Conv3d(in_channels=c2_channels[0], out_channels=c2_channels[1], kernel_size=c2_kernel,
-                         stride=c2_stride, padding=c2_padding)
-        dim2s = conv_dims(dim1sP, kernels=c2_kernel, strides=c2_stride, paddings=c2_padding)
-        dim2sP = conv_dims(dim2s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
-
-        # The pooling layer
-        self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
-
-        # Features into the linear layers
-        self.lin_feats_in = int(16 * tc.prod(dim2sP))
-        # Adding the linear layers
-        self.l1 = Linear(in_features=self.lin_feats_in, out_features=l1_features)
-        self.l2 = Linear(in_features=l1_features, out_features=l2_features)
-        self.l_out = Linear(in_features=l2_features, out_features=l_out_features)
-
-    def forward(self, x):
-        start_time.append(perf_counter())
-        x = relu(self.c1(x))
-        x = self.pool3d(x)
-        conv1_time.append(perf_counter())
-        x = relu(self.c2(x))
-        x = self.pool3d(x)
-        conv2_time.append(perf_counter())
-        x = tc.flatten(x, 1)
-
-        x = relu(self.l1(x))
-        x = relu(self.l2(x))
-
-        return softmax(self.l_out(x), dim=1)
-
-
-# %% Testing
-
-net = Net_timed(4, 28, 120, 160)
-
-for i in range(10):
-    net(test)
-
-time_conv1 = tc.tensor(conv1_time) - tc.tensor(start_time)
-time_conv2 = tc.tensor(conv2_time) - tc.tensor(conv1_time)
+test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 
 # %% Full timing of the network including layer-wise
 
