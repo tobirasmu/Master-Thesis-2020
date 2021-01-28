@@ -3,7 +3,7 @@
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
 
-HPC = False
+HPC = True
 
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
@@ -22,14 +22,8 @@ import torch.nn as nn
 import numpy as np
 from time import process_time
 
-HPC = False
-
 NUM_OBS = 10
-<<<<<<< HEAD
-SAMPLE_SIZE = 100
-=======
-SAMPLE_SIZE = 10
->>>>>>> 245c2f794a4b52e754863fb63b1cf3f9e3615711
+SAMPLE_SIZE = 1000
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 
@@ -113,7 +107,6 @@ class Net_timed(nn.Module):
 
 
 # %% Timing the network
-print("Based on {} samples".format(SAMPLE_SIZE))
 
 net = Net_timed(4, 28, 120, 160)
 
