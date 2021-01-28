@@ -4,111 +4,13 @@ from pic_networks import get_VGG16, Net, compressNetwork
 from timeit import repeat
 from torch.autograd import Variable
 from pic_functions import get_variable
-from torch.nn import Conv2d, MaxPool2d, Linear
-from torch.nn.functional import relu, softmax
-import torch.nn as nn
-from time import perf_counter
 
 HPC = False
 
-NUM_OBS = 1
+NUM_OBS = 100
 SAMPLE_SIZE = 10
 BURN_IN = SAMPLE_SIZE // 10
-test = get_variable(tc.rand((NUM_OBS, 1, 28, 28)))
-
-
-# %% Testing something new
-def conv_dim(dim, kernel, stride, padding):
-    return int((dim - kernel + 2 * padding) / stride + 1)
-
-
-c1_channels = 6
-c1_kernel = 5
-c1_padding = 2
-c1_stride = 1
-c2_channels = (6, 16)
-c2_kernel = 5
-c2_padding = 0
-c2_stride = 1
-# Pooling layer
-pool_kernel = 2
-pool_stride = 2
-pool_padding = 0
-# Linear layers
-l1_features = 120
-l2_features = 84
-l_out_features = 10
-
-start_time = []
-conv_1_start = []
-conv1_time = []
-conv_2_start = []
-conv2_time = []
-
-
-class Net_timed(nn.Module):
-
-    def __init__(self, channels, height):  # We only need height since the pictures are square
-        super(Net_timed, self).__init__()
-
-        # The convolutions
-        self.conv1 = Conv2d(in_channels=channels, out_channels=c1_channels, kernel_size=c1_kernel, padding=c1_padding,
-                            stride=c1_stride)
-        dim1 = conv_dim(height, kernel=c1_kernel, padding=c1_padding, stride=c1_stride)
-        dim1P = conv_dim(dim1, kernel=pool_kernel, padding=pool_padding, stride=pool_stride)
-        self.conv2 = Conv2d(in_channels=c2_channels[0], out_channels=c2_channels[1], kernel_size=c2_kernel,
-                            padding=c2_padding, stride=c2_stride)
-        dim2 = conv_dim(dim1P, kernel=c2_kernel, padding=c2_padding, stride=c2_stride)
-        dim2P = conv_dim(dim2, kernel=pool_kernel, padding=pool_padding, stride=pool_stride)
-
-        # The average pooling
-        self.pool = MaxPool2d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
-
-        self.lin_in_feats = c2_channels[1] * (dim2P ** 2)
-        # The linear layers
-        self.l1 = Linear(in_features=self.lin_in_feats, out_features=l1_features, bias=True)
-        self.l2 = Linear(in_features=l1_features, out_features=l2_features, bias=True)
-        self.l_out = Linear(in_features=l2_features, out_features=l_out_features, bias=True)
-
-    def forward(self, x):
-        x2 = relu(self.conv1(x))
-        x2 = relu(self.conv2(x2))
-        start_time.append(perf_counter())
-        # Conv 1
-        x = self.conv1(x)
-        conv1_time.append(perf_counter())
-        x = self.pool(relu(x))
-        # Conv 2
-        conv_2_start.append(perf_counter())
-        x = self.conv2(x)
-        conv2_time.append(perf_counter())
-        x = self.pool(relu(x))
-
-        x = tc.flatten(x, 1)
-        # Lin 1
-        x = relu(self.l1(x))
-        # Lin 2
-        x = relu(self.l2(x))
-
-        return softmax(relu(self.l_out(x)), dim=1)
-
-
-# %% Testing the function
-net = Net_timed(1, 28)
-net.eval()
-for i in range(100):
-    net(test)
-
-# %%
-start_time = tc.tensor(start_time)
-conv1_time = tc.tensor(conv1_time)
-conv2_time = tc.tensor(conv2_time)
-conv_2_start = tc.tensor(conv_2_start)
-
-time_conv1 = conv1_time[10:] - start_time[10:]
-time_conv2 = conv2_time[10:] - conv_2_start[10:]
-
-print("Time for conv1 was {} +- {} and for conv2 was {} +- {}".format(tc.mean(time_conv1), tc.std(time_conv1), tc.mean(time_conv2), tc.std(time_conv2)))
+test = get_variable(Variable(tc.rand((NUM_OBS, 1, 28, 28))))
 
 # %% Timing the original network
 net = Net(1, 28)
@@ -224,8 +126,7 @@ test = get_variable(Variable(tc.rand((NUM_OBS_VGG, 3, 224, 224))))
 fullTime_VGG16 = tc.tensor(repeat('vgg16(test)', globals=locals(), number=1, repeat=(SAMPLE_SIZE_VGG +
                                                                                      BURN_IN_VGG))[BURN_IN_VGG:])
 fullTime_VGG16_dec = tc.tensor(repeat('vgg16_dec(test)', globals=locals(), number=1, repeat=(SAMPLE_SIZE_VGG +
-                                                                                             BURN_IN_VGG))[
-                               BURN_IN_VGG:])
+                                                                                             BURN_IN_VGG))[BURN_IN_VGG:])
 
 # %% Calculating the theoretical speed-up using FLOPs
 FLOPs_vgg16 = numFLOPsPerPush(vgg16, (224, 224), paddings=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
@@ -425,11 +326,10 @@ observed_SP_layer_vgg16 = layer_time_vgg16_m / layer_time_vgg16_dec_comp
 layer_names_vgg16 = ["conv1", "conv2", "conv3", "conv4", "conv5", "conv6", "conv7", "conv8", "conv9", "conv10",
                      "conv11", "conv12", "conv13", "Lin1", "Lin2", "Lin3"]
 for i in range(len(FLOPs_vgg16)):
-    print(
-        "{: <11s}{: ^16.4f}{: ^16.4f}{: >7.5f} / {: <7.5f}".format(layer_names_vgg16[i], theoretical_SP_layer_vgg16[i],
-                                                                   observed_SP_layer_vgg16[i],
-                                                                   FLOPs_vgg16[i] / tc.sum(FLOPs_vgg16),
-                                                                   layer_time_vgg16_m[i] / tc.sum(layer_time_vgg16_m)))
+    print("{: <11s}{: ^16.4f}{: ^16.4f}{: >7.5f} / {: <7.5f}".format(layer_names_vgg16[i], theoretical_SP_layer_vgg16[i],
+                                                                     observed_SP_layer_vgg16[i],
+                                                                     FLOPs_vgg16[i] / tc.sum(FLOPs_vgg16),
+                                                                     layer_time_vgg16_m[i] / tc.sum(layer_time_vgg16_m)))
 print("{:-^60s}\n{: <11s}{: ^16.4f}{: ^16.4f}".format('', "Total", tc.sum(FLOPs_vgg16) / tc.sum(FLOPs_vgg16_dcmp),
                                                       tc.mean(fullTime_VGG16) / tc.mean(fullTime_VGG16_dec)))
 print("\nThe number of parameters:\nOriginal: {:d}    Compressed:  {:d}    Ratio:  {:.3f}".format(numParams(vgg16),

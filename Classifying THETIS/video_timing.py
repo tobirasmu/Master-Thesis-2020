@@ -11,10 +11,8 @@ path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
 os.chdir(path)
 
 import torch as tc
-from video_networks import Net, compressNet
-from video_functions import numFLOPsPerPush, time_conv, time_lin, get_variable
-from load_THETIS import loadData
-from timeit import repeat
+from video_networks import compressNet
+from video_functions import numFLOPsPerPush, get_variable
 from torch.autograd import Variable
 from torch.nn import Conv3d, Linear, MaxPool3d, Sequential
 from torch.nn.functional import relu, softmax
