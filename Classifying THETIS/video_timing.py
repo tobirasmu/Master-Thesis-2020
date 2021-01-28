@@ -258,7 +258,9 @@ for i in range(len(FLOPs_orig)):
 print("{:-^60s}\n{: <11s}{: ^16.4f}{: ^16.4f}".format('', "Total", tc.sum(FLOPs_orig) / tc.sum(FLOPs_dcmp),
                                                       full_time_m / full_time_dec_m))
 
+print("Based on {} samples and {} observations pushed forward".format(SAMPLE_SIZE, NUM_OBS))
 print("FLOPS orig: ", FLOPs_orig)
 print("FLOPS dcmp: ", FLOPs_dcmp)
+print("Full time orig {} +- {} and compressed {} +- {}".format(full_time_m * 1000, full_time_s * 1000, full_time_dec_m * 1000, full_time_dec_s * 1000))
 print("Time orig: ", times_m * 1000, times_s * 1000)
 print("Layer time dcmp: ", times_dec_m * 1000, times_dec_s * 1000)
