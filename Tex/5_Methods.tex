@@ -34,7 +34,7 @@ In this project experiments will be made with different architectures for the si
     \label{fig:illustrationinputdecomp}
 \end{figure}
 
-\subsubsection{Estimating the loadings for the testing data}
+\subsubsection{Estimating the loadings for new data}
 Since the testing data cannot be decomposed along with the training data, the loading matrix for the testing data will be estimated assuming the same core as for the training data. This way the decomposition is also a part of the training. Based on \eqref{eq:tuckerMNISTinput} the loading matrix for the test set can be estimated by multiplying with the pseudo-inverse of the matricized core:
 \begin{equation}
     \bs{A}_{test} \approx {\bs{X}_{test}}_{(1)} \bs{G}_{(1)}^{\ \dagger}
@@ -236,10 +236,19 @@ Using the different algorithms for compressing a single layer in the CNN and app
 In order to assess the performance of the different methods used in this thesis, baselines need to be established. To do this original or uncompressed architectures need to be chosen, based on what have previously proved to be appropriate in the different cases, and what intuitively makes sense. The architectures for the two different parts mentioned earlier in this section will be discussed in the following.
 
 \subsubsection{Decomposing the input}
-For this problem, the architecture needs to be 
+For the first method that decomposes the input different values of the rank $R$ will be tried, hence it is only the simple ANN architecture that will need to be determined. For both data sets only one hidden layer will be provided in order to assess the amount of assistance the decomposition of the input provides to the ANN. For MNIST the number of hidden units will be experimentally set to 20, while for THETIS this number will be 100. This means that the whole ANN will consist of $R$ input neurons, a hidden layer with 20 (MNIST) or 100 (THETIS) hidden neurons, and an output layer with 10 (MNIST) or 2 (THETIS) neurons. \autoref{fig:illustrationinputdecomp} illustrates this architecture perfectly with $L$ being the different ranks and $H = 20$ (MNIST) or $H=100$ (THETIS).
 
-\subsection{Computational complexity of neural networks}\label{tex:computational_complexity}
-In order to assess the theoretical performance of the different networks, we will make use of the number of floating point operations (FLOPs) that it takes for the network to do one forward push. We assume that the non-linearity (activation function) and the max-pooling computations for free, and only consider the FLOPs used in the dense and convolutional layers respectively. 
+\subsubsection{Compressing pre-trained network}
+For the second method that decomposes a pre-trained network, a 2D and 3D CNN is applied to each of the data set respectively. An illustration of the two networks are given in \autoref{}
+\begin{figure}
+    \centering
+    \includegraphics{net}
+    \caption{Caption}
+    \label{fig:my_label}
+\end{figure}
+
+\subsection{Computational complexity}\label{tex:computational_complexity}
+In order to assess the theoretical performance of the different networks, we will make use of the number of floating point operations (FLOPs) that it takes for the network to do one forward push. We assume that the non-linearity (activation function) and the max-pooling computations for free, and only consider the FLOPs used in the dense and convolutional layers respectively.
 
 \subsubsection{Dense layer}
 For a dense layer with $N_{in}$ input neurons and $N_{out}$ output neurons, the forward push is calculated as a matrix-vector product. This means that it has $N_{in}N_{out}$ multiplications and $(N_{in}-1)N_{out}$ additions making it a total of:
@@ -258,3 +267,15 @@ FLOPs to calculate. Here the output size of each dimension is calculated using t
     out_{dim}(d, D, \Delta, P) = \frac{d - D + 2\cdot P}{\Delta} + 1
 \end{equation}
 Where $d$ is the input size, $D$ is the kernel size, $\Delta$ is the stride, and $P$ is the padding - all of the given dimension.
+
+\subsubsection{Approximation of loadings matrix}
+In the method decomposing the input, the loading matrix $\bs{A}$ needs to be estimated for the testing observation $\tensor{X}^{I_1 \times I_2 \times \dots \times I_n}$, which is also a part of the time it takes to run the algorithm. The $\bs{A}$ is approximated by:
+\begin{equation}
+    \bs{A} \approx \bs{X}_{(1)} \bs{G}_{(1)}^{\dagger}
+    \label{eq:estimation_of_loading_A}
+\end{equation}
+Where we assume that $\bs{G}_{(1)}^{\dagger}$ have already been estimated and that the unfolding of $\tensor{X}$ is for free, which means that the approximation is a matrix-matrix product. $\bs{X}_{(1)}$ will have shape $I_1 \times \delta$ where $\delta = \prod_{k=2}^n I_k$, and $I_1$ is the number of input observations. $\bs{G}_{(1)}^{\dagger}$ will have shape $\delta \times R$ where $R$ is the rank of the decomposition. The total number of FLOPs it takes to approximate $\bs{A}$ for $I_1$ observations is given by:
+\begin{equation}
+    R \cdot I_1 (2\cdot \delta - 1), \qquad \quad \text{where} \quad \delta = \prod_{k=2}^n I_k
+\end{equation}
+Where $I_k$ is the size of the $k$th of the $n$ dimensions of $\tensor{X}$.
