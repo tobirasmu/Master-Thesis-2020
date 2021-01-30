@@ -1,0 +1,45 @@
+\section{Discussion} \label{tex:discussion}
+
+From the results given in the previous section, it is clear that the speed of a NN method is not simply a function of the number of FLOPs that is used to produce the output, but that much more goes on that impacts the performance.
+
+\begin{itemize}
+    \item Penalty for more layers that impacts the performance
+    \item When to use which method
+    \begin{itemize}
+        \item The decomposition of the input allows for much lower input dimensions and seems appropriate for simple classification tasks where some structure is already given. It could also be appropriate for instance for background removal or dynamic information extraction. When the complexity rises (for instance with MNIST digits that look alike) then this algorithm seems to fall short.
+        \item The decomposition of the pre-trained network works well for a network that is already working and is in some sense like pruning the network… Find structure and remove the unnecessary. 
+        \item Pre-training a network allows for much more complex networks that might be easier to train. In this way the challenging part is reserved for the powerful machine while the actual application is less power and time consuming.
+    \end{itemize}
+    \item Decomposing only input-output channels
+    \begin{itemize}
+        \item  Smart because the spatial (or temporal) dimensions of the kernel are often small (3 or 5), and because multiple filters might be finding almost the same information or something that is redundant across multiple filters.
+    \end{itemize}
+    \item Power of the algorithm
+    \begin{itemize}
+        \item Tucker - decomposition can rather easily be used to decompose both linear and convolutional layers. 
+    \end{itemize}
+\end{itemize}
+
+\subsection{Future work}
+\begin{itemize}
+    \item Rank selection
+    \begin{itemize}
+    \item Evaluating the performance of VBMF and standardising so it always work. (Has problems for linear layers in one dimension)
+	\item Looking into other methods of doing rank selection - maybe a simpler heuristic
+	\item Evaluate the importance of getting good weights. Others have shown that the approximation of the weights using the decomposition need not to be perfect. (fine-tuning)
+    \end{itemize}
+    \item $1\times 1$ convolution
+    \begin{itemize}
+        \item  Look into what causes the 1x1 convolution to be cache-inefficient.
+	    \item Investigate how the 1 x 1 convolution could be performed more cache efficiently (e.g. rotating everything so it would be the same just computed from an other angle)
+    \end{itemize}
+    \item Other methods for decomposition
+    \begin{itemize}
+        \item Try using decomposition as part of the learning / evaluation sequence using the pytorch autograd. 
+        \item Look into using / combining other decomposition methods
+        \begin{itemize}
+            \item TT - decomposition (only done for linear layers)
+		    \item BTD - showed very promising results for the convolutional layer
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
