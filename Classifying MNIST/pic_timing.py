@@ -2,10 +2,10 @@
     Timing the networks both fully and layer-wise. The time is reported as the mean and standard deviation of SAMPLE_SIZE
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
-HPC = False
+HPC = True
 import os
-path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
-    "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/"
+path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
+    "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
 os.chdir(path)
 
 import torch as tc
@@ -264,7 +264,7 @@ if tc.cuda.is_available():
     vgg16_dec = vgg16_dec.cuda()
     print(" -- Using GPU -- ")
 
-test = get_variable(Variable(tc.rand((NUM_OBS, 3, 224, 224))))
+test = get_variable(Variable(tc.rand((1, 3, 224, 224))))
 
 # Timing VGG16 - both original and compressed
 fullTime_VGG16 = tc.tensor(repeat('vgg16(test)', globals=locals(), number=1, repeat=(SAMPLE_SIZE +
