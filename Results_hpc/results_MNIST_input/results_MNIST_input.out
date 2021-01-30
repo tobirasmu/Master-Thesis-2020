@@ -196,7 +196,7 @@ Epoch 935 : Train Loss 4.150077 , Train acc 0.978929, Valid acc 0.938750
 Epoch 940 : Train Loss 4.150071 , Train acc 0.978929, Valid acc 0.938750
 Epoch 945 : Train Loss 4.150061 , Train acc 0.978929, Valid acc 0.938500
 Epoch 950 : Train Loss 4.150010 , Train acc 0.978964, Valid acc 0.938250
-Epoch 955 : Train Loss 4.149992 , Train acc 0.978964, Valid acc 0.938500
+Epoch 955 : Train Loss 4.149992 , Train acc 0.978964, Valid acc 0.938500 
 Epoch 960 : Train Loss 4.149983 , Train acc 0.978964, Valid acc 0.938500
 Epoch 965 : Train Loss 4.149975 , Train acc 0.978964, Valid acc 0.938750
 Epoch 970 : Train Loss 4.149968 , Train acc 0.978964, Valid acc 0.938750
