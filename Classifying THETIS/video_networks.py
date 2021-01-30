@@ -86,6 +86,6 @@ def compressNet(net):
 
     net_dec.c1 = conv_to_tucker2_3d(net.c1)
     net_dec.c2 = conv_to_tucker2_3d(net.c2)
-    net_dec.l1 = lin_to_tucker2(net.l1, ranks=[2, 5])     # Cannot use automatic rank selection
+    net_dec.l1 = lin_to_tucker2(net.l1)     # Cannot use automatic rank selection
     net_dec.l2 = lin_to_tucker1(net.l2)
     return net_dec
