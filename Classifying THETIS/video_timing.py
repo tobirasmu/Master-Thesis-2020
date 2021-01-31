@@ -3,7 +3,7 @@
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
 
-HPC = False
+HPC = True
 
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
