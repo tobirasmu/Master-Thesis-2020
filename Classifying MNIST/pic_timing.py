@@ -2,7 +2,7 @@
     Timing the networks both fully and layer-wise. The time is reported as the mean and standard deviation of SAMPLE_SIZE
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
-HPC = True
+HPC = False
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
     "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"

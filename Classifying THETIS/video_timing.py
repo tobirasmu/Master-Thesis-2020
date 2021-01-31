@@ -3,7 +3,7 @@
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
 
-HPC = True
+HPC = False
 
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
@@ -20,8 +20,8 @@ import torch.nn as nn
 import numpy as np
 from time import process_time
 
-NUM_OBS = 10
-SAMPLE_SIZE = 1000
+NUM_OBS = 2
+SAMPLE_SIZE = 5
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((NUM_OBS, 4, 28, 120, 160))))
 
@@ -152,7 +152,7 @@ r2_l1 = netDec.l1[1].out_features
 r_l2 = netDec.l2[0].out_features
 
 # (start, conv1, conv2, lin1, lin2, lout)
-timing_dec = np.zeros((SAMPLE_SIZE + BURN_IN, 6))
+timing_dec = np.zeros((SAMPLE_SIZE + BURN_IN, 13))
 
 
 # The timed decomposed network
@@ -161,20 +161,20 @@ class NetDec_timed(nn.Module):
     def __init__(self, channels, frames, height, width):
         super(NetDec_timed, self).__init__()
         # First layer
-        c1_1 = Conv3d(in_channels=channels, out_channels=r1_c1, kernel_size=(1, 1, 1), bias=False)
-        c1_2 = Conv3d(in_channels=r1_c1, out_channels=r2_c1, kernel_size=c1_kernel, padding=c1_padding,
+        self.c1_1 = Conv3d(in_channels=channels, out_channels=r1_c1, kernel_size=(1, 1, 1), bias=False)
+        self.c1_2 = Conv3d(in_channels=r1_c1, out_channels=r2_c1, kernel_size=c1_kernel, padding=c1_padding,
                       stride=c1_stride, bias=False)
-        c1_3 = Conv3d(in_channels=r2_c1, out_channels=c1_channels, kernel_size=(1, 1, 1), bias=True)
-        self.c1 = Sequential(c1_1, c1_2, c1_3)
+        self.c1_3 = Conv3d(in_channels=r2_c1, out_channels=c1_channels, kernel_size=(1, 1, 1), bias=True)
+        #self.c1 = Sequential(c1_1, c1_2, c1_3)
         dim1s = conv_dims((frames, height, width), kernels=c1_kernel, strides=c1_stride, paddings=c1_padding)
         dim1sP = conv_dims(dim1s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
 
         # Second layer
-        c2_1 = Conv3d(in_channels=c2_channels[0], out_channels=r1_c2, kernel_size=(1, 1, 1), bias=False)
-        c2_2 = Conv3d(in_channels=r1_c2, out_channels=r2_c2, kernel_size=c2_kernel, stride=c2_stride,
+        self.c2_1 = Conv3d(in_channels=c2_channels[0], out_channels=r1_c2, kernel_size=(1, 1, 1), bias=False)
+        self.c2_2 = Conv3d(in_channels=r1_c2, out_channels=r2_c2, kernel_size=c2_kernel, stride=c2_stride,
                       padding=c2_padding, bias=False)
-        c2_3 = Conv3d(in_channels=r2_c2, out_channels=c2_channels[1], kernel_size=(1, 1, 1), bias=True)
-        self.c2 = Sequential(c2_1, c2_2, c2_3)
+        self.c2_3 = Conv3d(in_channels=r2_c2, out_channels=c2_channels[1], kernel_size=(1, 1, 1), bias=True)
+        #self.c2 = Sequential(c2_1, c2_2, c2_3)
         dim2s = conv_dims(dim1sP, kernels=c2_kernel, strides=c2_stride, paddings=c2_padding)
         dim2sP = conv_dims(dim2s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
 
@@ -184,35 +184,52 @@ class NetDec_timed(nn.Module):
         # Features into the linear layers
         self.lin_feats_in = int(c2_channels[1] * tc.prod(dim2sP))
         # First linear layer
-        l1_1 = Linear(in_features=self.lin_feats_in, out_features=r1_l1, bias=False)
-        l1_2 = Linear(in_features=r1_l1, out_features=r2_l1, bias=False)
-        l1_3 = Linear(in_features=r2_l1, out_features=l1_features, bias=True)
-        self.l1 = Sequential(l1_1, l1_2, l1_3)
+        self.l1_1 = Linear(in_features=self.lin_feats_in, out_features=r1_l1, bias=False)
+        self.l1_2 = Linear(in_features=r1_l1, out_features=r2_l1, bias=False)
+        self.l1_3 = Linear(in_features=r2_l1, out_features=l1_features, bias=True)
+        #self.l1 = Sequential(l1_1, l1_2, l1_3)
 
         # Second linear layer
-        l2_1 = Linear(in_features=l1_features, out_features=r_l2, bias=False)
-        l2_2 = Linear(in_features=r_l2, out_features=l2_features, bias=True)
-        self.l2 = Sequential(l2_1, l2_2)
+        self.l2_1 = Linear(in_features=l1_features, out_features=r_l2, bias=False)
+        self.l2_2 = Linear(in_features=r_l2, out_features=l2_features, bias=True)
+        #self.l2 = Sequential(l2_1, l2_2)
 
         # Output layer
         self.l_out = Linear(in_features=l2_features, out_features=l_out_features, bias=True)
 
     def forward(self, x, sample_num):
+        # Conv 1
         timing_dec[sample_num, 0] = process_time()
-        x = relu(self.c1(x))
-        x = self.pool3d(x)
+        x = relu(self.c1_1(x))
         timing_dec[sample_num, 1] = process_time()
-        x = relu(self.c2(x))
-        x = self.pool3d(x)
+        x = relu(self.c1_2(x))
         timing_dec[sample_num, 2] = process_time()
-        x = tc.flatten(x, 1)
-
-        x = relu(self.l1(x))
+        x = relu(self.c1_3(x))
+        x = self.pool3d(x)
+        # Conv 2
         timing_dec[sample_num, 3] = process_time()
-        x = relu(self.l2(x))
+        x = relu(self.c2_1(x))
         timing_dec[sample_num, 4] = process_time()
-        x = softmax(self.l_out(x), dim=1)
+        x = relu(self.c2_2(x))
         timing_dec[sample_num, 5] = process_time()
+        x = relu(self.c2_3(x))
+        x = self.pool3d(x)
+
+        timing_dec[sample_num, 6] = process_time()
+        x = tc.flatten(x, 1)
+        x = relu(self.l1_1(x))
+        timing_dec[sample_num, 7] = process_time()
+        x = relu(self.l1_2(x))
+        timing_dec[sample_num, 8] = process_time()
+        x = relu(self.l1_3(x))
+
+        timing_dec[sample_num, 9] = process_time()
+        x = relu(self.l2_1(x))
+        timing_dec[sample_num, 10] = process_time()
+        x = relu(self.l2_2(x))
+        timing_dec[sample_num, 11] = process_time()
+        x = softmax(self.l_out(x), dim=1)
+        timing_dec[sample_num, 12] = process_time()
         return x
 
 
@@ -227,11 +244,19 @@ for i in range(SAMPLE_SIZE + BURN_IN):
 
 # Calculating the layer times
 full_time_dec = timing_dec[BURN_IN:, -1] - timing_dec[BURN_IN:, 0]
-for i in range(5, 0, -1):
+for i in range(12, 0, -1):
     timing_dec[:, i] -= timing_dec[:, i - 1]
 timing_dec = timing_dec[BURN_IN:, 1:]
 times_dec_m, times_dec_s = np.mean(timing_dec, axis=0), np.std(timing_dec, axis=0)
 full_time_dec_m, full_time_dec_s = np.mean(full_time_dec), np.std(full_time_dec)
+# To compare
+comp_c1 = np.sum(timing_dec[:, 0:3], axis=1)
+comp_c2 = np.sum(timing_dec[:, 3:6], axis=1)
+comp_lin1 = np.sum(timing_dec[:, 6:9], axis=1)
+comp_lin2 = np.sum(timing_dec[:, 9:11], axis=1)
+comp_lin3 = timing_dec[:, 11]
+comp_m = np.array([np.mean(comp_c1), np.mean(comp_c2), np.mean(comp_lin1), np.mean(comp_lin2), np.mean(comp_lin3)])
+
 
 # %% Theoretical speed-ups based on the number of FLOPs (floating point operations (+, -, *, %))
 
@@ -243,7 +268,7 @@ FLOPs_dcmp = tc.tensor([tc.sum(dcmp_layer_wise[0:3]), tc.sum(dcmp_layer_wise[3:6
 
 # Calculating layer-wise speed-ups
 theoretical_SP_layer = FLOPs_orig / FLOPs_dcmp
-observed_SP_layer = times_m / times_dec_m
+observed_SP_layer = times_m / comp_m
 
 print("\n\n{:-^60s}\n{:-^60s}\n{:-^60s}\n".format('', " Timing the networks ", ''))
 print("{: <11}{: ^16}{: ^16}{: ^16}\n{:-^60s}".format("Layer", "Theoretical", "Observed", "Accounts for", ''))
@@ -260,6 +285,8 @@ print("{:-^60s}\n{: <11s}{: ^16.4f}{: ^16.4f}".format('', "Total", tc.sum(FLOPs_
 print("Based on {} samples and {} observations pushed forward".format(SAMPLE_SIZE, NUM_OBS))
 print("FLOPS orig: ", FLOPs_orig)
 print("FLOPS dcmp: ", FLOPs_dcmp)
+print("FLOPs dcmp 2: ", dcmp_layer_wise)
 print("Full time orig {} +- {} and compressed {} +- {}".format(full_time_m * 1000, full_time_s * 1000, full_time_dec_m * 1000, full_time_dec_s * 1000))
 print("Time orig: ", times_m * 1000, times_s * 1000)
 print("Layer time dcmp: ", times_dec_m * 1000, times_dec_s * 1000)
+print("Layer time dcmp comp: ", comp_m * 1000, times_dec_s * 1000)
