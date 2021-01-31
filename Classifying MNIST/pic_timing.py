@@ -2,7 +2,7 @@
     Timing the networks both fully and layer-wise. The time is reported as the mean and standard deviation of SAMPLE_SIZE
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
-HPC = False
+HPC = True
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
     "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
@@ -231,7 +231,7 @@ for i in range(SAMPLE_SIZE + BURN_IN):
 
 # Calculating the layer times
 full_time_dec = timing_dec[BURN_IN:, -1] - timing_dec[BURN_IN:, 0]
-for i in range(5, 0, -1):
+for i in range(11, 0, -1):
     timing_dec[:, i] -= timing_dec[:, i - 1]
 timing_dec = timing_dec[BURN_IN:, 1:]
 times_dec_m, times_dec_s = np.mean(timing_dec, axis=0), np.std(timing_dec, axis=0)
