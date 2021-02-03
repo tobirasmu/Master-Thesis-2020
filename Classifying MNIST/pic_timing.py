@@ -2,15 +2,15 @@
     Timing the networks both fully and layer-wise. The time is reported as the mean and standard deviation of SAMPLE_SIZE
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
-HPC = True
+HPC = False
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
     "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
 os.chdir(path)
 
 import torch as tc
-from pic_functions import time_conv, time_lin, numFLOPsPerPush, numParams
-from pic_networks import get_VGG16, Net, compressNetwork
+from pic_functions import numFLOPsPerPush, numParams
+from pic_networks import get_VGG16, compressNetwork
 from timeit import repeat
 from torch.autograd import Variable
 from pic_functions import get_variable
