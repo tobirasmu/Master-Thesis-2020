@@ -2,7 +2,7 @@
     Timing the networks both fully and layer-wise. The time is reported as the mean and standard deviation of SAMPLE_SIZE
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
-HPC = False
+HPC = True
 import os
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying MNIST/" if HPC else \
     "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying MNIST/"
@@ -319,6 +319,5 @@ print("Time for the VGG-16 network was {} +- {} second, while the decomposed ver
     tc.mean(fullTime_VGG16), tc.std(fullTime_VGG16), tc.mean(fullTime_VGG16_dec), tc.std(fullTime_VGG16_dec)))
 print("Theoretical speed-up is {:.4f} while the observed speed-up is {:.2f}".format(
     sum(FLOPs_vgg16) / sum(FLOPs_vgg16_dcmp), tc.mean(fullTime_VGG16) / tc.mean(fullTime_VGG16_dec)))
-
-# %% Observed layer-wise speed-up
-
+print("FLOPs: ", sum(FLOPs_vgg16), sum(FLOPs_vgg16_dcmp))
+print("Weights: ", numParams(vgg16), numParams(vgg16_dec))
