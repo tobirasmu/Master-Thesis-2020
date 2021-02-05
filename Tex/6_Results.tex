@@ -1,18 +1,18 @@
 \section{Results}
-Like in the methods section, this section will also be in two parts. This is due to the two compression methods, that are to be tested, are so different in nature and cannot be directly compared. To compare the methods, the a set of metrics will be applied to the original and compressed models. The metrics are:
+Like in the methods section, this section will also be given in two parts. This is due to the two compression methods being so different in nature which means they cannot be directly compared. To compare the methods, a set of metrics will be applied to the original and compressed models respectively. The metrics include:
 \begin{itemize}
-    \item \textbf{Accuracy} - especially the accuracy drop is an important metric in comparing the compressed model to the full model
-    \item \textbf{Number of Parameters} - how much space the model takes to store
-    \item \textbf{Theoretical speed} - based on the number of FLOPs, calculated using the formulas given in \autoref{tex:computational_complexity}.
-    \item \textbf{Actual speed} - how long it takes to compute a forward push. Computed many times reporting the mean and standard deviation of the time it takes. Due to potential differences in performance improvements, the methods will both be timed running on a CPU and GPU.
+    \item \textbf{Accuracy} - especially the accuracy drop is an important metric in comparing the compressed model to the full model, since there is trade-off between computational speed and accuracy
+    \item \textbf{Number of Parameters} - how much space the model takes to store. This is important if small devices with limited storage space should be able to run the model
+    \item \textbf{Theoretical speed} - based on the number of FLOPs, calculated using the formulas given in \autoref{tex:computational_complexity}. This is the actual number of calculations that is needed to perform a forward push. This should a good metric for the speed that can be calculated beforehand and used to predict the speed / speed-up of an algorithm.
+    \item \textbf{Actual speed} - how long it takes to compute a forward push. Reported as the mean and standard deviation of many timings of the forward push. Due to potential differences in performance improvements, the methods will both be timed running on a CPU and GPU.
 \end{itemize}
-Initially the results of the method of decomposing the input will be given, followed by the results of decomposing a pre-trained network.
+In the best case scenario, the actual speed improvement observed from timing the algorithms will be perfectly correlated with the calculated theoretical speed-up. Initially the results of method 1 will be given including observations from a small experiment, following this the results of applying method 2 will given. 
 
-\subsection{Decomposing the Input}
-In order to get a better understanding of what happens using this method, an experiment with only two classes for each data set and a rank of 2 will be carried out. Afterwards the results will be listed using different ranks for the input in order to assess performance differences.
+\subsection{Method 1}
+This is the method that decomposes the input into a NN. In order to get a better understanding of what happens when using this method, an experiment with only two classes for each data set and a rank of 2 will be carried out, and visual results will be given. Afterwards the results of using different ranks will be listed in order to assess performance differences.
 
 \subsubsection{Experiment with low rank}
-In the following an experiment is carried out to check whether the decomposition itself can carry much of the training. Since we have only 2 classes for the THETIS data set, and for the sake of the experiment 2 digits from the MNIST data set will be used. Since there are 2 classes in each data set, an initial rank of 2 will be experimentally chosen in the between sample dimension. The results for both the data set are described in the following.
+In the following an experiment is carried out to check whether the decomposition itself can carry much of the training. Since we have only 2 classes for the THETIS data set, and for the sake of the experiment 2 digits from the MNIST data set will be used. Since there are 2 classes in each data set, an initial rank of 2 will be experimentally chosen in the between sample dimension, since this also allows for a nice visualization of the loadings. The results for both the data set are described in the following.
 
 \paragraph{Using MNIST 3s and 4s}
 Only the MNIST observations depicting either a 3 or a 4 will be considered in this experiment. These digits are chosen due to their distinct shapes, hence ease of classification. Since the purpose is to make the algorithm find the differences between the two different digits, the spatial dimensions will not be decomposed. Using the experimental rank of 2, the decomposition of $N$ stacked 3s and 4s becomes:
@@ -36,7 +36,7 @@ Where $\bs{A}$ is the loading matrix in the dimension corresponding to different
         \caption{Approximated versions of the training examples on the left, using the decomposition.}
     \end{subfigure}
     \captionsetup{width=.95\linewidth}
-    \caption{MNIST training examples before and after decomposing with only rank 2 in the input dimension. Notice how the decomposed 3s and 4s look more standardized. It seems that every picture is a part standardized 3 and a part standardized 4. Notice how digits that look relatively odd results in less certain approximation.}
+    \caption{MNIST training examples before and after decomposing with only rank 2 in the input dimension. Notice how the decomposed 3s and 4s look somehow standardized. It seems that every picture is a part standardized 3 and a part standardized 4. Notice how original digits that look relatively odd results in less certain approximation, e.g. the one highlighted with the red square.}
     \label{fig:decompExample3_4}
 \end{figure}
 
@@ -112,30 +112,31 @@ Now the loading matrix $\bs{A}$ holds 2 values for each observation that should 
 \end{figure}
 
 \subsubsection{Results for MNIST}
-The results for MNIST using the method that decomposes the input are given in \autoref{tab:res_input_MNIST}. Here the different models have been trained and timed, reporting the mean and the standard deviation of the time of 100,000 forward pushes through the network. Since the data is small and the models are all very fast, every forward push is conducted using 10,000 observations, which means that a total of $10^{9}$ forward pushes have been timed. In \autoref{} the brackets holds the time of each of the two parts of the algorithm, i.e. estimating the input loadings, and pushing through the ANN. 
+The results for MNIST using the method that decomposes the input are given in \autoref{tab:res_input_MNIST}. Here the different models have been trained and timed, reporting the mean and the standard deviation of the time of 1,000 forward pushes through the network. Since the data is small and the models are all very fast, every forward push is conducted using 10 observations, which means that a total of 10,000 forward pushes have been timed. In \autoref{tab:res_input_MNIST}
+the brackets holds the time of each of the two parts of the algorithm, i.e. estimating the input loadings, and pushing through the ANN. 
 
 It seems... 
 
-\begin{table}[H]
+\begin{table}
 \small
-\caption{The results of running the input decomposition method on the MNIST data set using different ranks for the decomposition. The time is reported as the mean and standard deviation of 1000 samples where 10 observations are evaluated using the model. }
+\centering
+\captionsetup{width=.95\linewidth}
+\caption{The results of running the input decomposition method on the MNIST data set using different ranks for the decomposition. The time is reported as the mean and standard deviation of 1000 samples where 10 observations are evaluated using the model. Notice that even though the rank of the decomposition is very high, the accuracy of the original network is not reached even with 7.6 times the FLOPs (rank 150). This questions the applicability of the algorithm}
 \label{tab:res_input_MNIST}
 \begin{tabular}{c|cccc|c}
 \textbf{Rank}     & \textbf{\begin{tabular}[c]{@{}c@{}}Parameters\\ (K)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}FLOPs\\ (K)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Time CPU\\ (ms)\end{tabular}}                  & \textbf{\begin{tabular}[c]{@{}c@{}}Time GPU\\ (ms)\end{tabular}}                  & \textbf{\begin{tabular}[c]{@{}c@{}}Accuracy\\ (\%)\end{tabular}} \\ \hline
-\textbf{2}        & 1.83                                                              & 3.58                                                         & \begin{tabular}[c]{@{}c@{}}$1.481 \pm 0.025$ \\ $(= 0.904 + 0.647 )$\end{tabular} & $0.149 \pm 0.012$ $(= 0.014 + 0.118 )$                                            & \textbf{33.61}                                                  \\
+\textbf{2}        & 1.83                                                              & 3.58                                                         & \begin{tabular}[c]{@{}c@{}}$1.481 \pm 0.025$ \\ $(= 0.904 + 0.647 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.149 \pm 0.012$ \\ $(= 0.014 + 0.118 )$\end{tabular} & \textbf{33.61}                                                  \\
 ratio             & 0.11                                                              & 0.11                                                         & 0.871                                                                             & 1.155                                                                             & 0.36                                                            \\ \hline
-\textbf{5}        & 4.25                                                              & 8.41                                                         & \begin{tabular}[c]{@{}c@{}}$2.445 \pm 0.039$\\  $(= 1.885 + 0.551 )$\end{tabular} & $0.144 \pm 0.011$ $(= 0.013 + 0.115 )$                                            & \textbf{52.20}                                                  \\
+\textbf{5}        & 4.25                                                              & 8.41                                                         & \begin{tabular}[c]{@{}c@{}}$2.445 \pm 0.039$\\  $(= 1.885 + 0.551 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.144 \pm 0.011$\\  $(= 0.013 + 0.115 )$\end{tabular} & \textbf{52.20}                                                  \\
 ratio             & 0.25                                                              & 0.26                                                         & 1.438                                                                             & 1.116                                                                             & 0.55                                                            \\ \hline
-\textbf{7}        & 5.86                                                              & 11.62                                                        & \begin{tabular}[c]{@{}c@{}}$3.114 \pm 0.047$ \\ $(= 2.525 + 0.565 )$\end{tabular} & $0.142 \pm 0.010$ $(= 0.013 + 0.113 )$                                            & \textbf{61.71}                                                  \\
+\textbf{7}        & 5.86                                                              & 11.62                                                        & \begin{tabular}[c]{@{}c@{}}$3.114 \pm 0.047$ \\ $(= 2.525 + 0.565 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.142 \pm 0.010$\\  $(= 0.013 + 0.113 )$\end{tabular} & \textbf{61.71}                                                  \\
 ratio             & 0.35                                                              & 0.37                                                         & 1.832                                                                             & 1.101                                                                             & 0.65                                                            \\ \hline
 \textbf{10}       & 8.27                                                              & 16.44                                                        & \begin{tabular}[c]{@{}c@{}}$1.660 \pm 0.033$\\  $(= 0.968 + 0.681 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.141 \pm 0.011$\\  $(= 0.013 + 0.113 )$\end{tabular} & \textbf{67.55}                                                  \\
 ratio             & 0.50                                                              & 0.52                                                         & 0.976                                                                             & 1.093                                                                             & 0.72                                                            \\ \hline
 \textbf{15}       & 12.30                                                             & 24.48                                                        & \begin{tabular}[c]{@{}c@{}}$1.906 \pm 0.035$ \\ $(= 1.372 + 0.527 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.141 \pm 0.011$\\  $(= 0.013 + 0.113 )$\end{tabular} & \textbf{72.14}                                                  \\
 ratio             & 0.74                                                              & 0.77                                                         & 1.121                                                                             & 1.093                                                                             & 0.76                                                            \\ \hline
 \textbf{20}       & 16.32                                                             & 32.51                                                        & \begin{tabular}[c]{@{}c@{}}$1.965 \pm 0.031$\\  $(= 1.354 + 0.598 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.142 \pm 0.011$\\  $(= 0.014 + 0.113 )$\end{tabular} & \textbf{79.41}                                                  \\
-ratio             & 0.98                                                              & 1.02                                                         & 1.156                                                                             & 1.101                                                                             & 0.84                                                            \\ \hline
-\textbf{25}       & 20.35                                                             & 40.55                                                        & \begin{tabular}[c]{@{}c@{}}$1.943 \pm 0.031$ \\ $(= 1.407 + 0.527 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.141 \pm 0.011$\\  $(= 0.014 + 0.113 )$\end{tabular} & \textbf{74.19}                                                  \\
-ratio             & 1.22                                                              & 1.28                                                         & 1.143                                                                             & 1.093                                                                             & 0.79                                                            \\ \hline
+ratio             & 0.98                                                              & 1.02                                                         & 1.156                                                                             & 1.101                                                                             & 0.84                  \\ \hline
 \textbf{30}       & 24.37                                                             & 48.58                                                        & \begin{tabular}[c]{@{}c@{}}$2.397 \pm 0.035$ \\ $(= 1.785 + 0.599 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.142 \pm 0.011$\\  $(= 0.015 + 0.115 )$\end{tabular} & \textbf{74.66}                                                  \\
 ratio             & 1.46                                                              & 1.53                                                         & 1.410                                                                             & 1.101                                                                             & 0.79                                                            \\ \hline
 \textbf{40}       & 32.42                                                             & 64.65                                                        & \begin{tabular}[c]{@{}c@{}}$2.298 \pm 0.039$ \\ $(= 1.756 + 0.528 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$0.144 \pm 0.011$ \\ $(= 0.024 + 0.116 )$\end{tabular} & \textbf{74.89}                                                  \\
@@ -189,5 +190,136 @@ ratio             & 1.49                                                        
 \textbf{200}      & 430.10                                                            & 860.20                                                        & \begin{tabular}[c]{@{}c@{}}$174.968 \pm 1.870$\\  $(= 174.853 + 0.094 )$\end{tabular} & \begin{tabular}[c]{@{}c@{}}$2.362 \pm 0.429$ \\ $(= 1.682 + 0.648 )$\end{tabular} & \textbf{94}                                                      \\
 ratio             & 1.98                                                              & 2.00                                                          & 1.90                                                                                  & 2.26                                                                              & 1.02                                                             \\ \hline
 \textbf{Original} & 217.19                                                            & 430.08                                                        & $ 95.243\pm 1.642 $                                                                   & $1.045 \pm 0.255 $                                                                & \textbf{92}                                                     
+\end{tabular}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+%%        Decomposing Pre-Trained Network    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{Method 2}
+
+\subsubsection{Results for MNIST}
+
+\begin{table}
+\centering
+\small
+\caption{Overview of the layers of the decomposed network resulting after applying method 2 to the MNIST architecture given in \autoref{tex:architectures} including number of weights and FLOPs for each layer. The number of FLOPs have been used to calculate the theoretical speed up, and the weights have been used to calculate the storage improvement. These results make method 2 look promising with an overall theoretical speed up of 3.45 times and an overall storage improvement of 4.62 times}
+\label{tab:res_MNIST_FLOPs}
+\begin{tabular}{cc|cccc}
+\multicolumn{2}{c}{\textbf{MNIST Layer}} & $ S / R_{in}$ & $ T /R_{out}$ & Weights         & FLOPs (K)                  \\ \hline
+\multirow{3}{*}{Conv 1}  & Orig          & 1             & 6             & 156             & 231.28                     \\
+                         & Comp          &               & 1             & 37              & 43.9 $(=38.42+5.49)$       \\
+                         & \textit{Impr} &               &               & $ \times 4.22$  & $\times 5.27$              \\ \hline
+\multirow{3}{*}{Conv 2}  & Orig          & 6             & 16            & 2416            & 478.5                      \\
+                         & Comp          & 4             & 6             & 736             & 171.6 $(=34.5+119.4+17.7)$ \\
+                         & \textit{Impr} &               &               & $ \times 3.28$  & $\times 2.79$              \\ \hline
+\multirow{3}{*}{Lin 1}   & Orig          & 400           & 120           & 48120           & 96                         \\
+                         & Comp          & 18            & 18            & 9804            & 19.33 $(=14.38+0.63+4.32)$ \\
+                         & \textit{Impr} &               &               & $ \times 4.91$  & $\times 4.97$              \\ \hline
+\multirow{3}{*}{Lin 2}   & Orig          & 120           & 84            & 10164           & 20.16                      \\
+                         & Comp          & -             & 9             & 1920            & 3.66 $(=2.15+1.51)$        \\
+                         & \textit{Impr} &               &               & $ \times 5.29$  & $\times 5.51$              \\ \hline
+\multirow{3}{*}{Lin 3}     & Orig          & 84            & 10            & 850             & 1.68                       \\
+                         & Comp          & -             & -             & 850             & 1.68                       \\
+                         & \textit{Impr} & \textit{}     & \textit{}     & $ \times 1$     & $ \times 1.00$             \\ \specialrule{0.1em}{.05em}{.05em} 
+\multirow{3}{*}{Total}   & Orig          &               &               & 61706           & 827.62                     \\
+                         & Comp          &               &               & 13347           & 240.18                     \\
+                         & \textit{Impr} &               &               & $ \times 4.62 $ & $\times 3.45 $            
+\end{tabular}
+\end{table}
+\begin{table}
+\centering
+\small
+\caption{Caption}
+\label{tab:res_MNIST_time}
+\begin{tabular}{cc|cc}
+\multicolumn{2}{c}{\textbf{MNIST Layer}}        & Time CPU               & Time GPU                             \\ \hline
+\multirow{4}{*}{Conv 1} & Orig                  & $7.085\pm 1.347$       & $0.143\pm 0.003$                     \\
+                        & \multirow{2}{*}{Comp} & $12.274\pm 0.207$      & $0.223\pm 0.003$                     \\
+                        &                       & $(=3.422+8.852)$       & $(=0.087+0.136)$                     \\
+                        & \textit{Impr}         & $ \times 0.577$        & $ \times 0.64$                       \\ \hline
+\multirow{4}{*}{Conv 2} & Orig                  & $2.279\pm 0.074$       & $0.156\pm 0.004$                     \\
+                        & \multirow{2}{*}{Comp} & $4.182\pm 0.104$       & $0.292\pm 0.004$                     \\
+                        &                       & $(=1.401+0.876+1.906)$ & $(=0.074+0.089+0.128)$               \\
+                        & \textit{Impr}         & $ \times 0.545$        & $ \times 0.54$                       \\ \hline
+\multirow{4}{*}{Lin 1}  & Orig                  & $0.31\pm 0.067$        & $0.096\pm 0.002$                     \\
+                        & \multirow{2}{*}{Comp} & $0.373\pm 0.012$       & $0.235\pm 0.005$                     \\
+                        &                       & $(=0.203+0.057+0.113)$ & $(=0.093+0.063+0.079)$               \\
+                        & \textit{Impr}         & $ \times 0.831$        & $ \times 0.41$                       \\ \hline
+\multirow{4}{*}{Lin 2}  & Orig                  & $0.11\pm 0.014$        & $0.078\pm 0.002$                     \\
+                        & \multirow{2}{*}{Comp} & $0.132\pm 0.006$       & $0.135\pm 0.004$                     \\
+                        &                       & $(=0.057+0.075)$       & \multicolumn{1}{l}{$(=0.061+0.074)$} \\
+                        & \textit{Impr}         & $ \times 0.833$        & $ \times 0.58$                       \\ \hline
+\multirow{4}{*}{Lin 3}  & Orig                  & $0.112\pm 0.006$       & $0.08\pm 0.003$                      \\
+                        & \multirow{2}{*}{Comp} & $0.105\pm 0.004$       & $0.079\pm 0.001$                     \\
+                        &                       &                        &                                      \\
+                        & \textit{Impr}         & $ \times 1.067$        & $ \times 1.01$                       \\ \specialrule{.1em}{.05em}{.05em}
+Total                   & Orig                  & $ 9.896 \pm 1.380 $    & $0.552\pm 0.008$                     \\
+                        & Comp                  & $ 17.065 \pm 0.365$    & $0.964\pm 0.007$                     \\
+                        & \textit{Impr}         & $ \times 0.58$         & $ \times 0.57 $                     
+\end{tabular}
+\end{table}
+
+\subsubsection{Results for THETIS}
+
+\begin{table}
+\small
+\centering
+\caption{Overview of the layers of the decomposed network resulting after applying method 2 to the THETIS architecture given in \autoref{tex:architectures} including number of weights and FLOPs for each layer. The number of FLOPs have been used to calculate the theoretical speed up, and the weights have been used to calculate the storage improvement. These results make method 2 look promising with an overall theoretical speed up of 3.45 times and an overall storage improvement of 4.62 times}
+\label{tab:res_THETIS_FLOPs}
+\begin{tabular}{cc|cccc}
+\multicolumn{2}{c}{\textbf{THETIS Layer}}      & $ S / R_{in}$ & $ T /R_{out}$ & Weights (K)      & FLOPs                        \\ \hline
+\multirow{3}{*}{Conv 1} & Orig          & 1             & 6             & 14.52            & 15609.2M                     \\
+                        & Comp          & 2             & 2             & 2.45             & 2618.6M $(=7.5+2600.9+10.2)$ \\
+                        & \textit{Impr} &               &               & $\times 5.94 $   & $\times 5.96 $               \\ \hline
+\multirow{3}{*}{Conv 2} & Orig          & 6             & 16            & 58.10            & 696.9M                       \\
+                        & Comp          & 2             & 3             & 3.74             & 44.4M $(=0.4+43.5+0.5)$      \\
+                        & \textit{Impr} &               &               & $\times 15.54 $  & $\times 15.7$                \\ \hline
+\multirow{3}{*}{Lin 1}  & Orig          & 2800          & 128           & 358.53           & 716.8K                       \\
+                        & Comp          & 1             & 1             & 3.06             & 5856 $(=5599+1+256)$          \\
+                        & \textit{Impr} &               &               & $\times 117.28 $ & $\times 122.4 $              \\ \hline
+\multirow{3}{*}{Lin 2}  & Orig          & 128           & 84            & 10.84            & 21.5K                        \\
+                        & Comp          & -             & 1             & 0.3              & 423 $(=255+168)$              \\
+                        & \textit{Impr} &               &               & $\times 36.12 $  & $\times 50.84 $              \\ \hline
+\multirow{3}{*}{Lin 3}    & Orig          & 84            & 10            & 0.17             & 336                          \\
+                        & Comp          & -             & -             & 0.17             & 336                          \\
+                        & \textit{Impr} & \textit{}     & \textit{}     & $\times 1.00$    & $ \times 1.00 $              \\ \specialrule{0.1em}{.05em}{.05em} 
+\multirow{3}{*}{Total}  & Orig          &               &               & 442.15           & 16306.8M                     \\
+                        & Comp          &               &               & 13.35            & 2663.1M                      \\
+                        & \textit{Impr} &               &               & $ \times 33.13$  & $\times 6.12 $             \\ \hline
+\end{tabular}
+\end{table}
+\begin{table}
+\small
+\centering
+\caption{Caption}
+\label{tab:res_THETIS_timing}
+\begin{tabular}{cc|cc}
+\multicolumn{2}{c}{\textbf{THETIS Layer}}              & Time CPU (ms)                  & Time GPU (ms)                          \\ \hline
+\multirow{4}{*}{Conv 1} & Orig                  & $3518.114\pm 21.41$        & $2.282\pm 0.064$                   \\
+                        & \multirow{2}{*}{Comp} & $2643.672\pm 120.653$      & $0.289\pm 0.005$                   \\
+                        &                       & $(=412.22+1697.69+533.77)$ & $(=0.09+0.07+0.13)$                \\
+                        & \textit{Impr}         & $\times 1.33 $             & $\times 7.90 $                     \\ \hline
+\multirow{4}{*}{Conv 2} & Orig                  & $75.644\pm 0.439$          & $0.135\pm 0.003$                   \\
+                        & \multirow{2}{*}{Comp} & $38.156\pm 0.544$          & $56.615\pm 0.176$                  \\
+                        &                       & $(=9.26+22.89+6.01)$       & $(=0.07+0.07+56.47)$               \\
+                        & \textit{Impr}         & $ \times 1.98 $            & $\times 0.002 $                    \\ \hline
+\multirow{4}{*}{Lin 1}  & Orig                  & $0.57\pm 0.102$            & $0.105\pm 0.003$                   \\
+                        & \multirow{2}{*}{Comp} & $0.275\pm 0.018$           & $1.366\pm 0.029$                   \\
+                        &                       & $(=0.16+0.04+0.07)$        & $(=0.56+0.73+0.08)$                \\
+                        & \textit{Impr}         & $\times 2.07 $             & $\times 0.08$                      \\ \hline
+\multirow{4}{*}{Lin 2}  & Orig                  & $0.11\pm 0.011$            & $109.633\pm 0.254$                 \\
+                        & \multirow{2}{*}{Comp} & $0.089\pm 0.007$           & $0.131\pm 0.002$                   \\
+                        &                       & $(=0.04+0.05)$             & \multicolumn{1}{l}{$(=0.06+0.07)$} \\
+                        & \textit{Impr}         & $\times 1.24 $             & $\times 839.61 $                   \\ \hline
+\multirow{4}{*}{Lin 3}    & Orig                  & $0.081\pm 0.009$           & $0.845\pm 0.005$                   \\
+                        & \multirow{2}{*}{Comp} & $0.079\pm 0.068$           & $0.078\pm 0.002$                   \\
+                        &                       &                            &                                    \\
+                        & \textit{Impr}         & $\times 1.03 $             & $\times 10.9 $                     \\ \specialrule{0.1em}{.05em}{.05em} 
+Total                   & Orig                  & $3594.520 \pm 21.607$      & $113.000 \pm 0.263$                \\
+                        & Comp                  & $ 2682.271 \pm 13.760$     & $ 58.478 \pm 0.176 $               \\
+                        & \textit{Impr}         & $\times 1.34 $             & $\times 1.93$                     
 \end{tabular}
 \end{table}
