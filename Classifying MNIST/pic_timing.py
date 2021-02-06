@@ -281,7 +281,7 @@ print("Layer time dcmp comp: ", comp_m * 1000, times_dec_s * 1000)
 
 # %% Investigating whether it works for bigger architectures
 print("\n\n{:-^60s}\n{:-^60s}\n{:-^60s}\n".format('', " Timing the VGG-16 network ", ''))
-NUM_OBS = 100
+NUM_OBS = 10
 # Loading the networks and compressing using the algorithm
 vgg16 = get_VGG16()
 vgg16_dec = get_VGG16(compressed=True)
@@ -291,7 +291,7 @@ if tc.cuda.is_available():
     vgg16_dec = vgg16_dec.cuda()
     print(" -- Using GPU -- ")
 
-test = get_variable(Variable(tc.rand((1, 3, 224, 224))))
+test = get_variable(Variable(tc.rand((NUM_OBS, 3, 224, 224))))
 
 # Timing VGG16 - both original and compressed
 fullTime_VGG16 = tc.tensor(repeat('vgg16(test)', globals=locals(), number=1, repeat=(SAMPLE_SIZE +
