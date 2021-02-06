@@ -1,9 +1,27 @@
 \section{Discussion} \label{tex:discussion}
 
-From the results given in the previous section, it is clear that the speed of a NN method is not simply a function of the number of FLOPs that is used to produce the output, but that much more goes on that impacts the performance.
+In this section the results from the previous section will be discussed in order to cast light on discrepancies, and to give potential explanations for them. This section will also be partitioned due to the two-methods that have been examined in this report. Subsequently, there will be a discussion for when to use which method, i.e. what kind of problems are relevant for each of the methods. In the end \autoref{tex:future_work} will discuss possible directions to take the research even further. 
+
+The theoretical speed-up have been calculated using the number of FLOPs it takes to perform a forward push. In calculating the FLOPs for the different types of layers, it was assumed that the non-linear transforms, reshaping, and pooling layers were for free, hence that calculation time only has contributions from the convolutional and linear layers themselves. Obviously everything costs time, but this assumption is deemed fair to make because the time it takes to do these things is so low relative to the computations carried out in the layers. This does however mean that the times reported in the previous section are polluted with transformations, poolings, and reshapings, and that for simpler architectures with less total FLOPs it has a bigger impact on the result. Even though the timing results are polluted, they are still comparable to each other because both the original architecture and the compressed version suffer the same additional operations.
+
+\subsection{Method 1}
+
+
+\subsection{Method 2}
+From the results in the last section it is clear that the time cannot be explained simply by the number of FLOPs, but that more is going on in the back-end. In no case was the compressed model sped-up as much as was predicted using the number of FLOPs, and using the MNIST architecture the compressed model was actually slower than the original both using the CPU and the GPU. Kim et al. achieve show something similar\cite{Kim2016}, since nor they are able to match the theoretically expected speed-up. For the VGG-16 architecture their speed-up of 2.33 times is comparable to the 2.03 times speed-up achieved in this thesis running on the CPU. It should be noted that they only compress the convolutional layers and not the linear layers as done in this work. This goes to show that the storage improvement achieved in this thesis is much greater than what is achieved in their work ($\times 6.07$ vs. $\times 1.09$). They make two interesting observations that they use to explain the lack of observed speed-up, that might also be applicable to the results achieved in this thesis. First of all they give blame to the $1\times 1 (\times 1)$ convolution for not being cache efficient\footnote{The cache is a hardware component that saves data used in computations in order to very quickly access and use them again. Proper use of the cache memory results in very fast computations}, which means that even though it should use less FLOPs, each FLOP takes more time to carry out. Secondly they observe that using the computing power on an actual smartphone, they manage to get a bigger speed-up, since the smartphone does not match a computer in number of threads or in the power to parallelize. These results make it seem like the more computer-power you have, the smaller the observed speed-up will be. 
+
+The proposed $1\times 1 (\times 1)$ convolution cache inefficiency is also to be found in the results given in  the previous section. For instance for the Conv 2 layer from the compressed MNIST architecture, the first and last layers are both $1\times 1$ convolutions and take up the majority of the time using 33\% and 45 \% of the time even though they only correspond to 20\% and 10\% of the FLOPs respectively (see \autoref{tab:res_MNIST_FLOPs} and \autoref{tab:res_MNIST_time}). The inefficiency in this case is so pronounced that it makes the whole network slower than the corresponding original network. For Conv 2 in the THETIS architecture the same pattern is shown, though not as pronounced and not enough to make it slower than its corresponding original. Here the $1\times 1 \times 1$ convolutions require only 0.9\% and 1.1\% of the convolutions respectively, but ends up taking 24\% and 16\% of the time.
+
+The lack of speed in the linear layers seems harder to address because the linear layers simply consist of a matrix-vector product that is a very well-known operation, and because the linear layers are not as prone to time-pollution in terms of reshaping or pooling. Looking at the GPU times for the MNIST architecture the time seems relatively constant through the layers even though they require quiet different amounts of FLOPs. This makes it seem like there is some penalty for starting up a new layer, which means that adding more layers causes a bigger time penalty. This is however only a hypothesis and does not have any scientific backing.
+
+The hypothesis that more computing power, i.e. more threads and more power to parallelize, causes a smaller observed speed-up is also backed from the results in this thesis
+
+All in all it seems like method 2
+
+\subsection{When to Use Which Method}
+
 
 \begin{itemize}
-    \item Penalty for more layers that impacts the performance
     \item When to use which method
     \begin{itemize}
         \item The decomposition of the input allows for much lower input dimensions and seems appropriate for simple classification tasks where some structure is already given. It could also be appropriate for instance for background removal or dynamic information extraction. When the complexity rises (for instance with MNIST digits that look alike) then this algorithm seems to fall short.
@@ -20,7 +38,7 @@ From the results given in the previous section, it is clear that the speed of a 
     \end{itemize}
 \end{itemize}
 
-\subsection{Future work}
+\subsection{Future Work} \label{tex:future_work}
 \begin{itemize}
     \item Rank selection
     \begin{itemize}

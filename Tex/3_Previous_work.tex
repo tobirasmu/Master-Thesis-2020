@@ -8,7 +8,7 @@ In this section a recap of some different approaches to speed up or decrease the
 \end{enumerate}
 Some approaches will be discussed in the following. In the end the methods will be compared in terms of performance in relation to the number of parameters and the computation time.
 
-\subsection{Decomposing the dense layer}
+\subsection{Decomposing the Dense Layer}
 In 2015 Nokinov et al. used TT-decomposition to decompose the weights of a dense (fully-connected) layer in an ANN\cite{Novikov2015}. This method exploits the power of the dense layer and allows it to have a big amount of neurons. The dense layer performs a linear transformation on an input vector $\bs{x}$ of dimension $N$:
 \begin{equation}
     \bs{y} = \bs{W} \bs{x} + \bs{b}
@@ -20,7 +20,7 @@ Where $\bs{W} \in \R^{M\times N}$ is the weight matrix and $\bs{b} \in \R^{M}$ i
 \end{equation}
 Where $\tensor{B}$ is the bias tensor. The properties of the TT-format allows for computation of back-propagation, which is then used for fine-tuning the network. The authors report a best-case compression of a dense layer of up to 200,000 times and of a whole network of up to 7.
 
-\subsection{Speeding up the evaluation of a convolution}
+\subsection{Speeding-Up the Evaluation of a Convolution}
 In 2013 Rigamonti et al. \cite{Rigamonti2013} found that filters can be computed as a linear combination of smaller separable filters. A filter is called separable when it can be expressed using multiple parts of lower dimension, as for instance using the CP-decomposition as illustrated by \cite{Sironi2015} in \autoref{fig:separable_filters}. Ever since many approaches have been considered using this principle in different ways. For instance Jaderberg et al. proposed two different schemes for using rank-1 filters to exploit the cross-channel / filter redundancy \cite{Jaderberg2014}. Since these schemes did not built upon any decomposition algorithm per se, the approximation of the separated filters was done by numerically minimizing either the $L_2$ reconstruction error or the reconstruction error of the output of the given layer (indirectly). Two other approaches uses standard decomposition algorithms to ease the evaluation time. One was proposed by Lebedev et al. in 2015 and used CP-decomposition to decompose the convolutional kernel \cite{Lebedev2015}, another was proposed by Wang and Cheng in 2016 and used BTD. They will both be discussed in the following.
 
 \begin{figure}
@@ -84,7 +84,7 @@ Where $R$ is the rank of the BTD, $\bs{A}_r \in \R^{S\times s}$ and $\bs{B}_r \i
     \label{fig:BTD_conv_decomp}
 \end{figure}
 
-\subsection{Speeding up the entire network} \label{tex:sub_entire_network}
+\subsection{Speeding-Up the Entire Network} \label{tex:sub_entire_network}
 All the methods discussed above only describe how to decompose a single layer in the NN; the dense layer or the convolutional layer respectively. In 2016 one method was proposed that would be able to decompose an entire network at once.
 
 Kim et al. proposed using Tucker-decomposition to decompose, not only the convolutional layers, but also the dense layers \cite{Kim2016}. They would use Tucker-2 decomposition from the second convolution to the first dense layer, and Tucker-1 decomposition\footnote{Equivalent to the SVD} for the remaining. They did not decompose the spatial dimensions, since these already are quite small. They also proposed using the global analytical solutions for variational Bayesian matrix factorization (VBMF) developed by Nakajima et al. in 2013 \cite{Nakajima2013} to find the optimal ranks for the decompositions. In a similar derivation to the one in \autoref{tex:convUsingCP}, Kim et al. found that the Tucker-2 decomposed convolutional layer can be described as a sequences of simpler convolutions. This sequence is shown in \autoref{fig:tuckerDecompConv}. They use this sequence to do back-propagation on the entire network at once. The authors report promising results, but states that the optimality of the rank selection needs to be investigated further. They also claim that the $1\times 1$ convolution has great potential even though it seems to be cache-inefficient, that it and will grow in popularity.\footnote{The yellow and blue convolutions seen in \autoref{fig:tuckerDecompConv}. It is already extensively used in for instance GoogLeNet \cite{Szegedy2015}}
@@ -97,10 +97,5 @@ Kim et al. proposed using Tucker-decomposition to decompose, not only the convol
     \label{fig:tuckerDecompConv}
 \end{figure}
 
-\subsection{Overall comparison of methods}
+\subsection{Overall Comparison of Methods}
 It seems that the biggest compression happens in the dense layers, since these are very heavy in number of parameters, on the other hand the convolution takes longer since there are more evaluations per parameter. In trying to speed up the CNN, the method using BTD proposed in \cite{Wang2016} seems to get the best results. On the VGG-16 network architecture\cite{Simonyan2015} they achieve an acceleration of $6.6 \times$, while the methods of Jaderberg et al. \cite{Jaderberg2014} and Kim et al. \cite{Kim2016} achieve $3.8 \times$ and $3.3\times$ respectively. The authors of the BTD method also discuss and test decomposing the first dense layer since this can be treated as a convolution with large filters. The method using CP-decomposition \cite{Lebedev2015} worked well, but did not seem to be scaleable.
-
-% Outline:
-% Speeding up the dense layer
-% Speeding up the convolutional layer
-% Speeding up the entire network
