@@ -191,7 +191,7 @@ multiplications. \autoref{tab:number_multiplications_conv} shows how the ranks s
     \label{tab:number_multiplications_conv}
 \end{table}
 
-\subsubsection{Rank selection}
+\subsubsection{Rank selection}\label{tex:rank_selection}
 There will be no all-round method for rank selection in this report. Where it is possible VBMF will be used to do the decomposition automatically as explained in \autoref{tex:VBMF}. In the cases where VBMF fails the ranks will be set experimentally be the same as the rank in using the other dimension for which it works. This is mostly for the linear layers, where the automatic method fails when trying to find the rank in the input channel dimension. The implementation of the VBMF is taken from \cite{VBMF_impl}.
 
 \subsubsection{One-shot compression a an entire CNN using Tucker}
@@ -260,7 +260,7 @@ THETIS                                                   & 2      & 2      & 2  
 \end{tabular}
 \end{table}
 
-\subsection{Computational complexity}\label{tex:computational_complexity}
+\subsection{Computational Complexity}\label{tex:computational_complexity}
 In order to assess the theoretical performance of the different networks, we will make use of the number of floating point operations (FLOPs) that it takes for the network to do one forward push. We assume that the non-linearity (activation function) and the max-pooling computations for free, and only consider the FLOPs used in the dense and convolutional layers respectively.
 
 \subsubsection{Dense layer}
@@ -287,7 +287,7 @@ In method 1, the loading matrix $\bs{A}$ needs to be estimated for the testing o
     \bs{A} \approx \bs{X}_{(1)} \bs{G}_{(1)}^{\dagger}
     \label{eq:estimation_of_loading_A}
 \end{equation}
-Where we assume that $\bs{G}_{(1)}^{\dagger}$ have already been estimated and that the unfolding of $\tensor{X}$ is for free, which means that the approximation is a matrix-matrix product. $\bs{X}_{(1)}$ will have shape $I_1 \times \delta$ where $\delta = \prod_{k=2}^n I_k$, and $I_1$ is the number of input observations. $\bs{G}_{(1)}^{\dagger}$ will have shape $\delta \times R$ where $R$ is the rank of the decomposition. The total number of FLOPs it takes to approximate $\bs{A}$ for $I_1$ observations is given by:
+Where we assume that $\bs{G}_{(1)}^{\dagger}$ have already been estimated as a part of the training process and that the unfolding of $\tensor{X}$ is for free, which means that the approximation is a matrix-matrix product. $\bs{X}_{(1)}$ will have shape $I_1 \times \delta$ where $\delta = \prod_{k=2}^n I_k$, and $I_1$ is the number of input observations. $\bs{G}_{(1)}^{\dagger}$ will have shape $\delta \times R$ where $R$ is the rank of the decomposition. The total number of FLOPs it takes to approximate $\bs{A}$ for $I_1$ observations is given by:
 \begin{equation}
     R \cdot I_1 (2\cdot \delta - 1), \qquad \quad \text{where} \quad \delta = \prod_{k=2}^n I_k
 \end{equation}
