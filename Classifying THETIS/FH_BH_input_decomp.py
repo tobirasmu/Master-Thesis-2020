@@ -40,7 +40,7 @@ nTrain = int(0.85 * N)
 
 # %% Doing the decomposition
 modes = [0]
-ranks = [100]
+ranks = [2]
 
 core, [A] = partial_tucker(X[:nTrain], modes=modes, ranks=ranks)
 
