@@ -1,0 +1,6 @@
+\section{Conclusion} \label{tex:conclusion}
+The aim of this thesis was to evaluate the synergistic effects of using tensor decomposition methods within a NN. Two methods have been proposed to do this. Method 1 use Tucker decomposition to compress the input into a NN in order to decrease the number of inputs into a very simple ANN. Method 2 takes a pre-trained network and changes the architecture to fit the compressed version of the weight kernels. Both methods have been tested on both data sets in order to assess the performance changes. Baseline architectures have been chosen and baseline results have been established. 
+
+The results from method 1 shows that it works well for very simple problems, but when the complexity rises it falls short. In order to get the same accuracy for the THETIS data set the rank would need to be increased to a point where both the theoretical speed in terms of the number of FLOPs and the measured computation time would be exceeded. For the MNIST data set the accuracy for the compressed model would never meet that of the full input network using up to 7.6 times the number of FLOPs and almost 4 times the time running on a CPU. Due to these results method 1 was deemed to have limited potential.
+
+Method 2 did result in a speed-up for the THETIS data set and for the VGG-16 dataset. 
