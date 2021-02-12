@@ -1,25 +1,25 @@
 \section{Results} \label{tex:results}
-In this section results of applying the two methods discussed in the previous section will be given. Like discussing the methods in the previous section, the results will also be given in two parts. This is due to the two compression methods being so different in nature which means they cannot be directly compared. To compare the methods, a set of metrics will be applied to the original and compressed models respectively. The metrics include:
+In this section results of applying the two methods discussed in the previous section will be given. Like in the methodology section, the results will also be given in two parts. This is due to the two compression methods being so different in nature which means they cannot be directly compared. Method 1 will be assessed using different ranks in order to hopefully find a good balance between accuracy drop and speed-up, while Method 2 will be assessed looking at the time for each layer through the network, hence not for different ranks. The methods will be evaluated using a set of metrics that will be applied to the original and compressed models respectively. The metrics include:
 \begin{itemize}
     \item \textbf{Accuracy} - especially the accuracy drop is an important metric in comparing the compressed model to the full model, since there is trade-off between computational speed and accuracy
     \item \textbf{Number of Parameters} - how much space the model takes to store. This is important if small devices with limited storage space should be able to run the model
-    \item \textbf{Theoretical speed} - based on the number of FLOPs, calculated using the formulas given in \autoref{tex:computational_complexity}. This is the actual number of calculations that is needed to perform a forward push. This should a good metric for the speed that can be calculated beforehand and used to predict the speed / speed-up of an algorithm.
-    \item \textbf{Actual speed} - how long it takes to compute a forward push. Reported as the mean and standard deviation of many timings of the forward push. Due to potential differences in performance improvements, the methods will both be timed running on a CPU and GPU.
+    \item \textbf{Theoretical speed} - based on the number of FLOPs, calculated using the formulas given in \autoref{tex:computational_complexity}. This is the actual number of calculations that is needed to perform a forward push. This should a good metric for the speed that can be calculated beforehand and used to predict the speed or the speed-up of an algorithm.
+    \item \textbf{Actual speed} - how long it takes to compute a forward push. Reported as the mean and standard deviation of many timings of the forward push. Due to potential differences in performance improvements, the methods will both be timed running on a CPU and a GPU\footnote{The DTU Computing Center general cluster\cite{HPC} is used for the timing due to stability of the timings compared to a personal computer}.
 \end{itemize}
-In the best case scenario, the actual speed improvement observed from timing the algorithms will be perfectly correlated with the calculated theoretical speed-up. Initially the results of method 1 will be given including observations from a small experiment, following this the results of applying method 2 will be given. Method 2 will also be applied to the well-known VGG-16 architecture\cite{Simonyan2015}, which have also been done by Kim et al.\cite{Kim2016}, however only on the convolutional layers.
+In the best case scenario, the actual speed improvement observed from timing the algorithms will be perfectly correlated with the calculated theoretical speed-up. Initially the results of Method 1 will be given including observations from a small experiment, followed by the results of applying Method 2 to each of the data sets. Method 2 will also be applied to the well-known VGG-16 architecture\cite{Simonyan2015}, which have also been done by Kim et al.\cite{Kim2016}, however only compressing the convolutional layers.
 
 \subsection{Method 1}
 This is the method that decomposes the input into a NN. In order to get a better understanding of what happens when using this method, an experiment with only two classes for each data set and a rank of 2 will be carried out, and visual results will be given. Afterwards the results of using different ranks will be listed in order to assess performance differences.
 
 \subsubsection{Experiment with low rank} \label{tex:result_experiment}
-In the following an experiment is carried out to check whether the decomposition itself can carry much of the training. Since we have only 2 classes for the THETIS data set, and for the sake of the experiment 2 digits from the MNIST data set will be used. Since there are 2 classes in each data set, an initial rank of 2 will be experimentally chosen in the between sample dimension, since this also allows for a nice visualization of the loadings. The results for both the data set are described in the following.
+In the following, an experiment is carried out to check whether the decomposition itself can carry out much of the training. Since we have only 2 classes for the THETIS data set, and for the sake of the experiment, 2 digits from the MNIST data set will be used. Since there are now 2 classes in each data set, and because it allows for nice visualisations of the loadings, an initial rank of 2 will be experimentally chosen in the between-sample dimension. The results for both the data sets are described in the following.
 
 \paragraph{Using MNIST 3s and 4s}
-Only the MNIST observations depicting either a 3 or a 4 will be considered in this experiment. These digits are chosen due to their distinct shapes, hence ease of classification. Since the purpose is to make the algorithm find the differences between the two different digits, the spatial dimensions will not be decomposed. Using the experimental rank of 2, the decomposition of $N$ stacked 3s and 4s becomes:
+Only the MNIST observations depicting either a 3 or a 4 will be considered in this experiment. These digits are chosen due to their distinct shapes, hence ease of classification. Since the purpose is to make the algorithm find the differences between the two digits, the spatial dimensions will not be decomposed. Using the experimental rank of 2, the Tucker-1 decomposition of $N$ stacked 3s and 4s becomes:
 \begin{equation}
     \tensor{X}^{N\times 28\times 28} \approx \tensor{G}^{2 \times 28 \times 28} \times_1 \bs{A}^{N\times 2} \qquad \Leftrightarrow \qquad \bs{X}_{(1)} \approx \bs{A}^{N\times 2} \ \bs{G}^{2 \times 28\cdot 28}_{(1)}
 \end{equation}
-Where $\bs{A}$ is the loading matrix in the dimension corresponding to different pictures. With the rank equal to 2, $\bs{A}$ holds 2 values per picture that should ideally be separating the two digits that is to be trained. \autoref{fig:decompExample3_4} shows how the decomposition of the first 100 training examples turns out. It seems the decomposition is able how to find the "general 3" and the "general 4", and then simply use the loadings of $\bs{A}$ to specify how much of each should be used to represent every observation. \autoref{fig:loadingAMatrix} shows a scatter-plot of the values of $\bs{A}$ colored to show the loadings corresponding to 3s and 4s respectively. There is some overlap between the two clusters, but it seems that they can be fairly distinguished. The mean of the loadings of the the 3s, 4s and overall respectively are also plotted in \autoref{fig:loadingAMatrix} and have been used to make the approximations shown in \autoref{fig:loadingsOfA}b-d. Here it is clear how an approximation is part 3, and part 4, and that the loadings specify how much.
+Where $\bs{A}$ is the loading matrix in the dimension corresponding to different pictures. With the rank equal to 2, $\bs{A}$ holds 2 values per picture that should ideally be separating the two digits that is to be trained. \autoref{fig:decompExample3_4} shows how the approximation using the decomposition of the first 100 training examples turns out. It seems the decomposition is able how to find the "general 3" and the "general 4", and then simply use the loadings of $\bs{A}$ to specify how much of each should be used to represent every observation. \autoref{fig:loadingAMatrix} shows a scatter-plot of the values of $\bs{A}$ colored to show the loadings corresponding to 3s and 4s respectively. There is some overlap between the two clusters, but it seems that they can be fairly distinguished. The mean of the loadings of the the 3s, 4s and overall respectively are also plotted in \autoref{fig:loadingAMatrix} and have been used to make the approximations shown in \autoref{fig:loadingsOfA}b-d. Here it is clear how each approximation consists of a part 3 and a part 4, and that the loadings specify how much of each.
 \begin{figure}
     \centering
     \begin{subfigure}{0.45\linewidth}
@@ -42,7 +42,7 @@ Where $\bs{A}$ is the loading matrix in the dimension corresponding to different
     \centering
     \begin{subfigure}{0.99\linewidth}
         \includegraphics[width=\linewidth]{Pics/06_results/LoadingsOfAScatterMNIST.png}
-        \caption{Scatter plot of the 2 loadings of the loading matrix $\bs{A}$ for the MNIST 3s and 4s respectively using rank 2 in the input dimension. The mean of the 2 clusters and overall is also marked with black.}
+        \caption{Scatter plot of the 2 loadings of the loading matrix $\bs{A}$ using Tucker-1 to decompose the MNIST 3s and 4s using rank 2 in the input dimension. The black points are the mean of the 3s, 4s, and overall respectively}
         \label{fig:loadingAMatrix}
     \end{subfigure}
     \begin{subfigure}{0.3\linewidth}
@@ -61,14 +61,15 @@ Where $\bs{A}$ is the loading matrix in the dimension corresponding to different
         \caption{The mean of all loadings}
         \label{Hej}
     \end{subfigure}
-    \caption{Scatter plot of the 2 loadings of $\bs{A}$ for the MNIST 3s and 4s using rank 2 including mean in each of the clusters and overall. Using these means as loadings in the approximation gives the approximated "general" 3, 4 and overall given in \textbf{(b)-(d)}. Notice how the overall mean gives a mixture of a 3 and a 4.}
+    \caption{Scatter plot of the 2 loadings of $\bs{A}$ using Tucker-1 to decompose the MNIST 3s and 4s using rank 2 in the input dimension, including mean in each of the clusters and overall. 
+    Approximating the samples using these means as loadings gives the approximated "general" 3, 4 and overall given in \textbf{(b)-(d)}. Notice how the overall mean gives a mixture of a 3 and a 4}
     \label{fig:loadingsOfA}
 \end{figure}
 
 In the end this all comes down to the loadings of $\bs{A}$ holding a great deal of information about which pictures are 3s and which are 4s. This information could be used as input into the NN instead of the actual pictures, potentially reducing the number of parameters dramatically (from 784 to 2 input neurons in this example). Training the network with this input and only 1 hidden neuron in the ANN achieved a testing accuracy of $\approx 97 \%$, which is good compared to simply using all the pixel values as inputs which achieved a testing accuracy of $\approx 95\%$.
 
 \paragraph{Using THETIS forehand flat and backhand}
-Following the same procedure as for the MNIST 3s and 4s the rank of the decomposition is experimentally set to 2. Stacking $N$ videos and decomposing with rank 2 in the between sample dimension, and leaving the remaining dimensions uncompressed, yield:
+Following the same procedure as for the MNIST 3s and 4s, the rank of the decomposition is experimentally set to 2. Stacking $N$ videos and decomposing with rank 2 in the between sample dimension leaving the remaining dimensions uncompressed yields:
 \begin{equation}
     \tensor{X}^{N\times 4 \times 28 \times 120 \times 160} \approx \tensor{G}^{2 \times 4 \times 28 \times 120 \times 160} \times_1 \bs{A}^{N\times 2}
 \end{equation}
@@ -79,47 +80,47 @@ Now the loading matrix $\bs{A}$ holds 2 values for each observation that should 
         \centering
         \includegraphics[width=0.64\linewidth]{Pics/06_results/scatter_loadings_THETIS.png}
         \captionsetup{width=.95\linewidth}
-        \caption{Scatter plot of the loadings of $\bs{A}$ for the THETIS forehands and backhands. There seems to be two clusters, but they are not divided according to the shot type, but rather the background information. The mean of the two clusters that are given, have been used to approximate the videos in \textbf{(b)} and \textbf{(c)}.}
+        \caption{Scatter plot of the loadings of $\bs{A}$ using Tucker-1 to decompose the THETIS forehands and backhands using a rank 2 in the between-sample dimension. There seem to be two clusters, but they are not divided according to the shot type, but rather the background information. The mean of the two clusters have been marked with black and have been used to approximate the videos in \textbf{(b)} and \textbf{(c)}.}
     \end{subfigure}
-    \begin{subfigure}{.4\linewidth}
+    \begin{subfigure}{.35\linewidth}
         \centering
         \captionsetup{width=.95\linewidth}
         \includegraphics[width=\linewidth]{Pics/06_results/loc1.png}
-        \caption{Approximation using the loadings of the mean of the little (top) cluster in \textbf{(a)}. This corresponds to one of the two locations (changing room).}
+        \caption{Approximation using the mean of the loadings of the little (top) cluster in \textbf{(a)}. This corresponds to one of the two locations (changing room).}
     \end{subfigure}
-    \begin{subfigure}{.4\linewidth}
+    \begin{subfigure}{.35\linewidth}
         \centering
         \captionsetup{width=.95\linewidth}
         \includegraphics[width=\linewidth]{Pics/06_results/loc2.png}
-        \caption{Approximation using the loadings of the mean of the big (bottom) cluster in \textbf{(a)}. This corresponds to one of the two locations (indoor arena).}
+        \caption{Approximation using the mean of the loadings of the big (bottom) cluster in \textbf{(a)}. This corresponds to one of the two locations (indoor arena).}
     \end{subfigure}
-    \begin{subfigure}{.4\linewidth}
+    \begin{subfigure}{.35\linewidth}
         \centering
         \captionsetup{width=.95\linewidth}
         \includegraphics[width=.78\linewidth]{Pics/06_results/loc_1_real.png}
         \caption{An example of the changing room seen approximated in \textbf{(b)}}
     \end{subfigure}
-    \begin{subfigure}{.4\linewidth}
+    \begin{subfigure}{.35\linewidth}
         \centering
         \captionsetup{width=.95\linewidth}
         \includegraphics[width=.78\linewidth]{Pics/06_results/loc_2_real.png}
         \caption{An example of the indoor arena seen approximated in \textbf{(c)}}
     \end{subfigure}
-    \caption{The loadings of $\bs{A}$ for the THETIS data illustrated by a scatter plot in \textbf{(a)}, and used to make the two approximation \textbf{(b)} and \textbf{(c)} by estimating the mean of each cluster seen in the scatter plot. It is clear how the two clusters in \textbf{(a)} separates the two locations, instead of the type of shot}
+    \caption{The loadings of $\bs{A}$ resulting after decomposing the THETIS data set using Tucker-1 with a rank of 2 illustrated by a scatter plot in \textbf{(a)}, and used to make the two approximations \textbf{(b)} and \textbf{(c)} by estimating the mean of each cluster seen in the scatter plot. It is clear how the two clusters in \textbf{(a)} separates the two locations, instead of the type of shot}
     \label{fig:scatter_plot_THETIS}
 \end{figure}
 This means that even though all the temporal information is given to the algorithm, the background is still the thing that separates the videos more. In order to differentiate the different type of shots more needs to be done as, e.g. increasing the rank allowing the algorithm to look for finer details or using some algorithm to remove the background. The accuracies after training this model are very low and not higher than a random classification.
 
 \subsubsection{Results for MNIST}
 The results for MNIST using the method that decomposes the input are given in \autoref{tab:res_input_MNIST}. Here the different models have been trained and timed, reporting the mean and the standard deviation of the time of 1,000 forward pushes through the network, assuming the core $\tensor{G}$ have already been matricized and inverted in \eqref{eq:estimation_of_loading_A}. Since the data is small and the models are all very fast, every forward push is conducted using 10 observations, which means that a total of 10,000 forward pushes have been timed. In \autoref{tab:res_input_MNIST}
-the brackets holds the time of each of the two parts of the algorithm, i.e. estimating the input loadings ($\bs{A}$), and pushing these through the ANN. 
+the brackets holds the time of each of the two parts of the algorithm, i.e. estimating the input loadings ($\bs{A}$) and pushing these through the ANN. 
 
-It seems that the compressed model exceeds the number of parameters and FLOPs of the full input model at the rank of around 20 where the accuracy is significantly lower than that of the original. Considering the timing on the CPU - the compressed model exceeds the full input model even earlier (at around 10-11). This all questions the applicability of the method - at least for very simple problems. The time using the GPU is rather constant, since the GPU is so fast, that a relatively small change in the number of calculations will not result in a big difference in the computation time. Actually the full input network is faster on the GPU than every one of the compressed models, meaning that the penalty of having multiple steps to the algorithm is too big.
+It seems that the compressed model exceeds the number of parameters and FLOPs of the full input model at the rank of around 20 where the accuracy is significantly lower than that of the original. Considering the timing on the CPU, the compressed model exceeds the full input model even earlier (at around 10-11). This all questions the applicability of the method - at least for very simple problems like the one given. The time using the GPU is rather constant, since the GPU is so fast, that a relatively small change in the number of calculations will not result in a big difference in the computation time. Actually the full input network is faster on the GPU than on every one of the compressed models, meaning that the penalty of having multiple steps to the algorithm is too big.
 \begin{table}
 \footnotesize
 \centering
 \captionsetup{width=\linewidth}
-\caption{The results of running the input decomposition method on the MNIST data set using different ranks for the decomposition. The time is reported as the mean and standard deviation of 1,000 samples where 10 observations are evaluated using the model. The numbers in brackets correspond to the break-down of the time of the estimation of the input loadings ($\bs{A}$) and the forward push through the network. The ratios are calculated between the attributes of the given compressed model and the model using the full input to the ANN. The accuracy seems to increase with along with the rank. Notice however that even though the rank of the decomposition is very high, the accuracy of the full input network is not reached - not even using 7.6 times the FLOPs (rank 150)}
+\caption{The results of running Method 1 on the MNIST data set using different ranks for the decomposition. The time is reported as the mean and standard deviation of 1,000 samples where 10 observations are evaluated using the model. The numbers in brackets correspond to the break-down of the time of the estimation of the input loadings ($\bs{A}$) and the forward push through the network respectively. The ratios are calculated between the attributes of the given compressed model and the model using the full input to the ANN. The accuracy seems to increase along with the rank. Notice however that even though the rank of the decomposition is very high, the accuracy of the full input network is not reached - not even using 7.6 times the FLOPs (rank 150)}
 \label{tab:res_input_MNIST}
 \begin{tabular}{c|cccc|c}
 \textbf{Rank}     & \textbf{\begin{tabular}[c]{@{}c@{}}Parameters\\ (K)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}FLOPs\\ (K)\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Time CPU\\ (ms)\end{tabular}}                  & \textbf{\begin{tabular}[c]{@{}c@{}}Time GPU\\ (ms)\end{tabular}}                  & \textbf{\begin{tabular}[c]{@{}c@{}}Accuracy\\ (\%)\end{tabular}} \\ \hline
@@ -152,14 +153,14 @@ ratio             & 7.25                                                        
 \end{table}
 
 \subsubsection{Results for THETIS}
-The results for THETIS are given in \autoref{tab:res_input_THETIS}. The time is given as the mean and standard deviation of the time based on 1,000 forward pushes through the different models, assuming the core $\tensor{G}$ have already been matricized and inverted in \eqref{eq:estimation_of_loading_A}. The brackets holds the time broken down into the two parts - estimating the loading matrix and pushing through the ANN.
+The results for THETIS are given in \autoref{tab:res_input_THETIS}. The time is given as the mean and standard deviation of the time based on 1,000 forward pushes through the different models, assuming the core $\tensor{G}$ have already been matricized and inverted in \eqref{eq:estimation_of_loading_A}. The brackets holds the time broken down into the two parts; estimating the loading matrix and pushing through the ANN.
 
 Interestingly the accuracy of the decomposed model actually exceed that of the full input model when the rank is chosen big (150). Unfortunately the computational complexity and the computation time are both exceeded at this point. The compressed model exceed the computational complexity and time (CPU) at a rank around 100, where the accuracy does not match that of the full input model. This fact casts doubt on the functionality of this method. When running on the GPU the computation time is exceeded at an even lower rank, which could be due to the GPU being more penalized by the split into two steps as was also noted for the MNIST data set. 
 
-Another thing to notice is that the estimation of the loading matrix accounts for the majority of the computation time by far. This is due to the estimation of the loadings being a rather big matrix-matrix product, since it gets the full input ($>2$ M values).
+Another thing to notice is that the estimation of the loading matrix accounts for the majority of the computation time by far - especially for running on the CPU. This is due to the estimation of the loadings being a rather big matrix-matrix product, because it gets the full input ($>2$ M values).
 \begin{table}
 \centering
-\caption{Results for running the input decomposition algorithm on the THETIS data set using different ranks for the decomposition. The time is given as the mean and standard deviation of 1,000 forward pushes of 1 observation for each model. The numbers in brackets correspond to the break-down of the time of the estimation of the input loadings ($\bs{A}$) and the forward push through the network. The ratios are calculated between the attributes of the given compressed model and the model simply using the full input into the ANN. Notice how the accuracy of the original network is not reached before the rank is 150, exceeding the complexity and time by around 50 \% (73\% for GPU)}
+\caption{Results for running Method 1 on the THETIS data set using different ranks for the decomposition. The time is given as the mean and standard deviation of 1,000 forward pushes of 1 observation for each model. The numbers in brackets correspond to the break-down of the time of the estimation of the input loadings ($\bs{A}$) and the forward push through the network. The ratios are calculated between the attributes of the given compressed model and the model simply using the full input into the ANN. Notice how the accuracy of the original network is not reached before the rank is 150, exceeding the complexity and time by around 50 \% (73\% for GPU), and how the time and theoretical speed is exceeded at around rank 100 where the accuracy is now comparable to the full input model}
 \label{tab:res_input_THETIS}
 \footnotesize
 \begin{tabular}{c|cccc|c}
@@ -195,17 +196,17 @@ ratio             & 1.98                                                        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 %%        Decomposing Pre-Trained Network    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+\clearpage
 
 \subsection{Method 2}
-This method is the one compressing a pre-trained network. Since the rank selection is a part of the method itself as described in \autoref{tex:rank_selection}, there will be no results for different ranks, but simply the ranks given by the algorithm. The results will however be given by layer which means that the effect of the compression on different types and sizes of layers can be assessed. The results using the architectures of the two data sets will be given individually in the following including accuracies of the original network and the compressed network before and after fine-tuning. Lastly, the results of applying method 2 to the VGG-16 architecture will be given, though without reporting accuracy.
+This method is the one compressing a pre-trained network. Since the rank selection is a part of the method itself as described in \autoref{tex:rank_selection}, there will be no results for different ranks, but simply the ranks given by the algorithm will be used. The results will however be given by layer which means that the effect of the compression on different types and sizes of layers can be assessed. The results using the architectures of the two data sets will be given individually in the following including accuracies of the original network and the compressed network before and after fine-tuning. Lastly, the results of applying Method 2 to the VGG-16 architecture will be given, though without reporting accuracy differences.
 
-\subsubsection{Results for MNIST}
-After having run method 2 on the MNIST architecture given in \autoref{fig:architecture_choices}, the ranks of the decomposition along with the theoretical speed-ups and storage improvements are given in \autoref{tab:res_MNIST_FLOPs}. An overview of the compressed network is given in \autoref{tab:res_MNIST_dcmp_architecture}. The arrows bind together two layers in a sequence
+\subsubsection{Results for the MNIST architecture}
+After having run Method 2 on the MNIST architecture given in \autoref{fig:architecture_choices}, the ranks of the decomposition along with the theoretical speed-ups and storage improvements are given in \autoref{tab:res_MNIST_FLOPs}. An overview of the compressed network is given in \autoref{tab:res_MNIST_dcmp_architecture}. The arrows bind together two layers in a sequence.
 \begin{table}
 \centering
 \captionsetup{width=.95\linewidth}
-\caption{The resulting compressed network after applying method 2 to the MNIST architecture given in \autoref{fig:architecture_choices}. Every bracket is a layer in the network. The convolutions are expressed as (in channels, out channels, [kernel size]). The linear layers are expressed as (in neurons, out neurons)}
+\caption{The resulting compressed network after applying Method 2 to the MNIST architecture given in \autoref{fig:architecture_choices}. Every bracket is a layer in the network. The convolutions are expressed as (in channels, out channels, [kernel size]), with the kernel size being $[D_H, D_W]$. The linear layers are expressed as (in neurons, out neurons)}
 \label{tab:res_MNIST_dcmp_architecture}
 \begin{tabular}{cll}
 \textbf{Layer}            & \textbf{Original}              & \textbf{Compressed}                                                          \\ \hline
@@ -224,11 +225,11 @@ The accuracies of the original and compressed networks are given here:
 98.66 \%          & 66.12 \%            & 98.19 \%          & -0.47 \%        
 \end{tabular}
 \end{table}
-Here the accuracy lost after compressing was quickly restored, and the accuracy drop is insignificant. The observed speed-up measured by timing the network is given layer-wise in \autoref{tab:res_MNIST_time}. Here the time is computed as the mean and standard deviation of 1,000 forward pushes of each 100 observations for both the CPU and GPU. The brackets hold the time for each of the sub-layers that the original layer is compressed into. The improvements are given as the ratio between the attribute of the original network and the attribute of the given layer.
+Here the accuracy lost after compressing was quickly restored using a few epochs of fine-tuning, resulting in an accuracy drop that is insignificant. The observed speed-up measured by timing the network is given layer-wise in \autoref{tab:res_MNIST_time}. Here the time is computed as the mean and standard deviation of 1,000 forward pushes of each 100 observations for both the CPU and GPU. The brackets hold the time for each of the sub-layers that the original layer is compressed into. The improvements are given as the ratio between the attribute of the original network and the attribute of the given layer.
 \begin{table}
 \centering
 \small
-\caption{Overview of the layers of the decomposed network resulting after applying method 2 to the MNIST architecture given in \autoref{tex:architectures} including number of weights and FLOPs for each layer. The number of FLOPs have been used to calculate the theoretical speed up, and the weights have been used to calculate the storage improvement. These results make method 2 look promising with an overall theoretical speed up of 3.45 times and an overall storage improvement of 4.62 times for the MNIST architecture}
+\caption{Overview of the layers of the decomposed network resulting after applying Method 2 to the MNIST architecture given in \autoref{tex:architectures} including number of weights and FLOPs for each layer. The number of FLOPs have been used to calculate the theoretical speed up, and the weights have been used to calculate the storage improvement, where $\times x$ is an improvement of $x$ times. These results make Method 2 look promising with an overall theoretical speed up of 3.45 times and an overall storage improvement of 4.62 times for the MNIST architecture}
 \label{tab:res_MNIST_FLOPs}
 \begin{tabular}{cc|cccc}
 \multicolumn{2}{c}{\textbf{MNIST Layer}} & $ S / R_{in}$ & $ T /R_{out}$ & Weights         & FLOPs (K)                  \\ \specialrule{0.1em}{.05em}{.05em}
@@ -256,7 +257,7 @@ Here the accuracy lost after compressing was quickly restored, and the accuracy 
 \centering
 \small
 \captionsetup{width=.9\linewidth}
-\caption{Resulting observed speed-ups after applying method 2 to the MNIST architecture described in \autoref{fig:architecture_choices}. The time is reported as the mean and standard deviation of 1,000 forward pushes of each 100 observations. The brackets hold the time for each of the sub-layers the original layer is compressed into. The improvement is calculated as the ratio between the time of the original model and the time of the decomposed model, and $\times x$ means a speed-up of $x$ times. In this case the decomposed model does not do well. In every layer it is slower than the original layer, which results in a total speed-up of 0.57 (0.58) which means that it takes almost twice the time. Notice how the $1\times 1$ convolutions in Conv 2 both take more time than the middle convolution even though they use only 10\% and 20\% of the FLOPs respectively. There seem to be no significant differences between the speed-up using the CPU or GPU respectively}
+\caption{Resulting observed speed-ups after applying Method 2 to the MNIST architecture described in \autoref{fig:architecture_choices}. The time is reported as the mean and standard deviation of 1,000 forward pushes of each 100 observations. The brackets hold the time for each of the sub-layers the original layer is compressed into. The improvement is calculated as the ratio between the time of the original model and the time of the decomposed model, and $\times x$ means a speed-up of $x$ times. In this case the decomposed model does not do well. In every layer it is slower than the original layer, which results in a total speed-up of 0.57 (0.58) which means that it takes almost twice the time. Notice how the $1\times 1$ convolutions in Conv 2 both take more time than the middle convolution even though they use only 10\% and 20\% of the FLOPs respectively. There seem to be no significant differences between the speed-up using the CPU or GPU respectively}
 \label{tab:res_MNIST_time}
 \begin{tabular}{cc|cc}
 \multicolumn{2}{c|}{\multirow{2}{*}{\textbf{MNIST Layer}}} & \multicolumn{2}{c}{\textbf{Time for 100 forward pushes (ms)}}         \\
@@ -287,22 +288,22 @@ Total                        & Orig                       & $ 9.896 \pm 1.380 $ 
 \end{tabular}
 \end{table}
 
-Unfortunately the observed speed-up is far from the expected theoretical speed-up for the MNIST architecture. From the expected 3.45 times speed-up to the compressed model taking twice the time is not the best result. The compressed model proves slower than the original for every layer and is consistent between the CPU and GPU.
+Unfortunately the observed speed-up is far from the expected theoretical speed-up for the MNIST architecture. From the expected 3.45 times speed-up to the compressed model taking twice the time is not the best result. The compressed model is slower than the original for every layer and it is consistent running on the CPU or GPU. The compressed model does however use very few parameters compared to the original model using 4.6 times as many.
 
-\subsubsection{Results for THETIS}
-After having run method 2 on the THETIS architecture given in \autoref{fig:architecture_choices}, the resulting ranks for the compressed model are given in \autoref{tab:res_THETIS_FLOPs} along with the expected theoretical speed-up and storage improvements. An overview of the resulting compressed architecture is given in \autoref{tab:res_THETIS_dcmp_architecture}. The accuracies for the original and compressed network are given below:
+\subsubsection{Results for the THETIS architecture}
+After having run Method 2 on the THETIS architecture given in \autoref{fig:architecture_choices}, the resulting ranks for the compressed model are given in \autoref{tab:res_THETIS_FLOPs} along with the expected theoretical speed-up and storage improvements. An overview of the resulting compressed architecture is given in \autoref{tab:res_THETIS_dcmp_architecture}. The accuracies for the original and compressed network are given below:
 \begin{table}[H]
 \centering
 \begin{tabular}{cccl}
 \textbf{Original} & \multicolumn{2}{c}{\textbf{Compressed}} & \textbf{Drop} \\
                   & Before fine-tuning  & After fine-tuning &               \\
-98.66 \%          & 66.12 \%            & 98.19 \%          & -0.47        
+92 \%          & 68 \%            & 92 \%          & -2       
 \end{tabular}
 \end{table}
 \begin{table}
 \centering
 \captionsetup{width=.95\linewidth}
-\caption{The resulting compressed network after applying method 2 to the THETIS architecture given in \autoref{fig:architecture_choices}. Every bracket is a layer in the network. The convolutions are expressed as (in channels, out channels, [kernel size]). The linear layers are expressed as (in neurons, out neurons)}
+\caption{The resulting compressed network after applying Method 2 to the THETIS architecture given in \autoref{fig:architecture_choices}. Every bracket is a layer in the network. The convolutions are expressed as (in channels, out channels, [kernel size]), with the kernel size being $[D_F, D_H, D_W]$. The linear layers are expressed as (in neurons, out neurons)}
 \label{tab:res_THETIS_dcmp_architecture}
 \begin{tabular}{ccc}
 \textbf{Layer}            & \textbf{Original}              & \textbf{Compressed}                                                                  \\ \hline
@@ -312,11 +313,11 @@ Conv 2                    & (6, 16, [5, 11, 11])           & $ (6, 2, [1, 1, 1])
 \multicolumn{1}{l}{Lin 2} & \multicolumn{1}{l}{(128, 84)}  & \multicolumn{1}{l}{$ (128, 1) \rightarrow (1, 84) $}                                
 \end{tabular}
 \end{table}
-Similar to the accuracies for the MNIST data set, the accuracy drops after compression and is quickly restored. The accuracy drop in this case is -2, which seems like much, but given the limited amount of data it should be fine. The observed speed-up measured by timing the network is given layer-wise in \autoref{tab:res_THETIS_timing}. Here the time is computed as the mean and standard deviation of 1,000 forward pushes of each 10 observations for both the CPU and GPU. The brackets hold the time for each of the sub-layers that the original layer is compressed into. The improvements are given as the ratio between the attribute of the original network and the attribute of the given layer.
+Similar to the accuracies for the MNIST data set, the accuracy drops after compression and is quickly restored by fine-tuning. The accuracy drop in this case is -2, which seems like much, but given the limited amount of data it should be fine. The observed speed-up measured by timing the network is given layer-wise in \autoref{tab:res_THETIS_timing}. Here the time is computed as the mean and standard deviation of 1,000 forward pushes of each 10 observations for both the CPU and GPU. The brackets hold the time for each of the sub-layers that the original layer is compressed into. The improvements are given as the ratio between the attribute of the original network and the attribute of the given layer.
 \begin{table}
 \small
 \centering
-\caption{Overview of the layers of the decomposed network resulting after applying method 2 to the THETIS architecture given in \autoref{tex:architectures} including number of weights and FLOPs for each layer. The number of FLOPs have been used to calculate the theoretical speed up, and the weights have been used to calculate the storage improvement. These results make method 2 look promising with an overall theoretical speed up of 3.45 times and an overall storage improvement of 4.62 times}
+\caption{Overview of the layers of the decomposed network resulting after applying Method 2 to the THETIS architecture given in \autoref{tex:architectures} including number of weights and FLOPs for each layer. The number of FLOPs have been used to calculate the theoretical speed up, and the weights have been used to calculate the storage improvement, where $\times x$ means an improvement of $x$ times. These results make Method 2 look promising with an overall theoretical speed up of 3.45 times and an overall storage improvement of 4.62 times}
 \label{tab:res_THETIS_FLOPs}
 \begin{tabular}{cc|cccc}
 \multicolumn{2}{c}{\textbf{THETIS Layer}}      & $ S / R_{in}$ & $ T /R_{out}$ & Weights (K)      & FLOPs                        \\ \specialrule{0.1em}{.05em}{.05em}
@@ -344,7 +345,7 @@ Similar to the accuracies for the MNIST data set, the accuracy drops after compr
 \small
 \centering
 \captionsetup{width=.9\linewidth}
-\caption{Resulting observed speed-ups after applying method 2 to the THETIS architecture described in \autoref{fig:architecture_choices}. The time is reported as the mean and standard deviation of 1,000 forward pushes of each 10 observations. The brackets hold the time for each of the sub-layers the original layer is compressed into. The improvement is calculated as the ratio between the time of the original model and the time of the decomposed model, and $\times x$ means a speed-up of $x$ times. In this case the decomposed model is faster than the original model though it is not as much as theoretically expected in \autoref{tab:res_THETIS_FLOPs}. For the CPU the decomposed layer is constantly a bit faster than that of the original resulting in a total speed-up of 1.34 times. For the GPU the performance fluctuates much more - from being much slower in Conv 2 and Lin 1, to being much faster in Conv 1 and Lin 2. It does however also result in a total speed-up of almost 2 times.}
+\caption{Resulting observed speed-ups after applying Method 2 to the THETIS architecture described in \autoref{fig:architecture_choices}. The time is reported as the mean and standard deviation of 1,000 forward pushes of each 10 observations. The brackets hold the time for each of the sub-layers the original layer is compressed into. The improvement is calculated as the ratio between the time of the original model and the time of the decomposed model, and $\times x$ means a speed-up of $x$ times. In this case the decomposed model is faster than the original model though it is not as much as theoretically expected in \autoref{tab:res_THETIS_FLOPs}. For the CPU the decomposed layer is constantly a bit faster than that of the original resulting in a total speed-up of 1.34 times. For the GPU the performance fluctuates much more - from being much slower in Conv 2 and Lin 1, to being much faster in Conv 1 and Lin 2. It does however also result in a total speed-up of almost 2 times.}
 \label{tab:res_THETIS_timing}
 \begin{tabular}{cc|cc}
 \multicolumn{2}{c|}{\multirow{2}{*}{\textbf{THETIS Layer}}} & \multicolumn{2}{c}{\textbf{Time for 10 forward pushes (ms)}}   \\
@@ -375,14 +376,14 @@ Total                         & Orig                       & $3594.520 \pm 21.60
 \end{tabular}
 \end{table}
 
-For the THETIS architecture a speed-up of is observed though it is far from the expected theoretical speed-up. For the CPU all the layers of the compressed model are consistently faster than the original model resulting in a total speed-up of 1.34 times. The time of the sub-layers of the decomposed model correspond relatively well to what is expected of them with the most demanding of the sub-layers taking the most time. The is not the case running on the GPU, in which the time fluctuates significantly. Notice for example the third sub-layer of Conv 2 which takes the majority of the time of the layer by far, but only requires $\approx 1\%$ of the FLOPs. The time using the GPU in general fluctuates very much for the THETIS architecture making it hard to get meaningful results. Notice also how some layers take much more time than the original model (Conv 2 and Lin 1), while others are much faster (Conv 1 and Lin 2).
+For the THETIS architecture a speed-up of is observed though it is far from the expected theoretical speed-up. For the CPU all the layers of the compressed model are consistently faster than the original model resulting in a total speed-up of 1.34 times. The time of the sub-layers of the decomposed model correspond relatively well to what is expected of them with the most demanding of the sub-layers taking the most time. This is not the case running on the GPU, in which the time fluctuates significantly. Notice for example the third sub-layer of Conv 2 which takes the majority of the time of the layer by far, but only requires $\approx 1\%$ of the FLOPs. The time using the GPU in general fluctuates very much for the THETIS architecture making it hard to get meaningful results. Notice also how some layers take much more time than the original model (Conv 2 and Lin 1), while others are much faster (Conv 1 and Lin 2).
 
-\subsubsection{VGG-16 architecture}
+\subsubsection{Results for the VGG-16 architecture}
 The VGG-16 architecture is downloaded pre-trained using the Python sub-package \texttt{torchvision.models} which is a part of the \texttt{PyTorch} project\cite{torchvision}. The model is compressed using the same scheme as the others, i.e. Tucker-2 decomposition on all convolutional layers apart from the first, and the first linear layer, Tucker-1 decomposition on the remaining layers. The decomposed network have not been trained, hence accuracy will not be considered\footnote{Cf. \cite{Kim2016} for accuracy using the same method, but only compressing the convolutional layers}. The results are given in \autoref{tab:vgg16_results}. A 5.55 times expected speed-up using the number of FLOPs seems promising, but cannot be achieved timing the network. Running on both the CPU and the GPU a speed-up of almost 2 times is reached.
 \begin{table}[H]
 \centering
 \captionsetup{width=.95\linewidth}
-\caption{The results of applying method 2 to the well-know VGG-16 architecture. The improvements have been calculated as the ratio between the original model and the compressed. The times are reported as the mean and standard deviation of 1,000 forward pushes of each 10 observations. Notice how the speed-up on CPU respectively GPU are very similar at around 2 times. They are however not close to the 5.55 times expected speed-up}
+\caption{The results of applying Method 2 to the well-know VGG-16 architecture. The improvements have been calculated as the ratio between the original model and the compressed. The times are reported as the mean and standard deviation of 1,000 forward pushes of each 10 observations. Notice how the speed-up on CPU respectively GPU are very similar at around 2 times. They are however not close to the 5.55 times expected speed-up}
 \label{tab:vgg16_results}
 \begin{tabular}{c|cccc}
 \multirow{2}{*}{\textbf{VGG-16}} & \multirow{2}{*}{\textbf{Weights (M)}} & \multirow{2}{*}{\textbf{FLOPs (M)}} & \multicolumn{2}{c}{\textbf{Time for 10 forward pushes (ms)}} \\
