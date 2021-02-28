@@ -127,9 +127,10 @@ Notice that the original (or desired) shape of $\tensor{X}$ must be know in orde
 \end{figure}
 
 \subsubsection{The n-mode product}
-The $n$-mode product is used to multiply a matrix onto a tensor resulting in a tensor. It is actually a three-step process of matricizing the tensor, multiplying with the matrix, and tensorizing the result to approximately the same shape. The $n$-mode product between an order $N$ tensor $\tensor{X}$ of size $I_1\times I_2 \times \dots \times I_N$ and a matrix $\bs{M}$ of size $J\times I_n$ is given by:
+The $n$-mode product is used to multiply a matrix onto a tensor resulting in a tensor. It is actually a three-step process of matricizing the tensor, multiplying with the matrix, and tensorizing the result to the shape given in \eqref{eq:n_mode_prod}. The $n$-mode product between an order $N$ tensor $\tensor{X}$ of size $I_1\times I_2 \times \dots \times I_N$ and a matrix $\bs{M}$ of size $J\times I_n$ is given by:
 \begin{equation}
     \tensor{X}^{I_1\times I_2\times \dots \times I_n \times \dots \times I_N} \times_n \bs{M}^{J\times I_n} = \tensor{Z}^{I_1\times I_2 \times \dots \times I_{n-1} \times J \times I_{n+1} \times \dots \times I_N}
+    \label{eq:n_mode_prod}
 \end{equation}
 Which corresponds to tensorizing or un-matricizing the matrix-matrix product:
 \begin{equation}
@@ -138,10 +139,10 @@ Which corresponds to tensorizing or un-matricizing the matrix-matrix product:
 Where the un-matricization of $\bs{Z}$ needs to have the same shape as $\tensor{X}$ except $J$ instead of $I_n$. Now the matrix $\bs{M}$ have been multiplied onto the whole tensor and the result is back to being a tensor.
 
 \subsection{Tensor Decomposition Methods} \label{tex:decomp_methods}
-The concept of tensor decomposition or tensor factorisation concerns itself with exploiting the tendencies of the data in order to find a representation that is smaller and easier to work with. There are multiple representations or decomposition methods that will be discussed in detail in \autoref{tex:decomp_methods}. The Tucker method will be discussed in a bit more detail, due to its importance to the work done in the thesis. Since the python library \texttt{TensorLy} has great implementations of the different algorithms, it will be used to calculate the decompositions throughout the thesis. The algorithms for estimating the different decomposition representations are given in \autoref{app:DecompEstimation}.
+The concept of tensor decomposition or tensor factorisation concerns itself with exploiting the tendencies of the data in order to find a representation that takes up less space. There are multiple representations or decomposition methods that will be discussed in detail in \autoref{tex:decomp_methods}. The Tucker method will be discussed in a bit more detail, due to its importance to the work done in the thesis. Since the python library \texttt{TensorLy} has great implementations of the different algorithms, it will be used to calculate the decompositions throughout the thesis. The algorithms for estimating the different decomposition representations are given in \autoref{app:DecompEstimation}.
 
 \subsubsection{CP / Parafac}
-CP (Candecomp) decomposition that also goes by the names of Parafac or canonical decomposition is the most basic representation. The CP decomposition represents the tensor as the sum of $R$ outer-vector products, where each dimension has a loading vector for each $R\in \{1\dots R\}$. $R$ is the rank of the decomposition and obviously higher $R$ allows for more specific details to be represented. The CP decomposition of an order-3 tensor $\tensor{X}$ of size $n_1\times n_2 \times n_3$ is given by:
+CP (Candecomp) decomposition that also goes by the names of Parafac or canonical decomposition is the most basic representation. The CP decomposition represents the tensor as the sum of $R$ outer-vector products, where each dimension has a loading vector for each $d\in \{1\dots R\}$. $R$ is the rank of the decomposition and obviously higher $R$ allows for more specific details to be represented. The CP decomposition of an order-3 tensor $\tensor{X}$ of size $n_1\times n_2 \times n_3$ is given by:
 \begin{equation}
     \tensor{X} \approx \sum_{d=1}^R \bs{a}_d \circ \bs{b}_d \circ \bs{c}_d
 \end{equation}
@@ -149,7 +150,7 @@ Or element-wise:
 \begin{equation}
     \tensor{X}(i, j, l) \approx \sum_{d=1}^R \bs{a}_d(i) \cdot \bs{b}_d(j) \cdot \bs{c}_d(l)
 \end{equation}
-Where $\boldsymbol{a}_i$, $\boldsymbol{b}_i$, and $\boldsymbol{c}_i$ are the $i$-th loading vectors of each dimension with length $n_1$, $n_2$, and $n_3$ respectively. If each of these loading vectors are concatenated to form loading matrices. The decomposition can also be written in the following way using a diagonal or identity tensor $\tensor{D}$ and $n$-mode products:
+Where $\boldsymbol{a}_d$, $\boldsymbol{b}_d$, and $\boldsymbol{c}_d$ are the $d$-th loading vectors of each dimension with length $n_1$, $n_2$, and $n_3$ respectively. If each of these loading vectors are concatenated to form loading matrices. The decomposition can also be written in the following way using a super diagonal or identity tensor $\tensor{D}$ and $n$-mode products:
 \begin{equation}
     \tensor{X}^{n_1 \times n_2 \times n_3} \approx \tensor{D}^{R\times R\times R} \times_1 \bs{A}^{n_1 \times R} \times_2 \bs{B}^{n_2 \times R} \times_3 \bs{C}^{n_3 \times R}
     \label{eq:CP_matrix_rep}
@@ -167,16 +168,17 @@ The CP decomposition representation is illustrated in \autoref{fig:CP_decomp_ill
     \label{fig:CP_decomp_illustration}
 \end{figure}
 
-Due to the nature of the CP decomposition only the $i$-th loading of each loading vector can interact with each other, making the CP decomposition rather restricted. However the restriction of this representation implies a unique optimal solution of the CP decomposition, which is desirable. The method is good at resolving different additive physical profiles, e.g. if addition of multiple chemicals to a solution have different effects on a response variable, these can be resolved. CP decomposition however fails when different dimensions are correlated, due to strong canceling effects between the various components of the representation, making it slow to converge and hard to interpret \cite{Mørup2011}.
+Due to the nature of the CP decomposition only the $d$-th loading of each loading matrix can interact with each other, making the CP decomposition rather restricted. However the restriction of this representation implies a unique optimal solution of the CP decomposition, which is desirable. The method is good at resolving different additive physical profiles, e.g. if addition of multiple chemicals to a solution have different effects on a response variable, these can be resolved. CP decomposition however fails when different dimensions are correlated, due to strong canceling effects between the various components of the representation, making the estimation algorithm slow to converge and the solution hard to interpret \cite{Mørup2011}.
 
 \subsubsection{Tucker}
-Tucker decomposition is the less restricted version of the CP decomposition - or actually CP decomposition is a special case of Tucker. In Tucker decomposition loadings can interact with each other even crisscrossing, which gives this representation a good deal of freedom. This is achieved by allowing the core-tensor $\tensor{D}$ ($\tensor{G}$ for Tucker) to be non-diagonal, hence we also get to choose special ranks for each dimension. This means that the Tucker decomposition is a sum of outer-vector products scaled by the core element. Based on the matrix-representation of the CP decomposition \eqref{eq:CP_matrix_rep}, the Tucker decomposition of an order-3 tensor $\tensor{X}$ of size $n_1 \times n_2 \times n_3$ is given as:
+Tucker decomposition is the less restricted version of the CP decomposition - or actually CP decomposition is a special case of Tucker. In Tucker decomposition loadings can interact with each other even across multiple components, which makes this representation be more flexible. This is achieved by allowing the core-tensor $\tensor{D}$ ($\tensor{G}$ for Tucker) to be non-diagonal, hence we also get to choose special ranks for each dimension. This means that the Tucker decomposition is a sum of outer-vector products scaled by the core elements. Based on the matrix-representation of the CP decomposition \eqref{eq:CP_matrix_rep}, the Tucker decomposition of an order-3 tensor $\tensor{X}$ of size $n_1 \times n_2 \times n_3$ is given as:
 \begin{equation}
     \tensor{X}^{n_1 \times n_2 \times n_3} \approx \tensor{G}^{R_A \times R_B \times R_C} \times_1 \bs{A}^{n_1 \times R_A} \times_2 \bs{B}^{n_2 \times R_B} \times_3 \bs{C}^{n_3 \times R_C}
+    \label{eq:tucker_formula}
 \end{equation}
 Where $\bs{A}$, $\bs{B}$, and $\bs{C}$ are the loading matrices of each of the dimensions and $R_A$, $R_B$, and $R_C$ are the ranks of the decomposition in each of the dimensions. $\tensor{G}$ is the core tensor that we in the Tucker case allow to be non-diagonal. We can also write the Tucker representation element-wise:
 \begin{equation}
-    \tensor{X}(x_1,x_2,x_3) \approx \sum_{r_A=1}^{R_A} \sum_{r_B=1}^{R_B} \sum_{r_C=1}^{R_C} \tensor{G}(r_A, r_B, r_C) \cdot \bs{A}(x_1, r_A) \cdot \bs{B}(x_2, r_B) \cdot \bs{C}(x_3, r_C)
+    \tensor{X}(i ,j ,l ) \approx \sum_{r_A=1}^{R_A} \sum_{r_B=1}^{R_B} \sum_{r_C=1}^{R_C} \tensor{G}(r_A, r_B, r_C) \cdot \bs{A}(i, r_A) \cdot \bs{B}(j , r_B) \cdot \bs{C}(l , r_C)
 \end{equation}
 The concept of Tucker decomposition is shown in \autoref{fig:tucker_decomp_illustration}. 
 \begin{figure}
@@ -186,14 +188,14 @@ The concept of Tucker decomposition is shown in \autoref{fig:tucker_decomp_illus
     \caption{The tensor $\tensor{X}$ is decomposed using Tucker-3 decomposition, which means that all 3 dimensions will be decomposed. The Tucker decomposition is a sequence of $n$-mode products between the core tensor $\tensor{G}$ and the three loading matrices $\bs{A}$, $\bs{B}$, and $\bs{C}$. The size of $\tensor{G}$ is equal to the ranks of the decomposition, i.e. $R_A \times R_B \times R_C$. The length of the first dimension of the loading matrices correspond to the length of the given dimension, e.g. for $\bs{A}$ it is $n_1$}
     \label{fig:tucker_decomp_illustration}
 \end{figure}
-The different ranks along each of the dimensions, makes the user able to choose how many different features the algorithm should find along each dimensions. The flexibility of the Tucker decomposition makes it useful for many applications, one of them being the data compression task. The flexibility however also comes at a cost: the representation does not yield unique optimal solutions, and the results are harder to interpret than for CP decomposition.
+The different ranks along each of the dimensions, makes the user able to choose how much detail should be represented along each of the dimensions. The flexibility of the Tucker decomposition makes it useful for many applications, one of them being the data compression task. The flexibility however also comes at a cost: the representation does not yield unique optimal solutions, and the results are harder to interpret than for CP decomposition.
 
-Rank selection for the Tucker decomposition is either choosing appropriate ranks for the problem, or to find the minimal set of ranks $(R_A, R_B, R_C)$ that ensure that:
-\begin{equation}
-    \tensor{X} = \sum_{r_A=1}^{R_A} \sum_{r_B=1}^{R_B}
- \sum_{r_B=1}^{R_B} \tensor{G}(r_A, r_B, r_C) \cdot \bs{a}_{r_A} \circ \bs{b}_{r_B} \circ \bs{c}_{r_C}
- \end{equation}
-I.e. the approximation being equal to the actual tensor. Here $\bs{a}_i$, $\bs{b}_i$, and $\bs{c}_i$ are the $i$-th column of the loading matrices respectively. Finding the optimal ranks is a challenging problem, which have been solved in different ways. Due to the challenge of the problem, this thesis will make use of the analytical solution to variational Bayesian matrix factorization (VBMF) by inspiration from Kim et. al \cite{Kim2016}. This approach is chosen because it is a good and easily reproducible heuristic, even though it is sub-optimal. VBMF will be discussed in the following.
+Rank selection for the Tucker decomposition is either choosing appropriate ranks for the problem, or to find the minimal set of ranks $(R_A, R_B, R_C)$ that ensure that \eqref{eq:tucker_formula} is a very good approximation.
+%\begin{equation}
+%    \tensor{X} = \sum_{r_A=1}^{R_A} \sum_{r_B=1}^{R_B}
+% \sum_{r_B=1}^{R_B} \tensor{G}(r_A, r_B, r_C) \cdot \bs{a}_{r_A} \circ \bs{b}_{r_B} \circ \bs{c}_{r_C}
+% \end{equation}
+Finding the optimal ranks is a challenging problem, which have been solved in different ways. Due to the challenge of the problem, this thesis will make use of the analytical solution to variational Bayesian matrix factorization (VBMF) by inspiration from Kim et. al \cite{Kim2016}. This approach is chosen because it is a good and easily reproducible heuristic, even though it is sub-optimal. VBMF will be discussed in the following.
 
 \paragraph{Variational Bayesian Matrix Factorization} \label{tex:VBMF}
 The global analytical solution to the VBMF have been derived by Nakajima et. al in 2013 \cite{Nakajima2013}, and can be used as a method for rank selection for the Tucker model\footnote{Also applicable to CP-decomposition, since it is a special case of Tucker decomposition}. The authors use a probabilistic model to find the optimal low-rank factorization of a matrix, automatically taking care of the noise. Given an matrix $\bs{V}$ of size $L\times M$ that is assumed to be the sum of a target matrix and an error matrix:
@@ -207,11 +209,11 @@ The goal is to find matrices $\bs{A}$ and $\bs{B}$ such that:
 This is achieved by considering a probabilistic model of $\bs{V}$ given prior variances, and use this model to compute the posterior distributions of $\bs{V}$, $\bs{A}$, and $\bs{B}$. Doing this is generally a non-convex problem why the analytical solution is key. This however only works for matrices, hence tensors of order $> 2$ need to be converted into matrices using matricization discussed in \autoref{tex:tensor_operations}. Matricization using the $i$-th dimension gives the estimated rank of that same dimension of the tensor, by considering the sizes of the posterior distributions of $\bs{A}$ and $\bs{B}$. It should be noted that this method only works when the $L < M$, since we need to have $\frac{L}{M} < 1$ to satisfy the nature of the probabilistic distribution.
 
 \subsubsection{Block-Term Decomposition}
-Block-Term Decomposition (BTD) is simply a sum of Tucker terms, i.e. given an order-3 tensor $\tensor{X}$ and a rank $R$ the BTD of $\tensor{X}$ is given by:
+Block-Term Decomposition (BTD) is simply a sum of Tucker terms, i.e. given an order-3 tensor $\tensor{X}$ and a number of components $K$ the BTD of $\tensor{X}$ is given by:
 \begin{equation}
-    \tensor{X} = \sum_{r=1}^R \tensor{G}_r \times_1 \bs{A}_r \times_2 \bs{B}_r \times_3 \bs{C}_r
+   \kappa \tensor{X} = \sum_{k=1}^K \tensor{G}_r \times_1 \bs{A}_k \times_2 \bs{B}_k \times_3 \bs{C}_k
 \end{equation}
-Where we now have $R$ sets of a core and loading matrices instead of a single one of each, which also means that the ranks of the individual Tucker terms can differ to comply with various needs. BTD will not be visualized since it is just a sum of $R$ Tucker terms illustrated in \autoref{fig:tucker_decomp_illustration}.
+Where we now have $K$ sets of a core and loading matrices instead of a single one of each, which also means that the ranks of the individual Tucker terms can differ to comply with various needs. BTD will not be visualized since it is just a sum of $R$ Tucker terms illustrated in \autoref{fig:tucker_decomp_illustration}.
 
 \subsubsection{Tensor-Train decomposition}
 Tensor-Train (TT) decomposition that also goes by the name "matrix product state decomposition", was developed by Oseledets in 2011, as a simple and non-recursive tensor decomposition representation.\cite{Oseledets2011} TT-decomposition does not make use of a core tensor, but allows for all the loadings arrays to be order-3 tensors. Given an order-$d$ tensor $\tensor{X}$ of size $n_1\times n_2 \times \dots \times n_d$, we will have a sequence of ranks $r_0, r_1, \dots, r_d$, with boundary conditions $r_0=r_d=1$. The TT-decomposition of $\tensor{X}$ is given by:
