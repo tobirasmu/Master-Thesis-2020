@@ -35,7 +35,8 @@ data = loadMNIST()
     Digits is a tuple with the specific digits that is to be considered. 3 and 4 seems to be fairly easy to distinguish, 
     while 4 and 9 seems similar hence harder for the decomposition algorithm to distinguish.
 """
-digits = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+# digits = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+digits = (4, 9)
 
 X_all = data.x_train
 Y_all = data.y_train
