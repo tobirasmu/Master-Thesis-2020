@@ -10,7 +10,7 @@ In this section, the theory used to develop the methods and obtain the result in
 
 
 \subsection{Neural Networks}\label{tex:theory_NN}
-The NN is a very useful tool in non-linear classification and regression. It gets its name from what gave rise to the idea of it around half a century ago - the brain. Similar to the brain, a NN consists of a network of neurons that pass on information between each other. The way this is done is illustrated in \autoref{fig:activation_illustration}. Each neuron is, with a given input, associated with a value called its activation. This activation is based on the inputs to that very neuron, and is what is passed on from that neuron. The activation is calculated as the weighted sum of the activations of the inputs to that neuron plus a bias, all non-linearly transformed using an activation function $\phi$. Typical choices of $\phi$ are given in \autoref{fig:activation_functions}, while the typical activation of the last layer (the output) is the softmax-function, given by:
+The NN is a very useful tool in non-linear classification and regression. It gets its name from what gave rise to the idea of it around half a century ago - the brain. Similar to the brain, a NN consists of a network of neurons that pass on information between each other. The way this is done is illustrated in \autoref{fig:activation_illustration}. Each neuron is, with a given input, associated with a value called its activation. This activation is based on the inputs to that very neuron, and is what is passed on from that neuron. The activation is calculated as the weighted sum of the activations of the inputs to that neuron plus a bias, all non-linearly transformed using an activation function $\phi$. Typical choices of $\phi$ are given in \autoref{fig:activation_functions}, while the typical activation of the last layer (the output) for a classification problem with $K$ classes is the softmax-function, given by:
 \begin{equation}
 \text{Softmax:} \ \ \sigma: \R^K \rightarrow \R^K \qquad \sigma(\bs{x})_i = \frac{e^{x_i}}{\sum_{k=1}^K e^{x_k}} \quad \text{where} \ \bs{x} \in \R^K
 \end{equation}
@@ -35,7 +35,7 @@ The size and layout of a NN is called the network architecture. The simplest typ
 \subsubsection{Learning}
 Learning a NN corresponds to finding the weights of the network that give the highest output accuracy, i.e. the best predictions. The method used to find the optimal weights is called back-propagation. This method simply sends inputs through the network and reads the outputs. The output error is then propagated backwards through the network in order to adjust the weights accordingly. This is done repeatedly until convergence, normally dividing the training data into smaller batches and performing corrections using every batch. If the amount of data is limited, cross-validation is often used, which trains and validates on the same data. In cross-validation the data is split into a set of folds, and the network is trained on all the data except for one fold which is then used for validating the results.
 
-To represent the error, a so-called loss function is used. Given an observation with input $\bs{x}$ and the corresponding true prediction $y$, we introduce the cost function given by:
+To represent the prediction error, a so-called loss function is used. Given an observation with input $\bs{x}$ and the corresponding true class $y$, we introduce the loss function given by:
 \begin{equation}
     L(\Theta | \bs{x},y) = - \hat{p}(y) + \log\left(\sum_{k=0}^K e^{\hat{p}(k)}\right)
 \end{equation}
@@ -47,17 +47,17 @@ Where $\Theta$ represents all the weights of the network, $K$ is the number of o
 Where $\gamma$ is the learning rate that can be used to determine the speed of the learning, i.e. bigger values implies bigger jumps, while smaller values are used for fine adjustments. The derivative in \eqref{eq:gradient_descent_step} can be found either analytically, by applying the chain rule\footnote{The chain rule is an important rule in calculus. Given $h(x) = f(g(x))$ it states that $h'(x) = f'(g(x))g'(x)$} backwards through the network, or automatically using the \texttt{autograd}-package in \texttt{PyTorch}. In this thesis the \texttt{autograd}-function will be used to find the derivatives, hence for the analytical derivations cf. \cite{elements_NN} or \cite{Zhang2016}.
 
 \subsubsection{Architectures}
-NNs are very flexible and can easily be adapted to fit every need. Not only can they be built off an arbitrary number of layers of different sizes, but also there are multiple different types of layers. Each layer finds progressively more complex features in the input data, hence more layers will be able to find more complex features. NNs can be both feed-forward (information flows forward) or recurrent (information is sent back and reused). The two types of layers that we will cover in this thesis are the dense layer and the convolutional layer respectively. Both have powerful properties and will be discussed further in the following.
+NNs are very flexible and can be adapted to fit every need. Not only can they be built off an arbitrary number of layers of different sizes, but also there are multiple different types of layers. Each layer finds progressively more complex features in the input data, hence more layers will be able to find more complex features. NNs can be both feed-forward (information flows forward) or recurrent (information is sent back and reused). The two types of layers that we will cover in this thesis are the dense layer and the convolutional layer respectively.
 
 \paragraph{The dense layer}
-The dense layer is the basic building block of NNs, and ANNs are almost always built of these. A dense layer (also called fully-connected layer) is a layer in which each of the neurons have a connection with all the neurons in the previous layer. Both the middle and output layers in the network illustrated in \autoref{fig:very_simple_ANN} are dense layers. In CNNs the dense layers are often used in the last part of the network to condense the information from the convolutional layers.
+The dense layer is the basic building block of NNs, and ANNs are almost always built of these. A dense layer (also called fully-connected layer) is a layer in which each of the neurons has a connection with all the neurons in the previous layer. Both the middle and output layers in the network illustrated in \autoref{fig:very_simple_ANN} are dense layers. In CNNs the dense layers are often used in the last part of the network to condense the information from the convolutional layers.
 
 The dense layer is calculated as the non-linear transform of a matrix-vector product with the matrix consisting of the weights on the edges connecting the layer to the previous, and the vector being the input from the previous layer. This concept is illustrated in \autoref{fig:dense_layer_VM_prod}.
 \begin{figure}
     \centering
     \captionsetup{width=.95\linewidth}
     \includegraphics[width=\linewidth]{Pics/02_Theory/dense_layer_VM_prod.png}
-    \caption{Illustration of the calculation of the dense layer. $x_i$ and $z_i$ are the $i$th activation of the two layers respectively. $w_{ji}$ is the weight corresponding to the connection between $x_i$ and $z_j$, and $b_i$ is the bias to be added to $z_i$. The dense layer is calculated as the non-linear transform of the bias plus the matrix-vector product between the weight matrix $\bs{W}$ and the input vector $\bs{x}$. $\phi$ is the activation function or non-linear transform.}
+    \caption{Illustration of the calculation of the dense layer. $x_i$ and $z_i$ are the $i$-th activation of the two layers respectively. $w_{ji}$ is the weight corresponding to the connection between $x_i$ and $z_j$, and $b_i$ is the bias to be added to $z_i$. The dense layer is calculated as the non-linear transform of the bias plus the matrix-vector product between the weight matrix $\bs{W}$ and the input vector $\bs{x}$. $\phi$ is the activation function or non-linear transform.}
     \label{fig:dense_layer_VM_prod}
 \end{figure}
 
@@ -73,7 +73,7 @@ Where:
 \begin{equation}
     h_i =  \left(h' - 1\right) \Delta_H + i - P_H \qquad w_j =  \left(w' - 1\right) \Delta_W + j - P_W
 \end{equation}
-In \eqref{eq:2d_convolution_1} $\tensor{K}$ is the 4-dimensional kernel of size $D_H \times D_W \times S \times T$ which corresponds to the $T$ different stacked filters of size $D_H \times D_W \times S$, which means that $D_i$ is the filter width in the $i$th dimension. $\Delta$ corresponds to the stride, i.e. how much the filters should move between each calculation (usually 1). $P_i$ corresponds to the padding along the $i$th dimension and corresponds to how many 0s should be put on the edges of the image. The padding can be used to ensure the same input and output size in terms of the spatial dimensions. $(h_i, w_j)$ is the top left corner of the position in the input image and the three sums correspond to the application of the $t$th filter to that position. The application of a filter to an image with a single input channel is illustrated in \autoref{fig:convolution_illustration}.
+In \eqref{eq:2d_convolution_1} $\tensor{K}$ is the 4-dimensional kernel of size $D_H \times D_W \times S \times T$ which corresponds to the $T$ different stacked filters of size $D_H \times D_W \times S$, which means that $D_H$ and $D_W$ is the filter width along each of the spatial dimensions. $\Delta$ corresponds to the stride, i.e. how much the filters should move between each calculation (usually 1). $P_i$ corresponds to the padding along the $i$-th dimension and corresponds to how many 0s should be put on the edges of the image. The padding can be used to ensure the same input and output size in terms of the spatial dimensions. $(h_i, w_j)$ is the position of the top left corner of the position of the filter in the input image and the three sums correspond to the application of the $t$-th filter to that position. The application of a filter to an image with a single input channel is illustrated in \autoref{fig:convolution_illustration}.
 \begin{figure}
     \centering
     \captionsetup{width=.95\linewidth}
@@ -95,7 +95,7 @@ Where:
 \begin{equation}
     f_i = \left(f' - 1\right) \Delta_F + i - P_F \qquad h_j =  \left(h' - 1\right) \Delta_H + j - P_H \qquad w_l =  \left(w' - 1\right) \Delta_W + l - P_W
 \end{equation}
-Now the convolutional kernel $\tensor{K}$ is 5-dimensional and have the size $D_F \times D_H \times D_W \times S \times T$, which is a stack of $T$ 4-dimensional filters. The output size $F'$ is calculated in the same way as \eqref{eq:out_dim_H} and \eqref{eq:out_dim_W} by:
+Now the convolutional kernel $\tensor{K}$ is 5-dimensional and has the size $D_F \times D_H \times D_W \times S \times T$, which is a stack of $T$ 4-dimensional filters. The output size $F'$ is calculated in the same way as \eqref{eq:out_dim_H} and \eqref{eq:out_dim_W} by:
 \begin{equation}
     F' = \frac{F - D_F + 2\cdot P_F}{\Delta_F} + 1
     \label{eq:out_dim_F}
@@ -109,11 +109,11 @@ Now the convolutional kernel $\tensor{K}$ is 5-dimensional and have the size $D_
 A tensor is a data array of an arbitrary number of dimensions, hence matrices are order-2 tensors, while vectors are order-1 tensors. Tensors are frequently used in many different fields that have to do with computer science\cite{Mørup2011}. Tensors have many great properties due to their many dimensions, but also quickly grow very large in terms of number of values. Two central concepts used in calculations with tensors are matricization and the $n$-mode product, which will be discussed in the following.
  
 \subsubsection{Tensor matricization}
-It is often useful to reshape a tensor of order $> 2$ into a matrix. This is for instance in order to calculate the product between the tensor and a matrix. Tensors can be matricized with respect to one of its dimensions, i.e. using the $n$th dimension, the matricization of a tensor $\tensor{X}$ becomes:
+It is often useful to reshape a tensor of order $> 2$ into a matrix. This is for instance in order to calculate the product between the tensor and a matrix. Tensors can be matricized with respect to one of its dimensions, i.e. using the $n$-th dimension, the matricization of a tensor $\tensor{X}$ becomes:
 \begin{equation}
     \tensor{X}^{I_1 \times I_2 \times \dots I_N} \xrightarrow[matricization]{} \bs{X}_{(n)}^{I_n \times I_1 \cdot I_2 \cdots I_{n-1} \cdot I_{n+1} \cdots I_N}
 \end{equation}
-Which means that the first dimension of the resulting matrix is equal to the $n$th dimension of $\tensor{X}$ while the second dimension will be equal to the product of the remaining dimensions. Going from a matrix to a tensor is called un-matricization or tensorizing and is given by:
+Which means that the first dimension of the resulting matrix is equal to the $n$-th dimension of $\tensor{X}$ while the second dimension will be equal to the product of the remaining dimensions. Going from a matrix to a tensor is called un-matricization or tensorizing and is given by:
 \begin{equation}
       \bs{X}_{(n)}^{I_n \times I_1 \cdot I_2 \cdots I_{n-1} \cdot I_{n+1} \cdots I_N} \xrightarrow[un-matricization]{} \tensor{X}^{I_1 \times I_2 \times \dots I_N}
 \end{equation}
@@ -122,7 +122,7 @@ Notice that the original (or desired) shape of $\tensor{X}$ must be know in orde
     \centering
     \captionsetup{width=.6\linewidth}
     \includegraphics[width=.6\linewidth]{Pics/02_Theory/matricization.jpeg}
-    \caption{Matricization of an order-3 tensor using each of the three modes. $n_i$ is the size of the $i$th dimension.}
+    \caption{Matricization of an order-3 tensor using each of the three modes. $n_i$ is the size of the $i$-th dimension.}
     \label{fig:matricization}
 \end{figure}
 
@@ -149,7 +149,7 @@ Or element-wise:
 \begin{equation}
     \tensor{X}(i, j, l) \approx \sum_{d=1}^R \bs{a}_d(i) \cdot \bs{b}_d(j) \cdot \bs{c}_d(l)
 \end{equation}
-Where $\boldsymbol{a}_i$, $\boldsymbol{b}_i$, and $\boldsymbol{c}_i$ are the $i$th loading vectors of each dimension with length $n_1$, $n_2$, and $n_3$ respectively. If each of these loading vectors are concatenated to form loading matrices. The decomposition can also be written in the following way using a diagonal or identity tensor $\tensor{D}$ and $n$-mode products:
+Where $\boldsymbol{a}_i$, $\boldsymbol{b}_i$, and $\boldsymbol{c}_i$ are the $i$-th loading vectors of each dimension with length $n_1$, $n_2$, and $n_3$ respectively. If each of these loading vectors are concatenated to form loading matrices. The decomposition can also be written in the following way using a diagonal or identity tensor $\tensor{D}$ and $n$-mode products:
 \begin{equation}
     \tensor{X}^{n_1 \times n_2 \times n_3} \approx \tensor{D}^{R\times R\times R} \times_1 \bs{A}^{n_1 \times R} \times_2 \bs{B}^{n_2 \times R} \times_3 \bs{C}^{n_3 \times R}
     \label{eq:CP_matrix_rep}
@@ -167,7 +167,7 @@ The CP decomposition representation is illustrated in \autoref{fig:CP_decomp_ill
     \label{fig:CP_decomp_illustration}
 \end{figure}
 
-Due to the nature of the CP decomposition only the $i$th loading of each loading vector can interact with each other, making the CP decomposition rather restricted. However the restriction of this representation implies a unique optimal solution of the CP decomposition, which is desirable. The method is good at resolving different additive physical profiles, e.g. if addition of multiple chemicals to a solution have different effects on a response variable, these can be resolved. CP decomposition however fails when different dimensions are correlated, due to strong canceling effects between the various components of the representation, making it slow to converge and hard to interpret \cite{Mørup2011}.
+Due to the nature of the CP decomposition only the $i$-th loading of each loading vector can interact with each other, making the CP decomposition rather restricted. However the restriction of this representation implies a unique optimal solution of the CP decomposition, which is desirable. The method is good at resolving different additive physical profiles, e.g. if addition of multiple chemicals to a solution have different effects on a response variable, these can be resolved. CP decomposition however fails when different dimensions are correlated, due to strong canceling effects between the various components of the representation, making it slow to converge and hard to interpret \cite{Mørup2011}.
 
 \subsubsection{Tucker}
 Tucker decomposition is the less restricted version of the CP decomposition - or actually CP decomposition is a special case of Tucker. In Tucker decomposition loadings can interact with each other even crisscrossing, which gives this representation a good deal of freedom. This is achieved by allowing the core-tensor $\tensor{D}$ ($\tensor{G}$ for Tucker) to be non-diagonal, hence we also get to choose special ranks for each dimension. This means that the Tucker decomposition is a sum of outer-vector products scaled by the core element. Based on the matrix-representation of the CP decomposition \eqref{eq:CP_matrix_rep}, the Tucker decomposition of an order-3 tensor $\tensor{X}$ of size $n_1 \times n_2 \times n_3$ is given as:
@@ -193,7 +193,7 @@ Rank selection for the Tucker decomposition is either choosing appropriate ranks
     \tensor{X} = \sum_{r_A=1}^{R_A} \sum_{r_B=1}^{R_B}
  \sum_{r_B=1}^{R_B} \tensor{G}(r_A, r_B, r_C) \cdot \bs{a}_{r_A} \circ \bs{b}_{r_B} \circ \bs{c}_{r_C}
  \end{equation}
-I.e. the approximation being equal to the actual tensor. Here $\bs{a}_i$, $\bs{b}_i$, and $\bs{c}_i$ are the $i$th column of the loading matrices respectively. Finding the optimal ranks is a challenging problem, which have been solved in different ways. Due to the challenge of the problem, this thesis will make use of the analytical solution to variational Bayesian matrix factorization (VBMF) by inspiration from Kim et. al \cite{Kim2016}. This approach is chosen because it is a good and easily reproducible heuristic, even though it is sub-optimal. VBMF will be discussed in the following.
+I.e. the approximation being equal to the actual tensor. Here $\bs{a}_i$, $\bs{b}_i$, and $\bs{c}_i$ are the $i$-th column of the loading matrices respectively. Finding the optimal ranks is a challenging problem, which have been solved in different ways. Due to the challenge of the problem, this thesis will make use of the analytical solution to variational Bayesian matrix factorization (VBMF) by inspiration from Kim et. al \cite{Kim2016}. This approach is chosen because it is a good and easily reproducible heuristic, even though it is sub-optimal. VBMF will be discussed in the following.
 
 \paragraph{Variational Bayesian Matrix Factorization} \label{tex:VBMF}
 The global analytical solution to the VBMF have been derived by Nakajima et. al in 2013 \cite{Nakajima2013}, and can be used as a method for rank selection for the Tucker model\footnote{Also applicable to CP-decomposition, since it is a special case of Tucker decomposition}. The authors use a probabilistic model to find the optimal low-rank factorization of a matrix, automatically taking care of the noise. Given an matrix $\bs{V}$ of size $L\times M$ that is assumed to be the sum of a target matrix and an error matrix:
@@ -204,7 +204,7 @@ The goal is to find matrices $\bs{A}$ and $\bs{B}$ such that:
 \begin{equation}
     \bs{U} = \bs{B}\bs{A}^{\top}
 \end{equation}
-This is achieved by considering a probabilistic model of $\bs{V}$ given prior variances, and use this model to compute the posterior distributions of $\bs{V}$, $\bs{A}$, and $\bs{B}$. Doing this is generally a non-convex problem why the analytical solution is key. This however only works for matrices, hence tensors of order $> 2$ need to be converted into matrices using matricization discussed in \autoref{tex:tensor_operations}. Matricization using the $i$th dimension gives the estimated rank of that same dimension of the tensor, by considering the sizes of the posterior distributions of $\bs{A}$ and $\bs{B}$. It should be noted that this method only works when the $L < M$, since we need to have $\frac{L}{M} < 1$ to satisfy the nature of the probabilistic distribution.
+This is achieved by considering a probabilistic model of $\bs{V}$ given prior variances, and use this model to compute the posterior distributions of $\bs{V}$, $\bs{A}$, and $\bs{B}$. Doing this is generally a non-convex problem why the analytical solution is key. This however only works for matrices, hence tensors of order $> 2$ need to be converted into matrices using matricization discussed in \autoref{tex:tensor_operations}. Matricization using the $i$-th dimension gives the estimated rank of that same dimension of the tensor, by considering the sizes of the posterior distributions of $\bs{A}$ and $\bs{B}$. It should be noted that this method only works when the $L < M$, since we need to have $\frac{L}{M} < 1$ to satisfy the nature of the probabilistic distribution.
 
 \subsubsection{Block-Term Decomposition}
 Block-Term Decomposition (BTD) is simply a sum of Tucker terms, i.e. given an order-3 tensor $\tensor{X}$ and a rank $R$ the BTD of $\tensor{X}$ is given by:
@@ -218,7 +218,7 @@ Tensor-Train (TT) decomposition that also goes by the name "matrix product state
 \begin{equation}
     \tensor{X}(i_1, i_2, \dots, i_d) \approx \tensor{G}_1[i_1] \tensor{G}_2[i_2] \cdots \tensor{G}_d[i_d]
 \end{equation}
-Where $\tensor{G}_i$ is the $i$th loading tensor of size $r_{i-1}\times n_1\times r_i$, and $\tensor{G}_i[j]$ is the $j$th lateral slice of $\tensor{G}$, which makes it a matrix of size $r_{i-1}\times r_i$. The approximation of a single value at position $(i_1, i_2, \dots, i_d)$ is illustrated in \autoref{fig:TT_decomp_illustration}.
+Where $\tensor{G}_i$ is the $i$-th loading tensor of size $r_{i-1}\times n_1\times r_i$, and $\tensor{G}_i[j]$ is the $j$-th lateral slice of $\tensor{G}$, which makes it a matrix of size $r_{i-1}\times r_i$. The approximation of a single value at position $(i_1, i_2, \dots, i_d)$ is illustrated in \autoref{fig:TT_decomp_illustration}.
 \begin{figure}
     \centering
     \captionsetup{width=.95\linewidth}
