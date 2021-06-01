@@ -9,13 +9,12 @@ Trying to classify the flat forehands and the backhands only using the depth
 videos.
 """
 # True if using the HPC cluster
-HPC = False
-
 import os
-
+HPC = False
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
     "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/"
 os.chdir(path)
+
 from time import process_time
 import torch as tc
 import torch.optim as optim
