@@ -10,6 +10,7 @@ import csv
 
 LENGTH = 1.5
 RESOLUTION = 0.25
+FRAME_RATE = 18  # not true for all videos but okay.
 
 
 # %% Function for loading a single video
