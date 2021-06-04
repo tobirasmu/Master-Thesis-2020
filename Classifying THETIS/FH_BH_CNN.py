@@ -63,8 +63,7 @@ optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_d
 
 
 def train(this_net, X_train, y_train):
-    train_loss, val_loss, train_accs, val_accs = tc.empty(NUM_FOLDS, NUM_EPOCHS), \
-                                                 tc.empty(NUM_FOLDS, NUM_EPOCHS), \
+    train_loss, train_accs, val_accs = tc.empty(NUM_FOLDS, NUM_EPOCHS), \
                                                  tc.empty(NUM_FOLDS, NUM_EPOCHS), \
                                                  tc.empty(NUM_FOLDS, NUM_EPOCHS)
     kf = list(KFold(NUM_FOLDS).split(X_train))
@@ -74,22 +73,21 @@ def train(this_net, X_train, y_train):
         epoch, interrupted = 0, False
         while epoch < NUM_EPOCHS:
             print("{:-^60s}".format(" EPOCH {:3d} ".format(epoch + 1)))
-            print("{: ^15}{: ^15}{: ^15}{: ^15}".format("Train Loss:", "Val loss: ", "Train acc.:", "Val acc.:"))
+            print("{: ^20}{: ^20}{: ^20}".format("Train Loss:", "Train acc.:", "Val acc.:"))
             try:
                 this_train_loss, this_train_acc = train_epoch(this_net, X_train[train_inds],
                                                               y_train[train_inds], optimizer=optimizer,
                                                               batch_size=BATCH_SIZE)
                 train_loss[i, epoch] = this_train_loss
                 train_accs[i, epoch] = this_train_acc
-                this_val_loss, this_val_acc = eval_epoch(this_net, X_train[val_inds], y_train[val_inds])
-                val_loss[i, epoch] = this_val_loss
+                this_val_acc = eval_epoch(this_net, X_train[val_inds], y_train[val_inds])
                 val_accs[i, epoch] = this_val_acc
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt")
                 interrupted = True
                 break
 
-            print("{: ^15.4f}{: ^15.4f}{: ^15.4f}{: ^15.4f}".format(train_loss[i, epoch], val_loss[i, epoch],
+            print("{: ^20.4f}{: ^20.4f}{: ^20.4f}".format(train_loss[i, epoch],
                                                                     train_accs[i, epoch], val_accs[i, epoch]))
             epoch += 1
         if interrupted:
