@@ -4,12 +4,15 @@ HPC = False
 import os
 
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
-    "/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Classifying THETIS/"
+       "/home/tenra/PycharmProjects/Master-Thesis-2020/Classifying THETIS/"
 os.chdir(path)
 
 import torch as tc
 import tensorly as tl
-from video_functions import numParams, train_epoch, eval_epoch, plotAccs
+from tools.trainer import train_epoch, eval_epoch
+from tools.visualizer import plotAccs
+from tools.models import Net, numParams
+from tools.decomp import compressNet
 import torch.optim as optim
 from sklearn.model_selection import KFold
 from time import process_time
@@ -18,13 +21,12 @@ tl.set_backend('pytorch')
 
 # %% Loading the data
 t = process_time()
-directory = "/zhome/2a/c/108156/Data_MSc/" if HPC else "/Users/Tobias/Desktop/Data/"
+directory = "/zhome/2a/c/108156/Data_MSc/" if HPC else "/home/tenra/PycharmProjects/Data Master/"
 X, Y = tc.load(directory + "data.pt")
 
 print("Took {:.2f} seconds to load the data".format(process_time() - t))
 
 # %% The network that we are working with:
-from video_networks import Net, compressNet
 _, channels, frames, height, width = X.shape
 # Initializing the CNN
 net = Net(channels, frames, height, width)

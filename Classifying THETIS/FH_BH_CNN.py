@@ -64,8 +64,8 @@ optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_d
 
 def train(X_train, y_train):
     train_loss, train_accs, val_accs = tc.empty(NUM_FOLDS, NUM_EPOCHS), \
-                                                 tc.empty(NUM_FOLDS, NUM_EPOCHS), \
-                                                 tc.empty(NUM_FOLDS, NUM_EPOCHS)
+                                       tc.empty(NUM_FOLDS, NUM_EPOCHS), \
+                                       tc.empty(NUM_FOLDS, NUM_EPOCHS)
     kf = list(KFold(NUM_FOLDS).split(X_train))
 
     for i, (train_inds, val_inds) in enumerate(kf):
@@ -76,20 +76,17 @@ def train(X_train, y_train):
             print("{:-^60s}".format(" EPOCH {:3d} ".format(epoch + 1)))
             print("{: ^20}{: ^20}{: ^20}".format("Train Loss:", "Train acc.:", "Val acc.:"))
             try:
-                this_train_loss, this_train_acc = train_epoch(this_net, X_train[train_inds],
-                                                              y_train[train_inds], optimizer=optimizer,
-                                                              batch_size=BATCH_SIZE)
-                train_loss[i, epoch] = this_train_loss
-                train_accs[i, epoch] = this_train_acc
-                this_val_acc = eval_epoch(this_net, X_train[val_inds], y_train[val_inds])
-                val_accs[i, epoch] = this_val_acc
+                train_loss[i, epoch], train_accs[i, epoch] = train_epoch(this_net, X_train[train_inds],
+                                                                         y_train[train_inds], optimizer=optimizer,
+                                                                         batch_size=BATCH_SIZE)
+                val_accs[i, epoch] = eval_epoch(this_net, X_train[val_inds], y_train[val_inds])
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt")
                 interrupted = True
                 break
 
             print("{: ^20.4f}{: ^20.4f}{: ^20.4f}".format(train_loss[i, epoch],
-                                                                    train_accs[i, epoch], val_accs[i, epoch]))
+                                                          train_accs[i, epoch], val_accs[i, epoch]))
             epoch += 1
         if interrupted:
             break
