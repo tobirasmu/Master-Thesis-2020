@@ -71,6 +71,8 @@ def train(X_train, y_train):
     for i, (train_inds, val_inds) in enumerate(kf):
         print("{:-^60s}\n{:-^60s}\n{:-^60s}\n\n".format('', " FOLD {:3d}".format(i + 1), ''))
         this_net = Net(channels, frames, height, width)
+        if tc.cuda.is_available():
+            this_net = this_net.cuda()
         epoch, interrupted = 0, False
         while epoch < NUM_EPOCHS:
             print("{:-^60s}".format(" EPOCH {:3d} ".format(epoch + 1)))
@@ -104,4 +106,4 @@ print("{: ^20}{: ^20}{: ^20}".format("Learning rate:", "Batch size:", "Number of
 print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}\n".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS, ''))
 
 train(X[:nTrain], Y[:nTrain])
-tc.save(net.cpu().state_dict(), "/home/tenra/PycharmProjects/Results/Networks/trained_network.pt")
+# tc.save(net.cpu().state_dict(), "/home/tenra/PycharmProjects/Results/Networks/trained_network.pt")
