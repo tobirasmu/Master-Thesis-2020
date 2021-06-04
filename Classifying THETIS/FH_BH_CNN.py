@@ -10,6 +10,7 @@ videos.
 """
 # True if using the HPC cluster
 import os
+
 HPC = True
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
     "/home/tenra/PycharmProjects/Master-Thesis-2020/Classifying THETIS/"
@@ -61,8 +62,7 @@ LEARNING_RATE = 0.001
 optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
 
 
-def train(this_net, X_train, y_train, X_test, y_test):
-
+def train(this_net, X_train, y_train):
     train_loss, val_loss, train_accs, val_accs = tc.empty(NUM_FOLDS, NUM_EPOCHS), \
                                                  tc.empty(NUM_FOLDS, NUM_EPOCHS), \
                                                  tc.empty(NUM_FOLDS, NUM_EPOCHS), \
@@ -70,15 +70,17 @@ def train(this_net, X_train, y_train, X_test, y_test):
     kf = list(KFold(NUM_FOLDS).split(X_train))
 
     for i, (train_inds, val_inds) in enumerate(kf):
-        print("{:-^60s}\n{:-^60s}\n{:-^60s}\n\n".format('', " FOLD {:3d}".format(i+1), ''))
+        print("{:-^60s}\n{:-^60s}\n{:-^60s}\n\n".format('', " FOLD {:3d}".format(i + 1), ''))
         epoch, interrupted = 0, False
         while epoch < NUM_EPOCHS:
             print("{:-^60s}".format(" EPOCH {:3d} ".format(epoch + 1)))
             print("{: ^15}{: ^15}{: ^15}{: ^15}".format("Train Loss:", "Val loss: ", "Train acc.:", "Val acc.:"))
             try:
-                train_loss[i, epoch], train_accs[i, epoch] = train_epoch(this_net, X_train[train_inds],
-                                                                         y_train[train_inds], optimizer=optimizer,
-                                                                         batch_size=BATCH_SIZE)
+                this_train_loss, this_train_acc = train_epoch(this_net, X_train[train_inds],
+                                                              y_train[train_inds], optimizer=optimizer,
+                                                              batch_size=BATCH_SIZE)
+                train_loss[i, epoch] = this_train_loss
+                train_accs[i, epoch] = this_train_acc
                 val_loss[i, epoch], val_accs[i, epoch] = eval_epoch(this_net, X_train[val_inds], y_train[val_inds])
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt")
@@ -92,7 +94,7 @@ def train(this_net, X_train, y_train, X_test, y_test):
             break
 
     saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else \
-             "/home/tenra/PycharmProjects/Results/accuracies.png"
+        "/home/tenra/PycharmProjects/Results/accuracies.png"
     train_accs = tc.mean(train_accs, dim=0)
     val_accs = tc.mean(val_accs, dim=0)
     plotAccs(train_accs, val_accs, saveName=saveAt)
