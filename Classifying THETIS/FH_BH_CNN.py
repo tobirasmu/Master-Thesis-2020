@@ -93,6 +93,8 @@ def train(this_net, X_train, y_train, X_test, y_test):
 
     saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else \
              "/home/tenra/PycharmProjects/Results/accuracies.png"
+    train_accs = tc.mean(train_accs, axis=0)
+    val_accs = tc.mean(val_accs, axis=0)
     plotAccs(train_accs, val_accs, saveName=saveAt)
     print("{:-^60}\nFinished".format(""))
 
