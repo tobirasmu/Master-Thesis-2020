@@ -81,7 +81,9 @@ def train(this_net, X_train, y_train):
                                                               batch_size=BATCH_SIZE)
                 train_loss[i, epoch] = this_train_loss
                 train_accs[i, epoch] = this_train_acc
-                val_loss[i, epoch], val_accs[i, epoch] = eval_epoch(this_net, X_train[val_inds], y_train[val_inds])
+                this_val_loss, this_val_acc = eval_epoch(this_net, X_train[val_inds], y_train[val_inds])
+                val_loss[i, epoch] = this_val_loss
+                val_accs[i, epoch] = this_val_acc
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt")
                 interrupted = True

@@ -54,7 +54,7 @@ def train_epoch(this_net, X, y, optimizer, batch_size):
         predictions = tc.max(get_data(output), 1)[1]
         targs += list(y[slce])
         preds += list(predictions)
-    return tc.mean(tc.tensor(losses)), accuracy_score(targs, preds)
+    return tc.mean(tc.tensor(losses)), tc.tensor(accuracy_score(targs, preds))
 
 
 def eval_epoch(this_net, X, y, output_lists=False):
@@ -68,4 +68,4 @@ def eval_epoch(this_net, X, y, output_lists=False):
     if output_lists:
         return targs, preds
     else:
-        return accuracy_score(targs, preds)
+        return tc.tensor(accuracy_score(targs, preds))
