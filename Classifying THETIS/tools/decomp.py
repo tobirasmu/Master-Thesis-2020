@@ -4,6 +4,7 @@ import torch as tc
 import torch.nn as nn
 from torch.nn import Conv3d, Conv2d, Linear
 from tools.VBMF import EVBMF
+from copy import deepcopy
 
 tl.set_backend("pytorch")
 
@@ -214,3 +215,16 @@ def estimate_ranks(weight_tensor, dimensions):
         _, diag, _, _ = EVBMF(tl.unfold(weight_tensor, dim))
         ranks.append(diag.shape[dim])
     return ranks
+
+
+def compressNet(net):
+    """
+        Function that compresses the network given above
+    """
+    net_dec = deepcopy(net)
+
+    net_dec.c1 = conv_to_tucker2_3d(net.c1)
+    net_dec.c2 = conv_to_tucker2_3d(net.c2)
+    net_dec.l1 = lin_to_tucker2(net.l1)     # Cannot use automatic rank selection
+    net_dec.l2 = lin_to_tucker1(net.l2)
+    return net_dec
