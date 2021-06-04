@@ -55,7 +55,7 @@ print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n"
 # %% Training functions using cross-validation since the amount of data is low
 BATCH_SIZE = 10
 NUM_FOLDS = 5
-NUM_EPOCHS = 20
+NUM_EPOCHS = 50
 LEARNING_RATE = 0.001
 
 optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
@@ -93,8 +93,8 @@ def train(this_net, X_train, y_train, X_test, y_test):
 
     saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else \
              "/home/tenra/PycharmProjects/Results/accuracies.png"
-    train_accs = tc.mean(train_accs, axis=0)
-    val_accs = tc.mean(val_accs, axis=0)
+    train_accs = tc.mean(train_accs, dim=0)
+    val_accs = tc.mean(val_accs, dim=0)
     plotAccs(train_accs, val_accs, saveName=saveAt)
     print("{:-^60}\nFinished".format(""))
 
