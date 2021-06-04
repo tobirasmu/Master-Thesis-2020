@@ -10,7 +10,7 @@ videos.
 """
 # True if using the HPC cluster
 import os
-HPC = False
+HPC = True
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
     "/home/tenra/PycharmProjects/Master-Thesis-2020/Classifying THETIS/"
 os.chdir(path)
@@ -55,7 +55,7 @@ print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n"
 # %% Training functions using cross-validation since the amount of data is low
 BATCH_SIZE = 10
 NUM_FOLDS = 5
-NUM_EPOCHS = 3
+NUM_EPOCHS = 20
 LEARNING_RATE = 0.001
 
 optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
