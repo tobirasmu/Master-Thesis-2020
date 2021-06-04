@@ -105,5 +105,5 @@ print("{:-^60s}".format(" Training details "))
 print("{: ^20}{: ^20}{: ^20}".format("Learning rate:", "Batch size:", "Number of folds"))
 print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}\n".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS, ''))
 
-train(net, X[:nTrain], Y[:nTrain], X[nTrain:], Y[nTrain:])
+train(net, X[:nTrain], Y[:nTrain])
 tc.save(net.cpu().state_dict(), "/home/tenra/PycharmProjects/Results/Networks/trained_network.pt")
