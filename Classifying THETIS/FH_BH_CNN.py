@@ -56,13 +56,13 @@ print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n"
 # %% Training functions using cross-validation since the amount of data is low
 BATCH_SIZE = 10
 NUM_FOLDS = 5
-NUM_EPOCHS = 50
+NUM_EPOCHS = 300
 LEARNING_RATE = 0.001
 
 optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
 
 
-def train(this_net, X_train, y_train):
+def train(X_train, y_train):
     train_loss, train_accs, val_accs = tc.empty(NUM_FOLDS, NUM_EPOCHS), \
                                                  tc.empty(NUM_FOLDS, NUM_EPOCHS), \
                                                  tc.empty(NUM_FOLDS, NUM_EPOCHS)
@@ -70,6 +70,7 @@ def train(this_net, X_train, y_train):
 
     for i, (train_inds, val_inds) in enumerate(kf):
         print("{:-^60s}\n{:-^60s}\n{:-^60s}\n\n".format('', " FOLD {:3d}".format(i + 1), ''))
+        this_net = Net(channels, frames, height, width)
         epoch, interrupted = 0, False
         while epoch < NUM_EPOCHS:
             print("{:-^60s}".format(" EPOCH {:3d} ".format(epoch + 1)))
@@ -105,5 +106,5 @@ print("{:-^60s}".format(" Training details "))
 print("{: ^20}{: ^20}{: ^20}".format("Learning rate:", "Batch size:", "Number of folds"))
 print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}\n".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS, ''))
 
-train(net, X[:nTrain], Y[:nTrain])
+train(X[:nTrain], Y[:nTrain])
 tc.save(net.cpu().state_dict(), "/home/tenra/PycharmProjects/Results/Networks/trained_network.pt")
