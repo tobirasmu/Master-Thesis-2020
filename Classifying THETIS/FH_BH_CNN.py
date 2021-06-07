@@ -54,12 +54,12 @@ out = net(get_variable(Variable(test)))
 print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n".format(time() - t, out))
 
 # %% Training functions using cross-validation since the amount of data is low
-BATCH_SIZE = 10
+BATCH_SIZE = 20
 NUM_FOLDS = 5
 NUM_EPOCHS = 300
 LEARNING_RATE = 0.001
 
-optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.5, weight_decay=0.01)
+optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.9, weight_decay=0.01)
 
 
 def train(X_train, y_train):
