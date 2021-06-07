@@ -58,8 +58,10 @@ BATCH_SIZE = 20
 NUM_FOLDS = 5
 NUM_EPOCHS = 300
 LEARNING_RATE = 0.001
+MOMENTUM = 0.7
+WEIGHT_DECAY = 0.01
 
-optimizer = optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.9, weight_decay=0.01)
+
 
 
 def train(X_train, y_train):
@@ -73,6 +75,7 @@ def train(X_train, y_train):
         this_net = Net(channels, frames, height, width)
         if tc.cuda.is_available():
             this_net = this_net.cuda()
+        optimizer = optim.SGD(this_net.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
         epoch, interrupted = 0, False
         while epoch < NUM_EPOCHS:
             print("{:-^60s}".format(" EPOCH {:3d} ".format(epoch + 1)))
