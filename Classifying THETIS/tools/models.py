@@ -65,6 +65,41 @@ class Net(nn.Module):
         x = relu(self.l2(x))
 
         return softmax(self.l_out(x), dim=1)
+    
+
+
+# The CNN for the THETIS dataset with only one convolutional layer
+class Net_2(nn.Module):
+
+    def __init__(self, channels, frames, height, width):
+        super(Net_2, self).__init__()
+
+        # Adding the convolutional layers
+        self.c1 = Conv3d(in_channels=channels, out_channels=c1_channels, kernel_size=c1_kernel,
+                         stride=c1_stride, padding=c1_padding)
+        dim1s = conv_dims((frames, height, width), kernels=c1_kernel, strides=c1_stride, paddings=c1_padding)
+        dim1sP = conv_dims(dim1s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
+
+        # The pooling layer
+        self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
+
+        # Features into the linear layers
+        self.lin_feats_in = int(6 * tc.prod(dim1sP))
+        # Adding the linear layers
+        self.l1 = Linear(in_features=self.lin_feats_in, out_features=l1_features)
+        self.l2 = Linear(in_features=l1_features, out_features=l2_features)
+        self.l_out = Linear(in_features=l2_features, out_features=l_out_features)
+
+    def forward(self, x):
+        x = relu(self.c1(x))
+        x = self.pool3d(x)
+
+        x = tc.flatten(x, 1)
+
+        x = relu(self.l1(x))
+        x = relu(self.l2(x))
+
+        return softmax(self.l_out(x), dim=1)
 
 
 def conv_dims(dims, kernels, strides, paddings):

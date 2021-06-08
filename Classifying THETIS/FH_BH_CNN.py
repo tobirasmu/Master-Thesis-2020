@@ -24,7 +24,7 @@ from torch.autograd import Variable
 from sklearn.model_selection import KFold
 from tools.visualizer import plotAccs
 from tools.trainer import train_epoch, eval_epoch, get_variable
-from tools.models import Net
+from tools.models import Net, Net_2
 
 tl.set_backend('pytorch')
 
@@ -41,7 +41,7 @@ N, channels, frames, height, width = X.shape
 nTrain = int(0.85 * N)
 
 # Initializing the CNN
-net = Net(channels, frames, height, width)
+net = Net_2(channels, frames, height, width)
 
 # Converting to cuda if available
 if tc.cuda.is_available():
@@ -56,7 +56,7 @@ print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n"
 # %% Training functions using cross-validation since the amount of data is low
 BATCH_SIZE = 20
 NUM_FOLDS = 5
-NUM_EPOCHS = 300
+NUM_EPOCHS = 500
 LEARNING_RATE = 0.001
 MOMENTUM = 0.7
 WEIGHT_DECAY = 0.01
@@ -72,7 +72,7 @@ def train(X_train, y_train):
 
     for i, (train_inds, val_inds) in enumerate(kf):
         print("{:-^60s}\n{:-^60s}\n{:-^60s}\n\n".format('', " FOLD {:3d}".format(i + 1), ''))
-        this_net = Net(channels, frames, height, width)
+        this_net = Net_2(channels, frames, height, width)
         if tc.cuda.is_available():
             this_net = this_net.cuda()
         optimizer = optim.SGD(this_net.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
