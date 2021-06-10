@@ -12,7 +12,7 @@ c1_stride = (1, 1, 1)
 c1_padding = (2, 5, 5)
 # Second convolution
 c2_channels = (6, 16)
-c2_kernel = (5, 11, 11)
+c2_kernel = (3, 5, 5)
 c2_stride = (1, 1, 1)
 c2_padding = (0, 0, 0)
 # Pooling layer
@@ -46,7 +46,7 @@ class Net(nn.Module):
         self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
 
         # Features into the linear layers
-        self.lin_feats_in = int(16 * tc.prod(dim2sP))
+        self.lin_feats_in = int(16 * tc.prod(tc.tensor(dim2sP)))
         # Adding the linear layers
         self.l1 = Linear(in_features=self.lin_feats_in, out_features=l1_features)
         self.l2 = Linear(in_features=l1_features, out_features=l2_features)
@@ -68,11 +68,11 @@ class Net(nn.Module):
     
 
 
-# The CNN for the THETIS dataset with only one convolutional layer
-class Net_2(nn.Module):
+# The CNN for the THETIS dataset
+class Net2(nn.Module):
 
     def __init__(self, channels, frames, height, width):
-        super(Net_2, self).__init__()
+        super(Net2, self).__init__()
 
         # Adding the convolutional layers
         self.c1 = Conv3d(in_channels=channels, out_channels=c1_channels, kernel_size=c1_kernel,
@@ -80,13 +80,18 @@ class Net_2(nn.Module):
         dim1s = conv_dims((frames, height, width), kernels=c1_kernel, strides=c1_stride, paddings=c1_padding)
         dim1sP = conv_dims(dim1s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
 
+        self.c2 = Conv3d(in_channels=c2_channels[0], out_channels=c2_channels[1], kernel_size=c2_kernel,
+                         stride=c2_stride, padding=c2_padding)
+        dim2s = conv_dims(dim1sP, kernels=c2_kernel, strides=c2_stride, paddings=c2_padding)
+        dim2sP = conv_dims(dim2s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
+
         # The pooling layer
         self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
 
         # Features into the linear layers
-        self.lin_feats_in = int(6 * tc.prod(dim1sP))
+        self.lin_feats_in = int(16 * tc.prod(tc.tensor(dim2sP)))
         # Adding the linear layers
-        self.l1 = Linear(in_features=self.lin_feats_in, out_features=l1_features)
+        self.l1 = Conv3d(in_channels=c2_channels[1], out_channels=l1_features, kernel_size=dim2sP)
         self.l2 = Linear(in_features=l1_features, out_features=l2_features)
         self.l_out = Linear(in_features=l2_features, out_features=l_out_features)
 
@@ -94,20 +99,13 @@ class Net_2(nn.Module):
         x = relu(self.c1(x))
         x = self.pool3d(x)
 
-        x = tc.flatten(x, 1)
+        x = relu(self.c2(x))
+        x = self.pool3d(x)
 
-        x = relu(self.l1(x))
+        x = relu(self.l1(x)[:, :, 0, 0, 0])
         x = relu(self.l2(x))
 
         return softmax(self.l_out(x), dim=1)
-
-
-def conv_dims(dims, kernels, strides, paddings):
-    dimensions = len(dims)
-    new_dims = tc.empty(dimensions)
-    for i in range(dimensions):
-        new_dims[i] = int((dims[i] - kernels[i] + 2 * paddings[i]) / strides[i] + 1)
-    return new_dims
 
 
 def numParams(net):
@@ -141,10 +139,10 @@ def conv_dims(dims, kernels, strides, paddings):
             list of resulting dimensions
     """
     dimensions = len(dims)
-    new_dims = tc.empty(dimensions)
+    new_dims = []
     for i in range(dimensions):
-        new_dims[i] = int((dims[i] - kernels[i] + 2 * paddings[i]) / strides[i] + 1)
-    return new_dims
+        new_dims.append(int((dims[i] - kernels[i] + 2 * paddings[i]) / strides[i] + 1))
+    return tuple(new_dims)
 
 
 def convFLOPs(kernel_shape, output_shape):
