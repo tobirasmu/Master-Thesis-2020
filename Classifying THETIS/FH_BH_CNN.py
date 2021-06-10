@@ -22,7 +22,7 @@ import torch.optim as optim
 import tensorly as tl
 from torch.autograd import Variable
 from sklearn.model_selection import KFold
-from tools.visualizer import plotAccs
+from tools.visualizer import plotAccs, plotFoldAccs
 from tools.trainer import train_epoch, eval_epoch, get_variable
 from tools.models import Net, Net2
 
@@ -96,9 +96,12 @@ def train(X_train, y_train):
             break
 
     saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else \
-        "/home/tenra/PycharmProjects/Results/accuracies.png"
+        "/home/tenra/PycharmProjects/Results/FoldAccuracies.png"
+    plotFoldAccs(train_accs, val_accs, saveName=saveAt)
     train_accs = tc.mean(train_accs, dim=0)
     val_accs = tc.mean(val_accs, dim=0)
+    saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else \
+        "/home/tenra/PycharmProjects/Results/accuracies.png"
     plotAccs(train_accs, val_accs, saveName=saveAt)
     print("{:-^60}\nFinished".format(""))
 
