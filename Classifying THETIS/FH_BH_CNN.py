@@ -95,7 +95,7 @@ def train(X_train, y_train):
         if interrupted:
             break
 
-    saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else \
+    saveAt = "/zhome/2a/c/108156/Outputs/FoldAccuracies.png" if HPC else \
         "/home/tenra/PycharmProjects/Results/FoldAccuracies.png"
     plotFoldAccs(train_accs, val_accs, saveName=saveAt)
     train_accs = tc.mean(train_accs, dim=0)
@@ -111,4 +111,5 @@ print("{: ^20}{: ^20}{: ^20}".format("Learning rate:", "Batch size:", "Number of
 print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}\n".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS, ''))
 
 train(X[:nTrain], Y[:nTrain])
-# tc.save(net.cpu().state_dict(), "/home/tenra/PycharmProjects/Results/Networks/trained_network.pt")
+if HPC:
+    tc.save(net.cpu().state_dict(), "/zhome/2a/c/108156/Outputs/trained_network.pt")
