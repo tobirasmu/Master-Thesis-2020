@@ -90,8 +90,8 @@ class Net2(nn.Module):
 
         # The pooling layer
         self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
-        self.dropout3 = Dropout3d(0.4)
-        self.dropout = Dropout(0.4)
+        self.dropout3 = Dropout3d(0.2)
+        self.dropout = Dropout(0.2)
 
         # Features into the linear layers
         self.lin_feats_in = int(16 * tc.prod(tc.tensor(dim2sP)))
