@@ -20,7 +20,7 @@ def conv_to_tucker2_3d(layer, ranks=None):
     # (Estimating the ranks using VBMF)
     ranks = estimate_ranks(weights, [0, 1]) if ranks is None else ranks
     # Decomposing
-    core, [last, first] = partial_tucker(weights, modes=[0, 1], ranks=ranks)
+    core, [last, first] = partial_tucker(weights, modes=[0, 1], rank=ranks)
 
     # Making the layer into 3 sequential layers using the decomposition
     first_layer = Conv3d(in_channels=first.shape[0], out_channels=first.shape[1],
@@ -54,7 +54,7 @@ def conv_to_tucker1_3d(layer, rank=None):
     out_ch, in_ch = weights.shape[0:2]
     # (Estimating the rank)
     rank = estimate_ranks(weights, [0]) if rank is None else [rank]
-    core, [last] = partial_tucker(weights, modes=[0], ranks=rank)
+    core, [last] = partial_tucker(weights, modes=[0], rank=rank)
 
     # Turning the convolutional layer into a sequence of two smaller convolutions
     core_layer = Conv3d(in_channels=in_ch, out_channels=rank[0], kernel_size=layer.kernel_size, padding=layer.padding,
@@ -80,8 +80,9 @@ def conv_to_tucker2(layer, ranks=None):
     weights = layer.weight.data
     # (Estimating the ranks using VBMF)
     ranks = estimate_ranks(weights, [0, 1]) if ranks is None else ranks
+
     # Decomposing
-    core, [last, first] = partial_tucker(weights, modes=[0, 1], ranks=ranks)
+    core, [last, first] = partial_tucker(weights, modes=[0, 1], rank=ranks)
 
     # Making the layer into 3 sequential layers using the decomposition
     first_layer = Conv2d(in_channels=first.shape[0], out_channels=first.shape[1],
@@ -115,7 +116,7 @@ def conv_to_tucker1(layer, rank=None):
     out_ch, in_ch, kernel_size, _ = weights.shape
     # (Estimating the rank)
     rank = estimate_ranks(weights, [0]) if rank is None else [rank]
-    core, [last] = partial_tucker(weights, modes=[0], ranks=rank)
+    core, [last] = partial_tucker(weights, modes=[0], rank=rank)
 
     # Turning the convolutional layer into a sequence of two smaller convolutions
     core_layer = Conv2d(in_channels=in_ch, out_channels=rank[0], kernel_size=kernel_size, padding=layer.padding,
@@ -146,7 +147,7 @@ def lin_to_tucker2(layer, ranks=None):
         else:
             rank = estimate_ranks(weights, [1])
     ranks = [rank[0], rank[0]] if ranks is None else ranks
-    core, [A, B] = partial_tucker(weights, modes=[0, 1], ranks=ranks)
+    core, [A, B] = partial_tucker(weights, modes=[0, 1], rank=ranks)
 
     # Making the sequence of 3 smaller layers
     BTb = Linear(in_features=nIn, out_features=ranks[1], bias=False)
@@ -173,7 +174,7 @@ def lin_to_tucker1(layer, rank=None, in_channels=True):
     nOut, nIn = weights.shape
     if in_channels:
         rank = estimate_ranks(weights, [1]) if rank is None else [rank]
-        core, [B] = partial_tucker(weights, modes=[1], ranks=rank)
+        core, [B] = partial_tucker(weights, modes=[1], rank=rank)
 
         # Now we have W = GB^T, we need Wb which means we can seperate into two layers
         BTb = Linear(in_features=nIn, out_features=rank[0], bias=False)
@@ -189,7 +190,7 @@ def lin_to_tucker1(layer, rank=None, in_channels=True):
         new_layers = [BTb, coreBtb]
     else:
         rank = estimate_ranks(weights, [0]) if rank is None else [rank]
-        core, [A] = partial_tucker(weights, modes=[0], ranks=rank)
+        core, [A] = partial_tucker(weights, modes=[0], rank=rank)
 
         # Now we have W = AG, we need Wb which means we can do Wb = A (Gb) as two linear layers
         coreb = Linear(in_features=nIn, out_features=rank[0], bias=False)
@@ -225,6 +226,6 @@ def compressNet(net):
 
     net_dec.c1 = conv_to_tucker2_3d(net.c1)
     net_dec.c2 = conv_to_tucker2_3d(net.c2)
-    net_dec.l1 = lin_to_tucker2(net.l1)     # Cannot use automatic rank selection
+    net_dec.l1 = conv_to_tucker2_3d(net.l1)     # Cannot use automatic rank selection
     net_dec.l2 = lin_to_tucker1(net.l2)
     return net_dec

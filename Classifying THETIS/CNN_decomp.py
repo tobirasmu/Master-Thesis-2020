@@ -4,14 +4,14 @@ HPC = False
 import os
 
 path = "/zhome/2a/c/108156/Master-Thesis-2020/Classifying THETIS/" if HPC else \
-       "/home/tenra/PycharmProjects/Master-Thesis-2020/Classifying THETIS/"
+    "/home/tenra/PycharmProjects/Master-Thesis-2020/Classifying THETIS/"
 os.chdir(path)
 
 import torch as tc
 import tensorly as tl
 from tools.trainer import train_epoch, eval_epoch
 from tools.visualizer import plotAccs
-from tools.models import Net, numParams
+from tools.models import Net, Net2, numParams
 from tools.decomp import compressNet
 import torch.optim as optim
 from sklearn.model_selection import KFold
@@ -23,20 +23,19 @@ tl.set_backend('pytorch')
 t = process_time()
 directory = "/zhome/2a/c/108156/Data_MSc/" if HPC else "/home/tenra/PycharmProjects/Data Master/"
 X, Y = tc.load(directory + "data.pt")
-
 print("Took {:.2f} seconds to load the data".format(process_time() - t))
 
 # %% The network that we are working with:
 _, channels, frames, height, width = X.shape
 # Initializing the CNN
-net = Net(channels, frames, height, width)
+net = Net2(channels, frames, height, width)
 
 # Loading the parameters of the pretrained network (needs to be after converting the network back to cpu)
 if HPC:
-    net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Trained networks/THETIS_network_92.pt"))
+    net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Trained networks/THETIS_new.pt"))
 else:
     net.load_state_dict(
-        tc.load("/home/tenra/PycharmProjects/Master-Thesis-2020/Trained networks/THETIS_network_92.pt"))
+        tc.load("/home/tenra/PycharmProjects/Master-Thesis-2020/Trained networks/THETIS_new.pt"))
 
 # %% The decomposition functions:
 netDec = compressNet(net)
