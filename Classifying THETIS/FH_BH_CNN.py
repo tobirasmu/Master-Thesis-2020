@@ -22,9 +22,9 @@ import torch.optim as optim
 import tensorly as tl
 from torch.autograd import Variable
 from sklearn.model_selection import KFold
-from tools.visualizer import plotAccs
+from tools.visualizer import plotAccs, plotFoldAccs
 from tools.trainer import train_epoch, eval_epoch, get_variable
-from tools.models import Net, Net_2
+from tools.models import Net, Net2
 
 tl.set_backend('pytorch')
 
@@ -41,12 +41,13 @@ N, channels, frames, height, width = X.shape
 nTrain = int(0.85 * N)
 
 # Initializing the CNN
-net = Net_2(channels, frames, height, width)
+net = Net2(channels, frames, height, width)
 
 # Converting to cuda if available
 if tc.cuda.is_available():
     print("----  Network converted to CUDA  ----\n")
     net = net.cuda()
+
 # %% Testing one forward push
 test = X[0:2]
 t = time()
@@ -56,12 +57,10 @@ print("Time to complete 2 forward pushes was {:.2f} seconds with outputs\n {}\n"
 # %% Training functions using cross-validation since the amount of data is low
 BATCH_SIZE = 20
 NUM_FOLDS = 5
-NUM_EPOCHS = 500
+NUM_EPOCHS = 1000
 LEARNING_RATE = 0.001
 MOMENTUM = 0.7
 WEIGHT_DECAY = 0.01
-
-
 
 
 def train(X_train, y_train):
@@ -72,7 +71,7 @@ def train(X_train, y_train):
 
     for i, (train_inds, val_inds) in enumerate(kf):
         print("{:-^60s}\n{:-^60s}\n{:-^60s}\n\n".format('', " FOLD {:3d}".format(i + 1), ''))
-        this_net = Net_2(channels, frames, height, width)
+        this_net = Net2(channels, frames, height, width)
         if tc.cuda.is_available():
             this_net = this_net.cuda()
         optimizer = optim.SGD(this_net.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
@@ -96,10 +95,13 @@ def train(X_train, y_train):
         if interrupted:
             break
 
-    saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else \
-        "/home/tenra/PycharmProjects/Results/accuracies.png"
+    saveAt = "/zhome/2a/c/108156/Outputs/FoldAccuracies.png" if HPC else \
+        "/home/tenra/PycharmProjects/Results/FoldAccuracies.png"
+    plotFoldAccs(train_accs, val_accs, saveName=saveAt)
     train_accs = tc.mean(train_accs, dim=0)
     val_accs = tc.mean(val_accs, dim=0)
+    saveAt = "/zhome/2a/c/108156/Outputs/accuracies.png" if HPC else \
+        "/home/tenra/PycharmProjects/Results/accuracies.png"
     plotAccs(train_accs, val_accs, saveName=saveAt)
     print("{:-^60}\nFinished".format(""))
 
@@ -109,4 +111,5 @@ print("{: ^20}{: ^20}{: ^20}".format("Learning rate:", "Batch size:", "Number of
 print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}\n".format(LEARNING_RATE, BATCH_SIZE, NUM_FOLDS, ''))
 
 train(X[:nTrain], Y[:nTrain])
-# tc.save(net.cpu().state_dict(), "/home/tenra/PycharmProjects/Results/Networks/trained_network.pt")
+if HPC:
+    tc.save(net.cpu().state_dict(), "/zhome/2a/c/108156/Outputs/trained_network.pt")
