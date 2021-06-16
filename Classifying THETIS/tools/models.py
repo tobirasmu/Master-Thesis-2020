@@ -1,7 +1,7 @@
 import numpy as np
 import torch as tc
 import torch.nn as nn
-from torch.nn import Conv3d, MaxPool3d, Linear
+from torch.nn import Conv3d, MaxPool3d, Linear, Dropout3d, Dropout
 from torch.nn.functional import relu, softmax
 
 
@@ -44,6 +44,7 @@ class Net(nn.Module):
 
         # The pooling layer
         self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
+        self.dropout = Dropout3d(0.4)
 
         # Features into the linear layers
         self.lin_feats_in = int(16 * tc.prod(tc.tensor(dim2sP)))
@@ -55,9 +56,11 @@ class Net(nn.Module):
     def forward(self, x):
         x = relu(self.c1(x))
         x = self.pool3d(x)
+        x = self.dropout(x)
 
         x = relu(self.c2(x))
         x = self.pool3d(x)
+        x = self.dropout(x)
 
         x = tc.flatten(x, 1)
 
@@ -87,6 +90,8 @@ class Net2(nn.Module):
 
         # The pooling layer
         self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
+        self.dropout3 = Dropout3d(0.4)
+        self.dropout = Dropout(0.4)
 
         # Features into the linear layers
         self.lin_feats_in = int(16 * tc.prod(tc.tensor(dim2sP)))
@@ -98,12 +103,17 @@ class Net2(nn.Module):
     def forward(self, x):
         x = relu(self.c1(x))
         x = self.pool3d(x)
+        x = self.dropout3(x)
 
         x = relu(self.c2(x))
         x = self.pool3d(x)
-
+        x = self.dropout3(x)
+        
         x = relu(self.l1(x)[:, :, 0, 0, 0])
+        x = self.dropout(x)
+        
         x = relu(self.l2(x))
+        x = self.dropout(x)
 
         return softmax(self.l_out(x), dim=1)
 
