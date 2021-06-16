@@ -36,7 +36,7 @@ if HPC:
     net.load_state_dict(tc.load("/zhome/2a/c/108156/Master-Thesis-2020/Trained networks/THETIS_network_92.pt"))
 else:
     net.load_state_dict(
-        tc.load("/Users/Tobias/Google Drev/UNI/Master-Thesis-Fall-2020/Trained networks/THETIS_network_92.pt"))
+        tc.load("/home/tenra/PycharmProjects/Master-Thesis-2020/Trained networks/THETIS_network_92.pt"))
 
 # %% The decomposition functions:
 netDec = compressNet(net)
