@@ -1,5 +1,5 @@
 # True if using the GPU
-HPC = False
+HPC = True
 
 import os
 
