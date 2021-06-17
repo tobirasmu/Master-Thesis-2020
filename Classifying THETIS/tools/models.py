@@ -118,7 +118,7 @@ class Net2(nn.Module):
         return softmax(self.l_out(x), dim=1)
 
 
-def numParams(net):S
+def numParams(net):
     """
     Returns the number of parameters in the entire network.
     """
