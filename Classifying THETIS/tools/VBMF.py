@@ -7,6 +7,7 @@ from __future__ import division
 import numpy as np
 from scipy.sparse.linalg import svds
 from scipy.optimize import minimize_scalar
+from scipy.linalg import svd
 
 def VBMF(Y, cacb, sigma2=None, H=None):
     """Implementation of the analytical solution to Variational Bayes Matrix Factorization.
@@ -207,7 +208,8 @@ def EVBMF(Y, sigma2=None, H=None):
     tauubar = 2.5129*np.sqrt(alpha)
     
     #SVD of the input matrix, max rank of H
-    U,s,V = np.linalg.svd(Y)
+    U,s,V = np.linalg.svd(Y, full_matrices=False)
+    U,# s,V = svd(Y, full_matrices=False)
     U = U[:,:H]
     s = s[:H]
     V = V[:H].T 

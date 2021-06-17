@@ -118,12 +118,11 @@ class Net2(nn.Module):
         return softmax(self.l_out(x), dim=1)
 
 
-def numParams(net):
+def numParams(net):S
     """
     Returns the number of parameters in the entire network.
     """
     return sum(np.prod(p.size()) for p in net.parameters())
-# Model evaluation functions
 
 
 # %% Functions for calculating the theoretical speed-up

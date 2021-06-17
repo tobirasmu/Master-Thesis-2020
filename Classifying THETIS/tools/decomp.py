@@ -213,7 +213,7 @@ def estimate_ranks(weight_tensor, dimensions):
     """
     ranks = []
     for dim in dimensions:
-        _, diag, _, _ = EVBMF(tl.unfold(weight_tensor, dim))
+        _, diag, _, _ = EVBMF(tl.unfold(weight_tensor, dim).numpy())
         ranks.append(diag.shape[dim])
     return ranks
 
@@ -226,6 +226,6 @@ def compressNet(net):
 
     net_dec.c1 = conv_to_tucker2_3d(net.c1)
     net_dec.c2 = conv_to_tucker2_3d(net.c2)
-    net_dec.l1 = conv_to_tucker2_3d(net.l1)     # Cannot use automatic rank selection
+    net_dec.l1 = conv_to_tucker2_3d(net.l1)
     net_dec.l2 = lin_to_tucker1(net.l2)
     return net_dec
