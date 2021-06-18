@@ -5,24 +5,29 @@ from torch.nn import Conv3d, MaxPool3d, Linear, Dropout3d, Dropout
 from torch.nn.functional import relu, softmax
 
 
-# First convolution
-c1_channels = 6
-c1_kernel = (5, 11, 11)
-c1_stride = (1, 1, 1)
-c1_padding = (2, 5, 5)
-# Second convolution
-c2_channels = (6, 16)
-c2_kernel = (3, 5, 5)
-c2_stride = (1, 1, 1)
-c2_padding = (0, 0, 0)
-# Pooling layer
-pool_kernel = (2, 4, 4)
-pool_stride = (2, 4, 4)
-pool_padding = (0, 0, 0)
-# Linear layers
-l1_features = 128
-l2_features = 84
-l_out_features = 2
+class Specs:
+    def __init__(self):
+    # First convolution
+        self.c1_channels = 6
+        self.c1_kernel = (5, 11, 11)
+        self.c1_stride = (1, 1, 1)
+        self.c1_padding = (2, 5, 5)
+        # Second convolution
+        self.c2_channels = (6, 16)
+        self.c2_kernel = (3, 5, 5)
+        self.c2_stride = (1, 1, 1)
+        self.c2_padding = (0, 0, 0)
+        # Pooling layer
+        self.pool_kernel = (2, 4, 4)
+        self.pool_stride = (2, 4, 4)
+        self.pool_padding = (0, 0, 0)
+        # Linear layers
+        self.l1_features = 128
+        self.l2_features = 84
+        self.l_out_features = 2
+
+
+specs = Specs()
 
 
 # The CNN for the THETIS dataset
@@ -32,26 +37,27 @@ class Net(nn.Module):
         super(Net, self).__init__()
 
         # Adding the convolutional layers
-        self.c1 = Conv3d(in_channels=channels, out_channels=c1_channels, kernel_size=c1_kernel,
-                         stride=c1_stride, padding=c1_padding)
-        dim1s = conv_dims((frames, height, width), kernels=c1_kernel, strides=c1_stride, paddings=c1_padding)
-        dim1sP = conv_dims(dim1s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
+        self.c1 = Conv3d(in_channels=channels, out_channels=specs.c1_channels, kernel_size=specs.c1_kernel,
+                         stride=specs.c1_stride, padding=specs.c1_padding)
+        dim1s = conv_dims((frames, height, width), kernels=specs.c1_kernel, strides=specs.c1_stride,
+                          paddings=specs.c1_padding)
+        dim1sP = conv_dims(dim1s, kernels=specs.pool_kernel, strides=specs.pool_stride, paddings=specs.pool_padding)
 
-        self.c2 = Conv3d(in_channels=c2_channels[0], out_channels=c2_channels[1], kernel_size=c2_kernel,
-                         stride=c2_stride, padding=c2_padding)
-        dim2s = conv_dims(dim1sP, kernels=c2_kernel, strides=c2_stride, paddings=c2_padding)
-        dim2sP = conv_dims(dim2s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
+        self.c2 = Conv3d(in_channels=specs.c2_channels[0], out_channels=specs.c2_channels[1],
+                         kernel_size=specs.c2_kernel, stride=specs.c2_stride, padding=specs.c2_padding)
+        dim2s = conv_dims(dim1sP, kernels=specs.c2_kernel, strides=specs.c2_stride, paddings=specs.c2_padding)
+        dim2sP = conv_dims(dim2s, kernels=specs.pool_kernel, strides=specs.pool_stride, paddings=specs.pool_padding)
 
         # The pooling layer
-        self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
-        self.dropout = Dropout3d(0.4)
+        self.pool3d = MaxPool3d(kernel_size=specs.pool_kernel, stride=specs.pool_stride, padding=specs.pool_padding)
+        self.dropout = Dropout3d(0.2)
 
         # Features into the linear layers
         self.lin_feats_in = int(16 * tc.prod(tc.tensor(dim2sP)))
         # Adding the linear layers
-        self.l1 = Linear(in_features=self.lin_feats_in, out_features=l1_features)
-        self.l2 = Linear(in_features=l1_features, out_features=l2_features)
-        self.l_out = Linear(in_features=l2_features, out_features=l_out_features)
+        self.l1 = Linear(in_features=self.lin_feats_in, out_features=specs.l1_features)
+        self.l2 = Linear(in_features=specs.l1_features, out_features=specs.l2_features)
+        self.l_out = Linear(in_features=specs.l2_features, out_features=specs.l_out_features)
 
     def forward(self, x):
         x = relu(self.c1(x))
@@ -70,7 +76,6 @@ class Net(nn.Module):
         return softmax(self.l_out(x), dim=1)
     
 
-
 # The CNN for the THETIS dataset
 class Net2(nn.Module):
 
@@ -78,27 +83,28 @@ class Net2(nn.Module):
         super(Net2, self).__init__()
 
         # Adding the convolutional layers
-        self.c1 = Conv3d(in_channels=channels, out_channels=c1_channels, kernel_size=c1_kernel,
-                         stride=c1_stride, padding=c1_padding)
-        dim1s = conv_dims((frames, height, width), kernels=c1_kernel, strides=c1_stride, paddings=c1_padding)
-        dim1sP = conv_dims(dim1s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
+        self.c1 = Conv3d(in_channels=channels, out_channels=specs.c1_channels, kernel_size=specs.c1_kernel,
+                         stride=specs.c1_stride, padding=specs.c1_padding)
+        dim1s = conv_dims((frames, height, width), kernels=specs.c1_kernel, strides=specs.c1_stride,
+                          paddings=specs.c1_padding)
+        dim1sP = conv_dims(dim1s, kernels=specs.pool_kernel, strides=specs.pool_stride, paddings=specs.pool_padding)
 
-        self.c2 = Conv3d(in_channels=c2_channels[0], out_channels=c2_channels[1], kernel_size=c2_kernel,
-                         stride=c2_stride, padding=c2_padding)
-        dim2s = conv_dims(dim1sP, kernels=c2_kernel, strides=c2_stride, paddings=c2_padding)
-        dim2sP = conv_dims(dim2s, kernels=pool_kernel, strides=pool_stride, paddings=pool_padding)
+        self.c2 = Conv3d(in_channels=specs.c2_channels[0], out_channels=specs.c2_channels[1],
+                         kernel_size=specs.c2_kernel, stride=specs.c2_stride, padding=specs.c2_padding)
+        dim2s = conv_dims(dim1sP, kernels=specs.c2_kernel, strides=specs.c2_stride, paddings=specs.c2_padding)
+        dim2sP = conv_dims(dim2s, kernels=specs.pool_kernel, strides=specs.pool_stride, paddings=specs.pool_padding)
 
         # The pooling layer
-        self.pool3d = MaxPool3d(kernel_size=pool_kernel, stride=pool_stride, padding=pool_padding)
+        self.pool3d = MaxPool3d(kernel_size=specs.pool_kernel, stride=specs.pool_stride, padding=specs.pool_padding)
         self.dropout3 = Dropout3d(0.2)
         self.dropout = Dropout(0.2)
 
         # Features into the linear layers
         self.lin_feats_in = int(16 * tc.prod(tc.tensor(dim2sP)))
         # Adding the linear layers
-        self.l1 = Conv3d(in_channels=c2_channels[1], out_channels=l1_features, kernel_size=dim2sP)
-        self.l2 = Linear(in_features=l1_features, out_features=l2_features)
-        self.l_out = Linear(in_features=l2_features, out_features=l_out_features)
+        self.l1 = Conv3d(in_channels=specs.c2_channels[1], out_channels=specs.l1_features, kernel_size=dim2sP)
+        self.l2 = Linear(in_features=specs.l1_features, out_features=specs.l2_features)
+        self.l_out = Linear(in_features=specs.l2_features, out_features=specs.l_out_features)
 
     def forward(self, x):
         x = relu(self.c1(x))
@@ -123,6 +129,25 @@ def numParams(net):
     Returns the number of parameters in the entire network.
     """
     return sum(np.prod(p.size()) for p in net.parameters())
+
+
+def numParamsByLayer(net, which=None):
+    """
+    Returns a list of the name of the layer (including if it is bias or weights) and how many parameters is in it
+    """
+    params = [(name, tc.prod(tc.tensor(w.shape))) for name, w in list(net.named_parameters())]
+    if which is None:
+        return params
+    else:
+        out = []
+        for group in which:
+            this_group = 0
+            for l in group:
+                _, this = params[l]
+                this_group += this
+            name, _ = params[l]
+            out.append((name[:2], this_group))
+        return out
 
 
 # %% Functions for calculating the theoretical speed-up
@@ -163,7 +188,7 @@ def convFLOPs(kernel_shape, output_shape):
     """
     C_out, C_in = kernel_shape[0:2]
     filter_shape = kernel_shape[2:]
-    return C_out * tc.prod(output_shape.long()) * (2 * C_in * tc.prod(filter_shape.long()) - 1)
+    return C_out * tc.prod(tc.tensor(output_shape).long()) * (2 * C_in * tc.prod(tc.tensor(filter_shape).long()) - 1)
 
 
 def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=None):
@@ -199,7 +224,7 @@ def numFLOPsPerPush(net, input_shape, paddings=None, pooling=None, pool_kernels=
         else:
             # Bias term requires number of additions equal to the amount of output values
             if wasConv:
-                FLOPs[-1] += tc.prod(output_shape.long())
+                FLOPs[-1] += tc.prod(tc.tensor(output_shape).long())
             else:
                 FLOPs[-1] += kernel_shape[0]
     return tc.tensor(FLOPs)
