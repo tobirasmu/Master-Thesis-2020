@@ -3,7 +3,7 @@
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
 
-HPC = False
+HPC = True
 
 import os
 
@@ -20,9 +20,9 @@ from torch.nn import Conv3d, Linear, MaxPool3d, Dropout, Dropout3d
 from torch.nn.functional import relu, softmax
 import torch.nn as nn
 import numpy as np
-from time import perf_counter_ns as time
+from time import time
 
-SAMPLE_SIZE = 100
+SAMPLE_SIZE = 1000
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((2, 4, 28, 120, 160))))
 
@@ -241,13 +241,14 @@ if tc.cuda.is_available():
     print("Using CUDA")
     net = net.cuda()
 
-for i in range(SAMPLE_SIZE):
+for i in range(SAMPLE_SIZE + BURN_IN):
     net(test, i)
+full_time = timing[BURN_IN:, -1] - timing[BURN_IN:, 0]
 for i in range(5, 0, -1):
     timing[:, i] -= timing[:, i - 1]
 
 # Calculating the layer times
-full_time = timing[BURN_IN:, -1] - timing[BURN_IN:, 0]
+
 timing = timing[BURN_IN:, 1:]
 times_m, times_s = np.mean(timing, axis=0), np.std(timing, axis=0)
 full_time_m, full_time_s = np.mean(full_time), np.std(full_time)
@@ -259,13 +260,14 @@ full_time_m, full_time_s = np.mean(full_time), np.std(full_time)
 if tc.cuda.is_available():
     netDec = netDec.cuda()
 
-for i in range(SAMPLE_SIZE):
+for i in range(SAMPLE_SIZE + BURN_IN):
     netDec(test, i)
+full_time_dec = timing_dec[BURN_IN:, -1] - timing_dec[BURN_IN:, 0]    
 for i in range(12, 0, -1):
     timing_dec[:, i] -= timing_dec[:, i - 1]
 
 # Calculating the layer times
-full_time_dec = timing_dec[BURN_IN:, -1] - timing_dec[BURN_IN:, 0]
+
 timing_dec = timing_dec[BURN_IN:, 1:]
 times_dec_m, times_dec_s = np.mean(timing_dec, axis=0), np.std(timing_dec, axis=0)
 full_time_dec_m, full_time_dec_s = np.mean(full_time_dec), np.std(full_time_dec)
@@ -293,7 +295,7 @@ for i in range(len(FLOPs_orig)):
 print("{:-^60s}\n{: <11s}{: ^16.4f}{: ^16.4f}".format('', "Total", tc.sum(FLOPs_orig) / tc.sum(FLOPs_dcmp),
                                                       full_time_m / full_time_dec_m))
 
-print("Based on {} samples and {} observations pushed forward".format(SAMPLE_SIZE, NUM_OBS))
+print("Based on {} samples and {} observations pushed forward".format(SAMPLE_SIZE, 1))
 print("FLOPS orig: ", FLOPs_orig)
 print("FLOPS dcmp: ", FLOPs_dcmp)
 print("FLOPs dcmp 2: ", dcmp_layer_wise)
