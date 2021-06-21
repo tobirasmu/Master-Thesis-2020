@@ -22,7 +22,7 @@ import torch.nn as nn
 import numpy as np
 from time import time
 
-SAMPLE_SIZE = 1000
+SAMPLE_SIZE = 10
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((2, 4, 28, 120, 160))))
 
@@ -41,32 +41,32 @@ class Net_timed(Net2):
         super(Net_timed, self).__init__(channels, frames, height, width)
 
     def forward(self, x, sample_num):
-        tc.cuda.synchronize()
+        
         timing[sample_num, 0] = time()
         x = relu(self.c1(x))
         x = self.pool3d(x)
         x = self.dropout3(x)
 
-        tc.cuda.synchronize()
+        
         timing[sample_num, 1] = time()
         x = relu(self.c2(x))
         x = self.pool3d(x)
         x = self.dropout3(x)
 
-        tc.cuda.synchronize()
+        
         timing[sample_num, 2] = time()
         x = relu(self.l1(x)[:, :, 0, 0, 0])
         x = self.dropout(x)
 
-        tc.cuda.synchronize()
+        
         timing[sample_num, 3] = time()
         x = relu(self.l2(x))
         x = self.dropout(x)
 
-        tc.cuda.synchronize()
+        
         timing[sample_num, 4] = time()
         x = softmax(self.l_out(x), dim=1)
-        tc.cuda.synchronize()
+        
         timing[sample_num, 5] = time()
         return x
 
@@ -148,54 +148,54 @@ class NetDec_timed(nn.Module):
 
     def forward(self, x, sample_num):
         # Conv 1
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 0] = time()
         x = relu(self.c1_1(x))
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 1] = time()
         x = relu(self.c1_2(x))
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 2] = time()
         x = relu(self.c1_3(x))
         x = self.pool3d(x)
         x = self.dropout3(x)
 
         # Conv 2
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 3] = time()
         x = relu(self.c2_1(x))
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 4] = time()
         x = relu(self.c2_2(x))
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 5] = time()
         x = relu(self.c2_3(x))
         x = self.pool3d(x)
         x = self.dropout3(x)
 
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 6] = time()
         x = relu(self.l1_1(x))
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 7] = time()
         x = relu(self.l1_2(x))
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 8] = time()
         x = relu(self.l1_3(x))
         x = self.dropout(x[:, :, 0, 0, 0])
 
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 9] = time()
         x = relu(self.l2_1(x))
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 10] = time()
         x = relu(self.l2_2(x))
         x = self.dropout(x)
 
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 11] = time()
         x = softmax(self.l_out(x), dim=1)
-        tc.cuda.synchronize()
+        
         timing_dec[sample_num, 12] = time()
 
         return x
