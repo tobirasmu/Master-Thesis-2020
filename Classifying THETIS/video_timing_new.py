@@ -58,7 +58,7 @@ for event in prof.function_events:
 
 import matplotlib.pyplot as plt
 plt.figure()
-plt.plot(dcmp_times[:, 3:] / 1000)
+plt.plot(dcmp_times[0, 3:] / 1000)
 plt.show()
 
 dcmp_times = dcmp_times[BURN_IN:]
@@ -93,6 +93,9 @@ orig_means = tc.mean(orig_times, dim=0) / 1000
 print(tc.mean(orig_times, dim=0) / 1000)
 
 # %% Printing the whole thing
+dcmp_times = dcmp_times[400:750]
+orig_times = orig_times[400:750]
+
 layer_groups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11]]
 layer_names = ["Conv 1", "Conv 2", "Linear 1", "Linear 2", "Linear 3"]
 print(f"{'':-^100}\n{'  Timing the Networks  ':-^100s}\n{'':-^100}")
