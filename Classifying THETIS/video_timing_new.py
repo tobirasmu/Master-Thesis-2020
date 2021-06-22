@@ -22,8 +22,8 @@ import torch.nn as nn
 import numpy as np
 from time import time
 
-SAMPLE_SIZE = 1000
-BURN_IN = SAMPLE_SIZE // 10
+SAMPLE_SIZE = 2
+BURN_IN = SAMPLE_SIZE // 1
 test = get_variable(Variable(tc.rand((1, 4, 28, 120, 160))))
 
 
