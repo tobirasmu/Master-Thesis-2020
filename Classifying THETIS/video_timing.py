@@ -3,7 +3,7 @@
     number of pushes. Before this a BURN_IN number of pushes is carried out and discarded.
 """
 
-HPC = True
+HPC = False
 
 import os
 
@@ -82,9 +82,21 @@ else:
     net.load_state_dict(
         tc.load("/home/tenra/PycharmProjects/Master-Thesis-2020/Trained networks/THETIS_new.pt"))
 
+netDec = compressNet(net)
+netDec(test, 0)
+# %% Profiling using torch.autograd.profiler
+with tc.autograd.profiler.profile(with_flops=True) as prof:
+    for _ in range(2):
+        netDec(test, 0)
+
+print(prof.key_averages().table())
+prof.export_chrome_trace("trace.json")
+
+# %% Get the individual times
+
+
 # %% Timing of the decomposed network
 # Compressing (and converting back to GPU)
-netDec = compressNet(net)
 
 # Ranks of the decomposition
 r1_c1 = netDec.c1[0].out_channels
@@ -150,10 +162,10 @@ class NetDec_timed(nn.Module):
         # Conv 1
         
         timing_dec[sample_num, 0] = time()
-        x = relu(self.c1_1(x))
+        x = self.c1_1(x)
         
         timing_dec[sample_num, 1] = time()
-        x = relu(self.c1_2(x))
+        x = self.c1_2(x)
         
         timing_dec[sample_num, 2] = time()
         x = relu(self.c1_3(x))
@@ -163,10 +175,10 @@ class NetDec_timed(nn.Module):
         # Conv 2
         
         timing_dec[sample_num, 3] = time()
-        x = relu(self.c2_1(x))
+        x = self.c2_1(x)
         
         timing_dec[sample_num, 4] = time()
-        x = relu(self.c2_2(x))
+        x = self.c2_2(x)
         
         timing_dec[sample_num, 5] = time()
         x = relu(self.c2_3(x))
@@ -175,10 +187,10 @@ class NetDec_timed(nn.Module):
 
         
         timing_dec[sample_num, 6] = time()
-        x = relu(self.l1_1(x))
+        x = self.l1_1(x)
         
         timing_dec[sample_num, 7] = time()
-        x = relu(self.l1_2(x))
+        x = self.l1_2(x)
         
         timing_dec[sample_num, 8] = time()
         x = relu(self.l1_3(x))
@@ -186,7 +198,7 @@ class NetDec_timed(nn.Module):
 
         
         timing_dec[sample_num, 9] = time()
-        x = relu(self.l2_1(x))
+        x = self.l2_1(x)
         
         timing_dec[sample_num, 10] = time()
         x = relu(self.l2_2(x))
