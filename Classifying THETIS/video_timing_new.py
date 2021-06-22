@@ -13,16 +13,11 @@ os.chdir(path)
 
 import torch as tc
 from tools.decomp import compressNet
-from tools.models import numFLOPsPerPush, numParamsByLayer, Specs, Net2, conv_dims, numParams
+from tools.models import numFLOPsPerPush, numParamsByLayer, Net2, numParams
 from tools.trainer import get_variable
 from torch.autograd import Variable
-from torch.nn import Conv3d, Linear, MaxPool3d, Dropout, Dropout3d
-from torch.nn.functional import relu, softmax
-import torch.nn as nn
-import numpy as np
-from time import time
 
-SAMPLE_SIZE = 1000
+SAMPLE_SIZE = 100
 BURN_IN = SAMPLE_SIZE // 10
 test = get_variable(Variable(tc.rand((1, 4, 28, 120, 160))))
 
@@ -56,11 +51,6 @@ for event in prof.function_events:
         else:
             j += 1
 
-import matplotlib.pyplot as plt
-plt.figure()
-plt.plot(dcmp_times[0, 3:] / 1000)
-plt.show()
-
 dcmp_times = dcmp_times[BURN_IN:]
 dcmp_means = tc.mean(dcmp_times, dim=0) / 1000
 print(tc.mean(dcmp_times, dim=0) / 1000)
@@ -83,22 +73,45 @@ for event in prof.function_events:
         else:
             j += 1
 
-import matplotlib.pyplot as plt
-plt.figure()
-plt.plot(orig_times[:, 1:] / 1000)
-plt.show()
-
 orig_times = orig_times[BURN_IN:]
 orig_means = tc.mean(orig_times, dim=0) / 1000
-print(tc.mean(orig_times, dim=0) / 1000)
 
-# %% Printing the whole thing
-dcmp_times = dcmp_times[400:750]
-orig_times = orig_times[400:750]
 
+# %% Assessing the theoretical speed-ups
+orig_parms = numParamsByLayer(net, which=[(0, 1), (2, 3), (4, 5), (6, 7), (8, 9)])
+comp_parms = numParamsByLayer(netDec, which=[(0, 1, 2, 3), (4, 5, 6, 7), (8, 9, 10, 11), (12, 13, 14), (15, 16)])
+layer_names = ["Conv 1", "Conv 2", "Linear 1", "Linear 2", "Linear 3"]
+
+print(f"{'':-^60s}\n{' Number of parameters ':-^60s}\n{'':-^60s}\n{'Layer': ^15s}{'Original': ^15s}{'Compressed': ^15s}"
+      f"{'Speed-up': ^15s}")
+for i in range(len(orig_parms)):
+    _, orig = orig_parms[i]
+    _, comp = comp_parms[i]
+    print(f"{layer_names[i]: ^15s}{orig: ^15d}{comp: ^15d}{orig / comp: ^15.2f}")
+print(f"{'':-^60s}\n{'Total': ^15s}{numParams(net): ^15d}{numParams(netDec): ^15d}"
+      f"{numParams(net) / numParams(netDec): ^15.2f}\n")
+
+
+input_shape = (28, 120, 160)
+FLOPs_orig = numFLOPsPerPush(net, input_shape, paddings=[1], pooling=[1, 2], pool_kernels=[(2, 4, 4), (2, 4, 4)])
+dcmp_layer_wise = numFLOPsPerPush(netDec, input_shape, paddings=[2], pooling=[3, 6],
+                                  pool_kernels=[(2, 4, 4), (2, 4, 4)])
+FLOPs_dcmp = tc.tensor([tc.sum(dcmp_layer_wise[0:3]), tc.sum(dcmp_layer_wise[3:6]), tc.sum(dcmp_layer_wise[6:9]),
+                        tc.sum(dcmp_layer_wise[9:11]), dcmp_layer_wise[11]])
+
+# Calculating layer-wise speed-ups
+theoretical_SP_layer = FLOPs_orig / FLOPs_dcmp
+print(f"{'':-^60s}\n{' Number of FLOPs ':-^60s}\n{'':-^60s}\n{'Layer': ^15s}{'Original': ^15s}{'Compressed': ^15s}"
+      f"{'Speed-up': ^15s}")
+for i in range(len(FLOPs_orig)):
+    print(f"{layer_names[i]: ^15s}{FLOPs_orig[i]: ^15d}{FLOPs_dcmp[i]: ^15d}{FLOPs_orig[i] / FLOPs_dcmp[i]: ^15.2f}")
+print(f"{'':-^60s}\n{'Total': ^15s}{sum(FLOPs_orig): ^15d}{sum(FLOPs_dcmp): ^15d}"
+      f"{sum(FLOPs_orig) / sum(FLOPs_dcmp): ^15.2f}")
+
+# %% Printing the observed speed-ups
 layer_groups = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11]]
 layer_names = ["Conv 1", "Conv 2", "Linear 1", "Linear 2", "Linear 3"]
-print(f"{'':-^100}\n{'  Timing the Networks  ':-^100s}\n{'':-^100}")
+print(f"{'':-^100}\n{'  Mean time  ':-^100s}\n{'':-^100}")
 print(f"\n{'Layer': ^20s}{'Original': ^20s}{'Compressed': ^40s}{'Speed-up': ^20s}\n{'':-^100s}")
 for i, orig in enumerate(orig_means):
     dcmp_comp = tc.sum(dcmp_means[layer_groups[i]])
@@ -111,4 +124,21 @@ for i, orig in enumerate(orig_means):
     sub += 1
     if len(layer_groups[i]) > 1:
         print(f"{'': ^60s}{dcmp_means[layer_groups[i][sub]]: ^20.4f}")
+    print(f"{'':-^100s}")
+
+orig_sds = tc.std(orig_times / 1000, dim=0)
+dcmp_sds = tc.std(dcmp_times / 1000, dim=0)
+print(f"\n\n{'':-^100}\n{'  Standard deviation  ':-^100s}\n{'':-^100}")
+print(f"\n{'Layer': ^25s}{'Original': ^25s}{'Compressed': ^50s}\n{'':-^100s}")
+for i, orig in enumerate(orig_sds):
+    dcmp_comp = tc.sqrt(tc.sum(dcmp_sds[layer_groups[i]] ** 2))
+    sub = 0
+    if len(layer_groups[i]) == 3:
+        print(f"{'': ^75s}{dcmp_sds[layer_groups[i][sub]]: ^25.4f}")
+        sub += 1
+    print(f"{layer_names[i]: ^25s}{orig: ^25.4f}{dcmp_comp: ^25.4f}"
+          f"{dcmp_sds[layer_groups[i][sub]]: ^25.4f}")
+    sub += 1
+    if len(layer_groups[i]) > 1:
+        print(f"{'': ^75s}{dcmp_sds[layer_groups[i][sub]]: ^25.4f}")
     print(f"{'':-^100s}")
