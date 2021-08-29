@@ -1,0 +1,153 @@
+%--------------------
+% Packages
+% ------------------
+
+%\usepackage[T2]{fontenc} - % måske noget med automatisk orddeling...
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{extdash}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\newcommand{\algorithmautorefname}{Algorithm}
+
+\usepackage[pdftex]{graphicx} % Required for including pictures
+\usepackage[english]{babel} % using english
+\usepackage[pdftex,linkcolor=black,pdfborder={0 0 0}]{hyperref} % Format links for pdf
+\usepackage{calc} % To reset the counter in the document after title page
+\usepackage{enumitem} % Includes lists
+\usepackage[table,xcdraw]{xcolor} % colors
+\usepackage{ctable}
+\usepackage{sectsty} % Sectionstyles
+\usepackage{titlesec}
+\usepackage{epstopdf}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption} % Bold label number
+\usepackage{subcaption}
+\counterwithin{figure}{section}
+\usepackage{wallpaper}
+\usepackage{hyperref}
+\usepackage{framed}
+\usepackage{multirow}
+
+%%% Spacing and margins
+\frenchspacing % No double spacing between sentences
+\linespread{1.2} % Set linespace
+\usepackage[top=3in, bottom=1.25in, left=1.25in, right=1.25in, headheight=25.0pt]{geometry}
+\usepackage{parskip}
+\setlength{\parindent}{1em}
+\usepackage{cleveref}
+
+\titleformat{\paragraph}
+{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+
+% References
+\usepackage[backend=biber,style=numeric,sorting=nty]{biblatex}
+\addbibresource{MasterThesis.bib}
+\usepackage{csquotes}
+
+%\usepackage[all]{nowidow} % Tries to remove widows
+%\usepackage[protrusion=true,expansion=true]{microtype} % Improves typography, load after fontpackage is selected
+
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+
+%-----------------------
+% Set pdf information and add title, fill in the fields
+%-----------------------
+\hypersetup{ 	
+pdfsubject = {Master Thesis},
+pdftitle = {MasterThesis2020},
+pdfauthor = {Tobias Engelhardt Rasmussen}
+}
+
+%--------------------
+% Setting up different page styles
+% ------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyheadoffset{0 cm}
+
+\usepackage{afterpage}
+% Blank-page page style
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{plain}%
+    %\addtocounter{page}{0}%
+    \newpage}
+% Emptyhead
+\fancypagestyle{emptyhead}{
+  \fancyhf{}
+  \fancyhead[L]{}
+  \fancyhead[R]{}
+  \cfoot{\thepage}
+}
+\fancypagestyle{emptyleft}{
+  \fancyhead[L]{}
+  \cfoot{\thepage}
+}
+\fancypagestyle{abstract}{
+  \fancyhead[R]{\huge \textbf{Abstract}}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{preface}{
+  \fancyhead[R]{\huge \textbf{Preface}}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{abbreviations}{
+  \fancyhead[L]{\huge \textbf{List of Abbreviations}}
+  \fancyhead[R]{}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{symbols}{
+ \fancyhead[L]{}
+ \fancyhead[R]{\huge \textbf{Nomenclature}}
+ \cfoot{\thepage}}
+
+\fancypagestyle{contents}{
+  \fancyhead[L]{}
+  \fancyhead[R]{\huge \textbf{Contents}}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{lof}{
+  \fancyhead[L]{\huge \textbf{List of Figures}}
+  \fancyhead[R]{}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{lot}{
+  \fancyhead[L]{}
+  \fancyhead[R]{\huge \textbf{List of Tables}}
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{references}{
+  \fancyhead[L]{}
+  \fancyhead[R]{\slshape\leftmark}%
+  \cfoot{\thepage}
+}
+
+\fancypagestyle{main}{%
+  \fancyhf{}%
+  \fancyhead[R]{\slshape\leftmark}%
+  \fancyhead[L]{\slshape\rightmark}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+  %\renewcommand{\footrulewidth}{0.4pt}%
+}
+
+
+
+
+
+
+% New commands  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bold symbols
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\tensor}{\mathcal}

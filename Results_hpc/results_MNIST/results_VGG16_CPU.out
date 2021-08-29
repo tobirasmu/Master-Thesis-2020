@@ -1,0 +1,8 @@
+------------------------------------------------------------
+---------------- Timing the VGG-16 network -----------------
+------------------------------------------------------------
+
+Time for the VGG-16 network was 3.5151867866516113 +- 0.013720624148845673 second, while the decomposed version took 1.9344402551651 +- 0.006974826101213694 seconds
+Theoretical speed-up is 5.5527 while the observed speed-up is 1.82
+FLOPs:  tensor(30927118908) tensor(5569740993)
+Weights:  138357544 22753340
