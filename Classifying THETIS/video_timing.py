@@ -13,13 +13,15 @@ os.chdir(path)
 
 import torch as tc
 from video_networks import compressNet
-from video_functions import numFLOPsPerPush, get_variable
+from tools.models import numFLOPsPerPush, numParamsByLayer, numParams
+from tools.trainer import get_variable
+from tools.models import Specs
 from torch.autograd import Variable
-from torch.nn import Conv3d, Linear, MaxPool3d, Sequential
+from torch.nn import Conv3d, Linear, MaxPool3d, Sequential, Dropout3d, Dropout
 from torch.nn.functional import relu, softmax
 import torch.nn as nn
 import numpy as np
-from time import process_time
+from time import time
 
 NUM_OBS = 10
 SAMPLE_SIZE = 1000
@@ -87,21 +89,21 @@ class Net_timed(nn.Module):
         self.l_out = Linear(in_features=l2_features, out_features=l_out_features)
 
     def forward(self, x, sample_num):
-        timing[sample_num, 0] = process_time()
+        timing[sample_num, 0] = time()
         x = relu(self.c1(x))
         x = self.pool3d(x)
-        timing[sample_num, 1] = process_time()
+        timing[sample_num, 1] = time()
         x = relu(self.c2(x))
         x = self.pool3d(x)
-        timing[sample_num, 2] = process_time()
+        timing[sample_num, 2] = time()
         x = tc.flatten(x, 1)
 
         x = relu(self.l1(x))
-        timing[sample_num, 3] = process_time()
+        timing[sample_num, 3] = time()
         x = relu(self.l2(x))
-        timing[sample_num, 4] = process_time()
+        timing[sample_num, 4] = time()
         x = softmax(self.l_out(x), dim=1)
-        timing[sample_num, 5] = process_time()
+        timing[sample_num, 5] = time()
         return x
 
 
@@ -362,7 +364,7 @@ print("FLOPS orig: ", FLOPs_orig)
 print("FLOPS dcmp: ", FLOPs_dcmp)
 print("FLOPs dcmp 2: ", dcmp_layer_wise)
 print("Full time orig {} +- {} and compressed {} +- {}".format(full_time_m * 1000, full_time_s * 1000,
-                                                               full_time_dec_m * 1000, full_time_dec_s * 1000)
+                                                               full_time_dec_m * 1000, full_time_dec_s * 1000))
 print("Time orig: ", times_m * 1000, times_s * 1000)
 print("Layer time dcmp: ", times_dec_m * 1000, times_dec_s * 1000)
 print("Layer time dcmp comp: ", comp_m * 1000, times_dec_s * 1000)
