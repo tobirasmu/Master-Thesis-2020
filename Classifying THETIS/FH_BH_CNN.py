@@ -29,6 +29,7 @@ from tools.models import Net, Net2
 tl.set_backend('pytorch')
 
 # %% Loading the data
+
 t = time()
 directory = "/zhome/2a/c/108156/Data_MSc/" if HPC else "/home/tenra/PycharmProjects/Data Master/"
 X, Y = tc.load(directory + "data.pt")
@@ -36,13 +37,11 @@ X, Y = tc.load(directory + "data.pt")
 print("Took {:.2f} seconds to load the data".format(time() - t))
 
 # %% Trying with a CNN to classify the tennis shots in the two groups
-
 N, channels, frames, height, width = X.shape
 nTrain = int(0.85 * N)
 
 # Initializing the CNN
 net = Net2(channels, frames, height, width)
-
 # Converting to cuda if available
 if tc.cuda.is_available():
     print("----  Network converted to CUDA  ----\n")
@@ -113,3 +112,4 @@ print("{: ^20.4f}{: ^20d}{: ^20d}\n{:-^60}\n".format(LEARNING_RATE, BATCH_SIZE, 
 train(X[:nTrain], Y[:nTrain])
 if HPC:
     tc.save(net.cpu().state_dict(), "/zhome/2a/c/108156/Outputs/trained_network.pt")
+

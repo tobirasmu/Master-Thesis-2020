@@ -90,3 +90,4 @@ if __name__=="__main__":
     train(X[:nTrain], Y[:nTrain])
     if HPC:
         tc.save(netDec.cpu().state_dict(), "/zhome/2a/c/108156/Outputs/trained_network_dcmp.pt")
+
