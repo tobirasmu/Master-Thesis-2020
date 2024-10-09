@@ -9,7 +9,7 @@ The project aims at assessing possible synergistic effects between tensor decomp
 The project will implement tensor decompositions, such as TUCKER and/or PARAFAC, prior/within a chosen CNN architecture. Initially, a simple (image) data set will be simulated to test the methodology under well controlled conditions. In a second step, a suitable data set (from state-of-the-art papers) will be selected to assess and benchmark the developed TNNs against state-of-the-art performance(s).
 
 ## Supervisors
-- Andreas Baum, DTU
-- Line Katrine Harder Clemmensen, DTU
+- Andreas Baum, Associate Professor at DTU
+- Line Katrine Harder Clemmensen, Associate Professor at DTU
 
 ### Period: 31. August 2020 - 12. February 2021
